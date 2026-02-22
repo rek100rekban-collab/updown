@@ -785,24 +785,43 @@ function App() {
     const players = Object.entries(data.players);
     const totalBet = players.reduce((s, [, p]) => s + p.bet, 0);
 
-    // Determine which sector the ball is in (angle from center)
+    // Determine which sector the ball is in (angle from center, 0–360)
     const dx = finalX - 50;
     const dy = finalY - 50;
     let angle = Math.atan2(dy, dx) * 180 / Math.PI;
     if (angle < 0) angle += 360;
 
     // Match angle to player sector (sorted by timestamp = order of joining)
+    // Sectors go around the full 360° without gaps; if ball is exactly on border, оно идёт к следующему сектору по кругу
     let currentAngle = 0;
     let winner = null;
     const sorted = players.sort((a, b) => a[1].timestamp - b[1].timestamp);
-    for (const [id, p] of sorted) {
+    sorted.forEach(([id, p], index) => {
+      if (winner) return;
       const sector = (p.bet / totalBet) * 360;
-      if (angle >= currentAngle && angle < currentAngle + sector) {
-        winner = { id, ...p };
-        break;
+      const start = currentAngle;
+      const end = currentAngle + sector;
+
+      // Нормализуем угол шара в диапазон [0, 360)
+      let a = angle % 360;
+      if (a < 0) a += 360;
+
+      // Проверяем попадание в сектор, учитывая последний сектор, который "добивает" до 360°
+      if (index === sorted.length - 1) {
+        // последний сектор забирает всё, что осталось
+        if (a >= start || a < (end % 360)) {
+          winner = { id, ...p };
+        }
+      } else {
+        if (a >= start && a < end) {
+          winner = { id, ...p };
+        }
       }
-      currentAngle += sector;
-    }
+
+      currentAngle = end;
+    });
+
+    // На всякий случай, если по какой-то причине не нашли (например, числовые артефакты) — берём первого
     if (!winner) winner = { id: sorted[0][0], ...sorted[0][1] };
 
     // Pick bonus prize
@@ -814,7 +833,7 @@ function App() {
       if (rand <= cum) { wonPrize = prize; break; }
     }
 
-    const winAmount = Math.floor(totalBet * 0.40);
+    const winAmount = Math.floor(totalBet * 0.65);
 
     await lobbyRef.update({
       status: 'finished',
@@ -1365,7 +1384,7 @@ function App() {
             <div className="glass rounded-xl p-4 mb-3 text-center border border-gray-500/30">
               <div className="text-4xl mb-2">😔</div>
               <div className="font-bold text-gray-300">Победил {iceLobby?.winner?.name}</div>
-              <div className="text-gray-400 text-xs mt-1 mb-3">Банк: {totalBank}⭐️ → победитель получил {Math.floor(totalBank * 0.4)}⭐️</div>
+              <div className="text-gray-400 text-xs mt-1 mb-3">Банк: {totalBank}⭐️ → победитель получил {Math.floor(totalBank * 0.65)}⭐️</div>
               <button onClick={exitLobbyNonWinner} className="w-full bg-gray-600 hover:bg-gray-500 py-2.5 rounded-xl font-bold transition text-sm">
                 Выйти из лобби
               </button>
