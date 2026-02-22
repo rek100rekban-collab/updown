@@ -20,15 +20,17 @@ colors: { primary: '#6366f1', secondary: '#8b5cf6', accent: '#f59e0b', ice: '#00
 }
 </script>
 <style>
-@keyframes spin-slow { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
 .roulette-container { position: relative; width: 100%; height: 160px; overflow: hidden; background: rgba(0,0,0,0.4); border-radius: 16px; border: 2px solid rgba(255,255,255,0.1); margin: 20px 0; }
 .roulette-inner { display: flex; position: absolute; left: 0; top: 20px; transition: transform 6.5s cubic-bezier(0.15, 0, 0.15, 1); will-change: transform; }
-.roulette-item { width: 120px; height: 120px; flex-shrink: 0; margin: 0 8px; display: flex; align-items: center; justify-content: center; font-size: 3.5rem; background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05)); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); }
+.roulette-item { width: 120px; height: 120px; flex-shrink: 0; margin: 0 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05)); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); }
 .roulette-item .emoji { font-size: 3.5rem; }
-.roulette-item .name { font-size: 12px; opacity: 0.7; text-align: center; margin-top: 5px; }
+.roulette-item .name { font-size: 11px; opacity: 0.8; text-align: center; margin-top: 4px; }
 .roulette-pointer { position: absolute; left: 50%; top: 0; bottom: 0; width: 4px; background: #ff4757; z-index: 20; transform: translateX(-50%); box-shadow: 0 0 20px #ff4757; }
+.roulette-pointer::before { content: ''; position: absolute; top: -5px; left: 50%; transform: translateX(-50%); border-left: 10px solid transparent; border-right: 10px solid transparent; border-top: 15px solid #ff4757; }
+.roulette-pointer::after { content: ''; position: absolute; bottom: -5px; left: 50%; transform: translateX(-50%); border-left: 10px solid transparent; border-right: 10px solid transparent; border-bottom: 15px solid #ff4757; }
 .glass { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); }
+.line-through { text-decoration: line-through; opacity: 0.5; }
 .fullscreen-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 100; overflow-y: auto; }
 .ice-circle { width: 320px; height: 320px; border-radius: 50%; border: 4px solid rgba(0,210,255,0.5); position: relative; overflow: hidden; background: radial-gradient(circle, rgba(0,210,255, 0%), rgba(0,128,255,0.2) 160px, rgba(0,128,255,0.4) 100%); box-shadow: 0 0 30px rgba(0,210,255,0.3); }
 .ice-ball { position: absolute; width: 40px; height: 40px; background: radial-gradient(circle at 30% 30%, #fff, #00d2ff); border-radius: 50%; box-shadow: 0 0 20px rgba(0,210,255,0.8); z-index: 10; transform: translate(-50%, -50%); border: 2px solid rgba(255,255,255,0.5); transition: left 0.025s linear, top 0.025s linear; }
@@ -141,6 +143,7 @@ collector: [
 { id: 'bird_pro', name: '🦅Rare bird', displayChance: '0.5%', realChance: 0, type: 'collectible', emoji: '🦅' }
 ]
 };
+
 const INITIAL_CASES = {
 cardboard: { id: 'cardboard', name: 'Картон', emoji: '📦', price: 3, color: 'from-amber-800 to-amber-900', locked: false, isNew: true, freeCount: 0 },
 coal: { id: 'coal', name: 'Уголёк', emoji: '🪨', price: 22, originalPrice: 22, discountPrice: 20, color: 'from-gray-600 to-gray-800', locked: false, isNew: false, freeCount: 0 },
@@ -153,6 +156,7 @@ winter: { id: 'winter', name: 'Зимний', emoji: '☃️', price: 125, origi
 major: { id: 'major', name: 'Мажор', emoji: '🤴', price: 800, color: 'from-purple-500 to-indigo-700', locked: true, isNew: false, freeCount: 0 },
 collector: { id: 'collector', name: 'Коллекционер', emoji: '🎩', price: 650, color: 'from-rose-600 to-pink-800', locked: true, isNew: true, freeCount: 0 }
 };
+
 const ICE_ARENA_PRIZES = [
 { id: 'bear', name: '🧸 Мишка', chance: 40, type: 'item', sellPrice: 20, emoji: '🧸' },
 { id: 'gloves', name: '🧤 Варежки', chance: 30, type: 'item', sellPrice: 50, emoji: '🧤' },
@@ -165,6 +169,7 @@ const ICE_ARENA_PRIZES = [
 { id: 'scarf', name: '🧣 Зимнее сокровище', chance: 0.5, type: 'collectible', emoji: '🧣' },
 { id: 'dellko', name: '🔑 Promocode DELLKO', chance: 0.5, type: 'promo', code: 'DELLKO', emoji: '🔑' }
 ];
+
 const TON_RATES = [ { stars: 50, ton: 0.6 }, { stars: 250, ton: 3 }, { stars: 500, ton: 6 }, { stars: 1000, ton: 12 } ];
 const STARS_PACKAGES = [ { stars: 50, price: 50, name: '50 звезд' }, { stars: 100, price: 100, name: '100 звезд' }, { stars: 250, price: 250, name: '250 звезд' }, { stars: 500, price: 500, name: '500 звезд' }, { stars: 1000, price: 1000, name: '1000 звезд' } ];
     function App() {
@@ -220,6 +225,7 @@ const [freeEliteSpin, setFreeEliteSpin] = useState(0);
 const [rouletteOffset, setRouletteOffset] = useState(0);
 const [fakeItems, setFakeItems] = useState([]);
 const [icePlayerCount, setIcePlayerCount] = useState(0);
+const [rouletteKey, setRouletteKey] = useState(0);
 
 useEffect(() => {
 const initApp = async () => {
@@ -482,10 +488,13 @@ setBalance(newBalanceAfterPurchase);
 await db.ref('users/' + user.id + '/balance').set(newBalanceAfterPurchase);
 }
 
+// === ИСПРАВЛЕННАЯ АНИМАЦИЯ ===
 setIsSpinning(true);
 setSelectedCase({ ...cases[caseType], id: caseType });
 setSpinResult(null);
 setRouletteOffset(0);
+setFakeItems([]);
+setRouletteKey(prev => prev + 1);
 
 const items = CASE_REWARDS[caseType];
 const rand = Math.random() * 100;
@@ -493,16 +502,22 @@ let cum = 0, won = items[0];
 for (const item of items) { cum += item.realChance; if (rand <= cum) { won = item; break; } }
 
 const tape = [];
-for(let i=0; i<80; i++) tape.push(items[Math.floor(Math.random()*items.length)]);
-tape[70] = won;
-setFakeItems(tape);
+for(let i = 0; i < 80; i++) {
+if (i === 70) { tape.push(won); }
+else { tape.push(items[Math.floor(Math.random() * items.length)]); }
+}
 
-const itemFullWidth = 136;
-const jitter = Math.floor(Math.random() * 60) - 30;
-const targetPos = (70 * itemFullWidth) + (itemFullWidth/2) - (window.innerWidth/2) + jitter;
+const itemWidth = 120;
+const itemMargin = 8;
+const itemFullWidth = itemWidth + (itemMargin * 2);
+const containerCenter = window.innerWidth / 2;
+const targetPos = (70 * itemFullWidth) + (itemFullWidth / 2) - containerCenter;
 
 setTimeout(() => {
+setFakeItems(tape);
+setTimeout(() => {
 setRouletteOffset(-targetPos);
+}, 100);
 }, 100);
 
 setTimeout(async () => {
@@ -515,7 +530,7 @@ await db.ref(`users/${user.id}/balance`).set(finalBalance);
 } else {
 await addToInventory(won);
 }
-}, 6500);
+}, 6600);
 };
 
 const addToInventory = async (item) => { if (inventory.length < inventorySlots) { const newItem = { ...item, uniqueId: Date.now(), collected: Date.now() }; const newInventory = [...inventory, newItem]; setInventory(newInventory); await db.ref(`users/${user.id}/inventory`).set(newInventory); } else { alert('Инвентарь полон!'); } };
@@ -802,10 +817,55 @@ return (
 {selectedCase && (
 <div className="fullscreen-modal flex items-center justify-center p-4">
 <div className="w-full max-w-lg">
-<div className="flex justify-between items-center mb-6"><h3 className="text-3xl font-bold">{selectedCase.emoji} {selectedCase.name}</h3><button onClick={() => {setSelectedCase(null); setSpinResult(null);}} className="text-3xl hover:text-red-400 transition">&times;</button></div>
-<div className="roulette-container mb-8"><div className="roulette-pointer"></div><div className="roulette-inner" style={{ transform: `translateX(${rouletteOffset}px)` }}>{fakeItems.map((item, i) => (<div key={i} className="roulette-item"><div className="emoji">{item.emoji}</div><div className="name">{item.name}</div></div>))}</div></div>
-<div className="glass rounded-xl p-4 mb-6 max-h-48 overflow-y-auto"><p className="font-bold mb-2 text-center text-lg">Возможные награды:</p><div className="space-y-1 text-sm">{CASE_REWARDS[selectedCase.id].map((reward, idx) => (<div key={idx} className="flex justify-between py-1 border-b border-white/10 last:border-0"><span className="flex items-center gap-2">{reward.emoji} {reward.name}</span><span className="text-yellow-400 font-bold">{reward.displayChance}</span></div>))}</div></div>
-{spinResult ? (<div className="text-center"><p className="text-2xl font-bold mb-2">Выпало: {spinResult.name}!</p>{spinResult.type === 'collectible' && <p className="text-sm text-yellow-400 mb-4">⭐️ Коллекционный предмет!</p>}<button onClick={() => setSpinResult(null)} className="w-full bg-green-600 hover:bg-green-500 py-4 rounded-xl font-bold text-xl mb-2 transition">Забрать и открыть ещё</button><button onClick={() => {setSelectedCase(null); setSpinResult(null);}} className="w-full bg-gray-600 hover:bg-gray-500 py-3 rounded-xl font-bold transition">Вернуться к кейсам</button></div>) : (<button onClick={() => openCase(selectedCase.id)} disabled={isSpinning} className="w-full bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 py-4 rounded-xl font-bold text-xl disabled:opacity-50 shadow-lg transition">{isSpinning ? 'Крутим...' : `Открыть за ${getCasePrice(selectedCase.id) === 0 ? 'Бесплатно' : getCasePrice(selectedCase.id) + ' ⭐️'}`}</button>)}
+<div className="flex justify-between items-center mb-6">
+<h3 className="text-3xl font-bold">{selectedCase.emoji} {selectedCase.name}</h3>
+<button onClick={() => {setSelectedCase(null); setSpinResult(null); setFakeItems([]);}} className="text-3xl hover:text-red-400 transition">&times;</button>
+</div>
+
+<div key={rouletteKey} className="roulette-container mb-8">
+<div className="roulette-pointer"></div>
+<div className="roulette-inner" style={{ transform: `translateX(${rouletteOffset}px)` }}>
+{fakeItems.length > 0 ? (
+fakeItems.map((item, i) => (
+<div key={i} className="roulette-item">
+<div className="emoji">{item.emoji}</div>
+<div className="name">{item.name}</div>
+</div>
+))
+) : (
+[...Array(80)].map((_, i) => (
+<div key={i} className="roulette-item">
+<div className="emoji">❓</div>
+</div>
+))
+)}
+</div>
+</div>
+
+<div className="glass rounded-xl p-4 mb-6 max-h-48 overflow-y-auto">
+<p className="font-bold mb-2 text-center text-lg">Возможные награды:</p>
+<div className="space-y-1 text-sm">
+{CASE_REWARDS[selectedCase.id].map((reward, idx) => (
+<div key={idx} className="flex justify-between py-1 border-b border-white/10 last:border-0">
+<span className="flex items-center gap-2">{reward.emoji} {reward.name}</span>
+<span className="text-yellow-400 font-bold">{reward.displayChance}</span>
+</div>
+))}
+</div>
+</div>
+
+{spinResult ? (
+<div className="text-center">
+<p className="text-2xl font-bold mb-2">Выпало: {spinResult.name}!</p>
+{spinResult.type === 'collectible' && <p className="text-sm text-yellow-400 mb-4">⭐️ Коллекционный предмет!</p>}
+<button onClick={() => setSpinResult(null)} className="w-full bg-green-600 hover:bg-green-500 py-4 rounded-xl font-bold text-xl mb-2 transition">Забрать и открыть ещё</button>
+<button onClick={() => {setSelectedCase(null); setSpinResult(null); setFakeItems([]);}} className="w-full bg-gray-600 hover:bg-gray-500 py-3 rounded-xl font-bold transition">Вернуться к кейсам</button>
+</div>
+) : (
+<button onClick={() => openCase(selectedCase.id)} disabled={isSpinning} className="w-full bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 py-4 rounded-xl font-bold text-xl disabled:opacity-50 shadow-lg transition">
+{isSpinning ? 'Крутим...' : `Открыть за ${getCasePrice(selectedCase.id) === 0 ? 'Бесплатно' : getCasePrice(selectedCase.id) + ' ⭐️'}`}
+</button>
+)}
 </div>
 </div>
 )}
