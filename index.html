@@ -65,6 +65,7 @@ tailwind.config = {
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 <script type="text/babel">
 const { useState, useEffect, useRef, useCallback } = React;
+
 const firebaseConfig = {
   apiKey: "AIzaSyDZPRiByz69HQa8b7GFMCJeqq56J3Y-bOY",
   authDomain: "step-by-step-279df.firebaseapp.com",
@@ -80,6 +81,7 @@ const TelegramWebApp = window.Telegram?.WebApp;
 const ADMIN_WALLET = 'UQAWqaIPFSg81l9MlgAx0HBE9o3gpJMhk1dnyryKJXhWNHIc';
 const TONCENTER_API = 'https://toncenter.com/api/v2';
 const BOT_TOKEN = '8325421899:AAHRdmMYdjJMXmAVIynDsQtpUNsSeKkaOis';
+
 // Случайный цвет для игрока
 const PLAYER_COLORS = [
   '#FF6B6B','#FF9F43','#FFEAA7','#55EFC4','#74B9FF',
@@ -89,6 +91,7 @@ const PLAYER_COLORS = [
 function getRandomColor() {
   return PLAYER_COLORS[Math.floor(Math.random() * PLAYER_COLORS.length)];
 }
+
 const CASE_REWARDS = {
   cardboard: [
     { id: 'stars_0_25', name: '0.25 ⭐️', displayChance: '80%', realChance: 80, type: 'stars', value: 0.25, emoji: '⭐️' },
@@ -170,6 +173,7 @@ const CASE_REWARDS = {
     { id: 'bird_pro', name: '🦅 Rare bird', displayChance: '0.5%', realChance: 0, type: 'collectible', emoji: '🦅' }
   ]
 };
+
 const INITIAL_CASES = {
   cardboard: { id: 'cardboard', name: 'Картон', emoji: '📦', price: 3, color: 'from-amber-800 to-amber-900', locked: false, isNew: true, freeCount: 0 },
   coal: { id: 'coal', name: 'Уголёк', emoji: '🪨', price: 22, originalPrice: 22, discountPrice: 20, color: 'from-gray-600 to-gray-800', locked: false, isNew: false, freeCount: 0 },
@@ -182,6 +186,7 @@ const INITIAL_CASES = {
   major: { id: 'major', name: 'Мажор', emoji: '🤴', price: 800, color: 'from-purple-500 to-indigo-700', locked: true, isNew: false, freeCount: 0 },
   collector: { id: 'collector', name: 'Коллекционер', emoji: '🎩', price: 650, color: 'from-rose-600 to-pink-800', locked: true, isNew: true, freeCount: 0 }
 };
+
 const ICE_ARENA_PRIZES = [
   { id: 'bear', name: '🧸 Мишка', chance: 40, type: 'item', sellPrice: 20, emoji: '🧸' },
   { id: 'gloves', name: '🧤 Варежки', chance: 30, type: 'item', sellPrice: 50, emoji: '🧤' },
@@ -194,11 +199,13 @@ const ICE_ARENA_PRIZES = [
   { id: 'scarf', name: '🧣 Зимнее сокровище', chance: 0.5, type: 'collectible', emoji: '🧣' },
   { id: 'dellko', name: '🔑 Promocode DELLKO', chance: 0.5, type: 'promo', code: 'DELLKO', emoji: '🔑' }
 ];
+
 const TON_RATES = [{ stars: 50, ton: 0.6 }, { stars: 250, ton: 3 }, { stars: 500, ton: 6 }, { stars: 1000, ton: 12 }];
 const STARS_PACKAGES = [
   { stars: 50, price: 50 }, { stars: 100, price: 100 },
   { stars: 250, price: 250 }, { stars: 500, price: 500 }, { stars: 1000, price: 1000 }
 ];
+
 // Дефолтное состояние лобби
 const DEFAULT_LOBBY = {
   status: 'waiting',
@@ -214,6 +221,7 @@ const DEFAULT_LOBBY = {
   finalBall: null,
   gameStartedAt: null
 };
+
 function App() {
   const [currentScreen, setCurrentScreen] = useState('cases');
   const [balance, setBalance] = useState(0);
@@ -228,6 +236,7 @@ function App() {
   });
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+
   // Roulette
   const [selectedCase, setSelectedCase] = useState(null);
   const [isSpinning, setIsSpinning] = useState(false);
@@ -236,6 +245,7 @@ function App() {
   const [fakeItems, setFakeItems] = useState([]);
   const [rouletteKey, setRouletteKey] = useState(0);
   const rouletteContainerRef = useRef(null);
+
   // UI modals
   const [showTopUp, setShowTopUp] = useState(false);
   const [promoCode, setPromoCode] = useState('');
@@ -263,30 +273,36 @@ function App() {
   const [paymentStatus, setPaymentStatus] = useState('');
   const [totalDeposits, setTotalDeposits] = useState(0);
   const [freeEliteSpin, setFreeEliteSpin] = useState(0);
+
   // Ice Arena
   const [currentGame, setCurrentGame] = useState(null);
   const [iceLobby, setIceLobby] = useState(null);
   const [gameStatus, setGameStatus] = useState('waiting');
   const [ballPos, setBallPos] = useState({ x: 50, y: 50 });
   const [timerRemaining, setTimerRemaining] = useState(0);
+
   // Локальное состояние игрока
   const [myBet, setMyBet] = useState(25);
   const [myBetInput, setMyBetInput] = useState(25);
   const [hasBet, setHasBet] = useState(false);
   const [isReady, setIsReady] = useState(false);
   const [myColor, setMyColor] = useState('');
+
   // Счётчики
   const [presenceCount, setPresenceCount] = useState(0);
   const [bettingCount, setBettingCount] = useState(0);
   const [readyCount, setReadyCount] = useState(0);
+
   // Победный экран
   const [showVictoryBox, setShowVictoryBox] = useState(false);
   const [victoryStars, setVictoryStars] = useState(0);
   const [victoryPrize, setVictoryPrize] = useState(null);
   const [boxOpened, setBoxOpened] = useState(false);
   const [prizeClaimedLocal, setPrizeClaimedLocal] = useState(false);
+
   const gameIntervalRef = useRef(null);
   const countdownRef = useRef(null);
+
   // ===== INIT =====
   useEffect(() => {
     const initApp = async () => {
@@ -345,6 +361,7 @@ function App() {
     };
     initApp();
   }, []);
+
   // Online presence
   useEffect(() => {
     if (!user?.id) return;
@@ -356,6 +373,7 @@ function App() {
     });
     return () => ref.remove();
   }, [user?.id]);
+
   // Auto-save
   useEffect(() => {
     if (!user?.id || isLoading) return;
@@ -364,27 +382,34 @@ function App() {
     }, 5000);
     return () => clearInterval(iv);
   }, [balance, cases, inventory, tasks, inventorySlots, usedPromos, wonPromos, user?.id, isLoading, totalDeposits, freeEliteSpin]);
+
   // ===== LOBBY LISTENER =====
   useEffect(() => {
     if (!currentGame?.lobbyId || !user?.id) return;
     const lobbyId = currentGame.lobbyId;
     const lobbyRef = db.ref('iceLobbies/' + lobbyId);
+
     lobbyRef.on('value', snap => {
       const data = snap.val();
       if (!data) return;
       setIceLobby(data);
+
       const status = data.status || 'waiting';
       setGameStatus(status);
+
       // Presence count
       const presCount = data.presence ? Object.keys(data.presence).length : 0;
       setPresenceCount(presCount);
+
       // Players (with bets)
       const players = data.players || {};
       const bCount = Object.keys(players).length;
       setBettingCount(bCount);
+
       // Ready count
       const rCount = data.readyPlayers ? Object.keys(data.readyPlayers).length : 0;
       setReadyCount(rCount);
+
       // Sync my bet state
       if (players[user.id]) {
         setHasBet(true);
@@ -398,14 +423,17 @@ function App() {
           setIsReady(false);
         }
       }
+
       // Ready status
       if (data.readyPlayers?.[user.id]) {
         setIsReady(true);
       } else if (status === 'open') {
         setIsReady(false);
       }
+
       // Ball position
       if (data.ballPosition) setBallPos(data.ballPosition);
+
       // Countdown timer
       if (data.countdownEnd && status === 'countdown') {
         const rem = Math.max(0, Math.ceil((data.countdownEnd - Date.now()) / 1000));
@@ -413,6 +441,7 @@ function App() {
       } else {
         setTimerRemaining(0);
       }
+
       // Victory screen for winner
       if (status === 'finished' && data.winner?.id === user.id) {
         if (!data.prizeClaimed?.[user.id] && !prizeClaimedLocal) {
@@ -422,11 +451,13 @@ function App() {
           setBoxOpened(false);
         }
       }
+
       // If game finished and I'm not winner, show exit option after delay
       if (status === 'finished' && data.winner && data.winner.id !== user.id) {
         // Non-winners see result and can exit
       }
     });
+
     return () => {
       lobbyRef.off();
       // Remove presence on unmount
@@ -435,6 +466,7 @@ function App() {
       }
     };
   }, [currentGame?.lobbyId, user?.id]);
+
   // Countdown tick
   useEffect(() => {
     if (gameStatus !== 'countdown') { setTimerRemaining(0); return; }
@@ -446,6 +478,7 @@ function App() {
     }, 1000);
     return () => clearInterval(iv);
   }, [gameStatus]);
+
   // ===== JOIN LOBBY =====
   const joinIceLobby = async (lobbyId) => {
     if (!user?.id) return;
@@ -453,9 +486,11 @@ function App() {
     const snap = await lobbyRef.once('value');
     const data = snap.val() || {};
     const status = data.status || 'waiting';
+
     // Generate color for this player
     const color = myColor || getRandomColor();
     setMyColor(color);
+
     // If game is playing or countdown — spectator
     if (status === 'playing' || status === 'countdown') {
       // Check if I had a bet (reconnecting player)
@@ -470,17 +505,21 @@ function App() {
       presRef.onDisconnect().remove();
       return;
     }
+
     // Reset victory states
     setShowVictoryBox(false);
     setBoxOpened(false);
     setPrizeClaimedLocal(false);
     setHasBet(false);
     setIsReady(false);
+
     // Add to presence
     const presRef = db.ref('iceLobbies/' + lobbyId + '/presence/' + user.id);
     await presRef.set({ name: user.name, avatar: user.avatar || null, joinedAt: Date.now(), color });
     presRef.onDisconnect().remove();
+
     setCurrentGame({ type: 'ice', lobbyId, spectator: false });
+
     // Check presence count → maybe open betting
     const snap2 = await db.ref('iceLobbies/' + lobbyId).once('value');
     const data2 = snap2.val() || {};
@@ -489,13 +528,16 @@ function App() {
       await lobbyRef.update({ status: 'open' });
     }
   };
+
   // ===== LEAVE LOBBY =====
   const leaveIceLobby = async () => {
     if (!currentGame?.lobbyId || !user?.id) { setCurrentGame(null); return; }
     const lobbyId = currentGame.lobbyId;
     const lobbyRef = db.ref('iceLobbies/' + lobbyId);
+
     // Remove from presence
     await db.ref('iceLobbies/' + lobbyId + '/presence/' + user.id).remove();
+
     // If had a bet and game not started — refund
     if (hasBet) {
       const snap = await lobbyRef.once('value');
@@ -509,6 +551,7 @@ function App() {
         await db.ref('iceLobbies/' + lobbyId + '/readyPlayers/' + user.id).remove();
       }
     }
+
     // Check remaining presence — maybe revert to waiting
     const snap2 = await lobbyRef.once('value');
     const data2 = snap2.val() || {};
@@ -516,26 +559,32 @@ function App() {
     if (presCount < 2 && (data2.status === 'open')) {
       await lobbyRef.update({ status: 'waiting', readyPlayers: {} });
     }
+
     setCurrentGame(null);
     setHasBet(false);
     setIsReady(false);
     setShowVictoryBox(false);
     setPrizeClaimedLocal(false);
   };
+
   // ===== PLACE BET =====
   const placeBet = async () => {
     if (gameStatus !== 'open') { alert('Ставки сейчас недоступны!'); return; }
     if (myBetInput < 25) { alert('Минимальная ставка 25⭐️!'); return; }
     if (balance < myBetInput) { alert('Недостаточно звёзд!'); return; }
+
     const lobbyRef = db.ref('iceLobbies/' + currentGame.lobbyId);
     const snap = await lobbyRef.once('value');
     const data = snap.val() || {};
     if (data.status !== 'open') { alert('Ставки закрыты!'); return; }
+
     const newBal = balance - myBetInput;
     setBalance(newBal);
     await db.ref('users/' + user.id + '/balance').set(newBal);
+
     const color = myColor || getRandomColor();
     setMyColor(color);
+
     await lobbyRef.child('players/' + user.id).set({
       name: user.name,
       avatar: user.avatar || null,
@@ -543,45 +592,58 @@ function App() {
       color,
       timestamp: Date.now()
     });
+
     setMyBet(myBetInput);
     setHasBet(true);
   };
+
   // ===== CHANGE BET =====
   const changeBet = async () => {
     if (gameStatus !== 'open') { alert('Сейчас нельзя менять ставку!'); return; }
     if (myBetInput < 25) { alert('Минимальная ставка 25⭐️!'); return; }
+
     const lobbyRef = db.ref('iceLobbies/' + currentGame.lobbyId);
     const snap = await lobbyRef.once('value');
     const data = snap.val() || {};
+
     if (!data.players?.[user.id]) return;
+
     const oldBet = data.players[user.id].bet;
     // Return old bet, charge new bet
     const balAfterReturn = balance + oldBet;
     if (balAfterReturn < myBetInput) { alert('Недостаточно звёзд!'); return; }
+
     const newBal = balAfterReturn - myBetInput;
     setBalance(newBal);
     await db.ref('users/' + user.id + '/balance').set(newBal);
+
     await lobbyRef.child('players/' + user.id).update({
       bet: myBetInput,
       timestamp: Date.now()
     });
+
     setMyBet(myBetInput);
     // Reset ready status
     await lobbyRef.child('readyPlayers/' + user.id).remove();
     setIsReady(false);
   };
+
   // ===== TOGGLE READY =====
   const toggleReady = async () => {
     if (!hasBet) { alert('Сначала сделайте ставку!'); return; }
     if (gameStatus !== 'open') return;
+
     const lobbyRef = db.ref('iceLobbies/' + currentGame.lobbyId);
+
     if (isReady) {
       await lobbyRef.child('readyPlayers/' + user.id).remove();
       setIsReady(false);
       return;
     }
+
     await lobbyRef.child('readyPlayers/' + user.id).set({ name: user.name, readyAt: Date.now() });
     setIsReady(true);
+
     // Check if ALL players with bets are ready
     const snap = await lobbyRef.once('value');
     const data = snap.val() || {};
@@ -591,6 +653,7 @@ function App() {
     // Include current player in ready count
     const newReadySet = { ...readyPlayers, [user.id]: true };
     const rCount = Object.keys(newReadySet).length;
+
     if (bCount >= 2 && rCount >= bCount) {
       // All ready — start countdown
       const countdownEnd = Date.now() + 10000;
@@ -599,12 +662,14 @@ function App() {
       setTimeout(() => triggerGameStart(lobbyRef, currentGame.lobbyId), 10000);
     }
   };
+
   // ===== NEW PLAYER JOINS DURING COUNTDOWN =====
   useEffect(() => {
     if (!currentGame?.lobbyId || !user?.id) return;
     // When a new player joins presence during countdown, reset to open
     // This is handled server-side by checking presence in the listener
   }, []);
+
   // Watch for new players joining during countdown (handled via lobby listener)
   useEffect(() => {
     if (gameStatus !== 'countdown' || !currentGame?.lobbyId) return;
@@ -624,15 +689,18 @@ function App() {
     });
     return () => presRef.off('child_added');
   }, [gameStatus, currentGame?.lobbyId]);
+
   // ===== TRIGGER GAME START =====
   const triggerGameStart = async (lobbyRef, lobbyId) => {
     const snap = await lobbyRef.once('value');
     const data = snap.val();
     if (!data || data.status !== 'countdown') return;
+
     const players = data.players || {};
     const readyPlayers = data.readyPlayers || {};
     const bCount = Object.keys(players).length;
     const rCount = Object.keys(readyPlayers).length;
+
     if (bCount < 2 || rCount < bCount) {
       // Not all ready — refund and reset
       for (const [pid, pdata] of Object.entries(players)) {
@@ -641,28 +709,35 @@ function App() {
       await lobbyRef.update({ status: 'open', countdownEnd: null, players: {}, readyPlayers: {} });
       return;
     }
+
     await startIceGame(lobbyRef);
   };
+
   // ===== START GAME =====
   const startIceGame = async (lobbyRef) => {
     await lobbyRef.update({ status: 'playing', gameStartedAt: Date.now() });
+
     // Random initial direction, moderate speed — ONLY decelerates, never accelerates
     let x = 50, y = 50;
     const angle = Math.random() * Math.PI * 2;
     const initialSpeed = 8 + Math.random() * 6; // 8-14 units/tick
     let vx = Math.cos(angle) * initialSpeed;
     let vy = Math.sin(angle) * initialSpeed;
+
     const FRICTION = 0.994; // slow friction — smooth deceleration
     const RADIUS = 44; // boundary radius (% units)
     const CENTER = 50;
+
     const iv = setInterval(async () => {
       // Move
       x += vx * 0.4;
       y += vy * 0.4;
+
       // Boundary check — reflect off circular wall
       const dx = x - CENTER;
       const dy = y - CENTER;
       const dist = Math.sqrt(dx * dx + dy * dy);
+
       if (dist >= RADIUS) {
         // Normal vector at collision point
         const nx = dx / dist;
@@ -684,11 +759,15 @@ function App() {
         x -= nx * overlap;
         y -= ny * overlap;
       }
+
       // Apply friction — ONLY deceleration
       vx *= FRICTION;
       vy *= FRICTION;
+
       const speed = Math.sqrt(vx * vx + vy * vy);
+
       await lobbyRef.child('ballPosition').set({ x, y, vx, vy });
+
       // Stop when speed is very low
       if (speed < 0.08) {
         clearInterval(iv);
@@ -696,18 +775,22 @@ function App() {
       }
     }, 25);
   };
+
   // ===== FINISH GAME =====
   const finishIceGame = async (lobbyRef, finalX, finalY) => {
     const snap = await lobbyRef.once('value');
     const data = snap.val();
     if (!data?.players) return;
+
     const players = Object.entries(data.players);
     const totalBet = players.reduce((s, [, p]) => s + p.bet, 0);
+
     // Determine which sector the ball is in (angle from center)
     const dx = finalX - 50;
     const dy = finalY - 50;
     let angle = Math.atan2(dy, dx) * 180 / Math.PI;
     if (angle < 0) angle += 360;
+
     // Match angle to player sector (sorted by timestamp = order of joining)
     let currentAngle = 0;
     let winner = null;
@@ -721,6 +804,7 @@ function App() {
       currentAngle += sector;
     }
     if (!winner) winner = { id: sorted[0][0], ...sorted[0][1] };
+
     // Pick bonus prize
     const rand = Math.random() * 100;
     let cum = 0;
@@ -729,7 +813,9 @@ function App() {
       cum += prize.chance;
       if (rand <= cum) { wonPrize = prize; break; }
     }
+
     const winAmount = Math.floor(totalBet * 0.40);
+
     await lobbyRef.update({
       status: 'finished',
       winner,
@@ -737,6 +823,7 @@ function App() {
       wonStars: winAmount,
       finalBall: { x: finalX, y: finalY }
     });
+
     // Credit winner
     if (winner.id === user.id) {
       const newBal = balance + winAmount;
@@ -744,12 +831,15 @@ function App() {
       await db.ref('users/' + user.id + '/balance').set(newBal);
     }
   };
+
   // ===== OPEN VICTORY BOX =====
   const openVictoryBox = async () => {
     if (boxOpened || !victoryPrize) return;
     setBoxOpened(true);
     setPrizeClaimedLocal(true);
+
     await db.ref('iceLobbies/' + currentGame.lobbyId + '/prizeClaimed/' + user.id).set(true);
+
     const prize = victoryPrize;
     if (prize.type === 'stars') {
       const nb = balance + prize.value;
@@ -764,12 +854,15 @@ function App() {
       alert('Получен промокод: ' + prize.code);
     }
   };
+
   // ===== EXIT LOBBY AFTER GAME =====
   const exitLobbyAfterGame = async () => {
     if (!currentGame?.lobbyId) { setCurrentGame(null); return; }
     const lobbyRef = db.ref('iceLobbies/' + currentGame.lobbyId);
+
     // Clear everything for next game
     await lobbyRef.set(DEFAULT_LOBBY);
+
     setCurrentGame(null);
     setHasBet(false);
     setIsReady(false);
@@ -780,6 +873,7 @@ function App() {
     setMyBet(25);
     setMyBetInput(25);
   };
+
   // Non-winner exit
   const exitLobbyNonWinner = async () => {
     if (!currentGame?.lobbyId) { setCurrentGame(null); return; }
@@ -791,6 +885,7 @@ function App() {
     setMyBet(25);
     setMyBetInput(25);
   };
+
   // ===== ICE ARENA FIELD RENDER =====
   const renderIceField = () => {
     if (!iceLobby?.players) return null;
@@ -798,22 +893,27 @@ function App() {
     if (players.length === 0) return null;
     const totalBet = players.reduce((s, [, p]) => s + p.bet, 0);
     if (totalBet === 0) return null;
+
     const sorted = players.sort((a, b) => a[1].timestamp - b[1].timestamp);
     let currentAngle = 0;
+
     return sorted.map(([id, player]) => {
       const pct = (player.bet / totalBet) * 100;
       const sectorDeg = (player.bet / totalBet) * 360;
       const midAngle = currentAngle + sectorDeg / 2;
       const startAngle = currentAngle;
       currentAngle += sectorDeg;
+
       // Avatar position
       const avatarDist = 28;
       const avatarX = 50 + avatarDist * Math.cos((midAngle - 90) * Math.PI / 180);
       const avatarY = 50 + avatarDist * Math.sin((midAngle - 90) * Math.PI / 180);
+
       // Percent label position
       const labelDist = 18;
       const labelX = 50 + labelDist * Math.cos((midAngle - 90) * Math.PI / 180);
       const labelY = 50 + labelDist * Math.sin((midAngle - 90) * Math.PI / 180);
+
       return (
         <React.Fragment key={id}>
           {/* Sector fill */}
@@ -857,6 +957,7 @@ function App() {
       );
     });
   };
+
   // ===== CASES =====
   const getCasePrice = (ct) => {
     const c = cases[ct];
@@ -865,6 +966,7 @@ function App() {
     if (c.discountPrice && c.discountPrice !== c.price) return c.discountPrice;
     return c.price;
   };
+
   const openCase = async (caseType) => {
     if (caseType === 'collector' && cases.collector?.locked) { alert('Кейс «Коллекционер» заблокирован!'); return; }
     const price = getCasePrice(caseType);
@@ -872,6 +974,7 @@ function App() {
     const isElite = caseType === 'elite';
     const hasFreeElite = isElite && freeEliteSpin > 0;
     if (!hasFreeElite && !isFree && price > 0 && balance < price) { alert('Недостаточно звёзд!'); return; }
+
     let newBal = balance;
     if (isFree) {
       const nf = cases[caseType].freeCount - 1;
@@ -886,18 +989,22 @@ function App() {
       setBalance(newBal);
       await db.ref('users/' + user.id + '/balance').set(newBal);
     }
+
     setIsSpinning(true);
     setSelectedCase({ ...cases[caseType], id: caseType });
     setSpinResult(null);
     setRouletteOffset(0);
     setFakeItems([]);
     setRouletteKey(prev => prev + 1);
+
     const items = CASE_REWARDS[caseType];
     const rand = Math.random() * 100;
     let cum = 0, won = items[0];
     for (const item of items) { cum += item.realChance; if (rand <= cum) { won = item; break; } }
+
     const tape = [];
     for (let i = 0; i < 80; i++) tape.push(i === 70 ? won : items[Math.floor(Math.random() * items.length)]);
+
     setTimeout(() => {
       setFakeItems(tape);
       setTimeout(() => {
@@ -906,6 +1013,7 @@ function App() {
         setRouletteOffset(-(70 * ifw + ifw / 2 - cw / 2));
       }, 100);
     }, 100);
+
     setTimeout(async () => {
       setSpinResult(won);
       setIsSpinning(false);
@@ -918,12 +1026,14 @@ function App() {
       }
     }, 6600);
   };
+
   const addToInventory = async (item) => {
     if (inventory.length >= inventorySlots) { alert('Инвентарь полон!'); return; }
     const ni = [...inventory, { ...item, uniqueId: Date.now(), collected: Date.now() }];
     setInventory(ni);
     await db.ref(`users/${user.id}/inventory`).set(ni);
   };
+
   const sellItem = async (item) => {
     if (item.type === 'ice_gift') { setSelectedIceGift(item); setShowIceGiftModal(true); return; }
     if (item.type === 'collectible') { setSelectedCollectible(item); setShowCollectibleModal(true); return; }
@@ -934,6 +1044,7 @@ function App() {
       await db.ref(`users/${user.id}`).update({ balance: nb, inventory: ni });
     }
   };
+
   const sellIceGift = async () => {
     if (!selectedIceGift) return;
     const nb = balance + 25;
@@ -943,6 +1054,7 @@ function App() {
     setShowIceGiftModal(false); setSelectedIceGift(null);
     alert('Продано за 25⭐️!');
   };
+
   const unlockSlot = async () => {
     if (balance < 50) { alert('Недостаточно звёзд!'); return; }
     if (confirm('Разблокировать слот за 50⭐️?')) {
@@ -951,6 +1063,7 @@ function App() {
       await db.ref(`users/${user.id}`).update({ balance: nb, inventorySlots: ns });
     }
   };
+
   const checkPromo = async () => {
     const code = promoCode.toUpperCase().trim();
     setPromoError(''); setPromoSuccess('');
@@ -971,6 +1084,7 @@ function App() {
       await db.ref(`users/${user.id}/usedPromos`).set(np);
     } else { setPromoError('Неверный промокод'); }
   };
+
   const topUpBalance = async (stars, ton) => {
     const pid = 'PAY_' + Date.now();
     const memo = `SBS_${user.id}_${stars}_${pid}`;
@@ -979,6 +1093,7 @@ function App() {
     setPaymentStatus(`Отправьте ${ton} TON с комментарием: ${memo}`);
     setShowTopUp(false);
   };
+
   const buyStars = async (pkg) => {
     try {
       const r = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/createInvoiceLink`, {
@@ -1001,6 +1116,7 @@ function App() {
       }
     } catch (e) { alert('Ошибка платежа.'); }
   };
+
   const checkDepositTasks = async (nd) => {
     if (!tasks.deposit?.completed && nd >= 100) {
       const nt = { ...tasks, deposit: { completed: true } };
@@ -1015,6 +1131,7 @@ function App() {
       await db.ref(`users/${user.id}`).update({ tasks: nt, cases: nc });
     }
   };
+
   const completeTask = async (taskId) => {
     if (taskId === 'subscribe') {
       window.open('https://t.me/stepbystepdelision', '_blank');
@@ -1034,10 +1151,12 @@ function App() {
       setShowTopUp(true);
     }
   };
+
   const confirmWithdraw = () => {
     alert('Для получения награды обратитесь к администрации! https://t.me/stepbystepdelision');
     setShowWithdrawModal(false); setWithdrawAmount('');
   };
+
   const handleTitleClick = () => {
     const n = adminAttempts + 1; setAdminAttempts(n);
     if (n >= 11) { setShowAdminLogin(true); setAdminAttempts(0); }
@@ -1058,6 +1177,7 @@ function App() {
     else if (reward.type === 'unlock_collector') { await db.ref(`users/${tid}/cases/collector/locked`).set(false); if (tid === user.id) setCases(prev => ({ ...prev, collector: { ...prev.collector, locked: false } })); }
     alert('Награда выдана!');
   };
+
   // ===== ICE LOBBY SCREEN =====
   if (currentGame?.type === 'ice') {
     const isSpectator = currentGame.spectator === true;
@@ -1069,6 +1189,7 @@ function App() {
     const myPlayerData = iceLobby?.players?.[user?.id];
     const isWinner = gameStatus === 'finished' && iceLobby?.winner?.id === user?.id;
     const isLoser = gameStatus === 'finished' && iceLobby?.winner && iceLobby.winner.id !== user?.id;
+
     const statusText = () => {
       if (isSpectator) return '👁 Наблюдатель';
       switch (gameStatus) {
@@ -1080,6 +1201,7 @@ function App() {
         default: return '';
       }
     };
+
     return (
       <div className="min-h-screen bg-gradient-to-b from-blue-950 via-indigo-950 to-blue-900 pb-4">
         <div className="max-w-lg mx-auto p-3">
@@ -1091,6 +1213,7 @@ function App() {
             </div>
             <button onClick={leaveIceLobby} className="bg-red-600/40 hover:bg-red-600 border border-red-500/50 px-3 py-1.5 rounded-xl font-bold transition text-sm">✕ Выйти</button>
           </div>
+
           {/* Status bar */}
           <div className={`rounded-xl p-2.5 mb-3 text-center font-bold border text-sm ${
             gameStatus === 'countdown' ? 'bg-yellow-500/20 border-yellow-500/50 animate-pulse' :
@@ -1101,6 +1224,7 @@ function App() {
           }`}>
             {statusText()}
           </div>
+
           {/* Countdown */}
           {gameStatus === 'countdown' && timerRemaining > 0 && (
             <div className="text-center mb-3">
@@ -1108,6 +1232,7 @@ function App() {
               <div className="text-gray-400 text-xs">секунд до старта</div>
             </div>
           )}
+
           {/* ICE CIRCLE */}
           <div className="flex justify-center mb-4">
             <div className={`ice-circle relative ${gameStatus === 'open' ? 'pulse-glow' : gameStatus === 'countdown' ? 'ready-glow' : ''}`}>
@@ -1116,18 +1241,22 @@ function App() {
                 backgroundImage: 'radial-gradient(circle, #00d2ff 1px, transparent 1px)',
                 backgroundSize: '20px 20px'
               }} />
+
               {/* Sector fills — always render when players exist */}
               {(gameStatus === 'open' || gameStatus === 'countdown' || gameStatus === 'playing' || gameStatus === 'finished') && renderIceField()}
+
               {/* Center puck area when waiting */}
               {(gameStatus === 'waiting') && (
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="text-5xl opacity-30">❓</div>
                 </div>
               )}
+
               {/* Ball during play */}
               {gameStatus === 'playing' && (
                 <div className="ice-ball" style={{ left: ballPos.x + '%', top: ballPos.y + '%' }} />
               )}
+
               {/* Ball stopped at end */}
               {gameStatus === 'finished' && iceLobby?.finalBall && (
                 <div className="ice-ball" style={{
@@ -1139,6 +1268,7 @@ function App() {
               )}
             </div>
           </div>
+
           {/* BETTING BLOCK */}
           {!isSpectator && gameStatus === 'open' && (
             <div className="glass rounded-xl p-3 mb-3 border border-cyan-500/30">
@@ -1194,6 +1324,7 @@ function App() {
               )}
             </div>
           )}
+
           {/* Waiting for 2nd player */}
           {!isSpectator && gameStatus === 'waiting' && (
             <div className="glass rounded-xl p-4 mb-3 text-center border border-gray-600/30">
@@ -1210,6 +1341,7 @@ function App() {
               <div className="text-cyan-400 text-xs mt-1">{presenceCount}/2</div>
             </div>
           )}
+
           {/* Playing status for betted player */}
           {!isSpectator && gameStatus === 'playing' && hasBet && (
             <div className="glass rounded-xl p-3 mb-3 text-center border border-red-500/30">
@@ -1218,6 +1350,7 @@ function App() {
               <div className="text-gray-400 text-xs">Ставка: {myBet}⭐️ | Банк: {totalBank}⭐️</div>
             </div>
           )}
+
           {/* Spectator */}
           {isSpectator && (
             <div className="glass rounded-xl p-3 mb-3 text-center border border-yellow-500/30">
@@ -1226,6 +1359,7 @@ function App() {
               <div className="text-gray-500 text-xs">Игра уже началась</div>
             </div>
           )}
+
           {/* FINISHED — Non-winner */}
           {isLoser && (
             <div className="glass rounded-xl p-4 mb-3 text-center border border-gray-500/30">
@@ -1237,6 +1371,7 @@ function App() {
               </button>
             </div>
           )}
+
           {/* PLAYERS LIST */}
           <div className="glass rounded-xl p-3 mb-3">
             <div className="flex justify-between items-center mb-2">
@@ -1271,6 +1406,7 @@ function App() {
               {presence.length === 0 && <div className="text-gray-500 text-center py-3 text-xs">Никого нет...</div>}
             </div>
           </div>
+
           {/* Prizes info */}
           <div className="glass rounded-xl p-3">
             <h3 className="font-bold text-center text-cyan-300 text-xs mb-2">🎁 Возможные бонусы</h3>
@@ -1281,6 +1417,7 @@ function App() {
             </div>
           </div>
         </div>
+
         {/* VICTORY MODAL */}
         {showVictoryBox && isWinner && (
           <div className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center p-4">
@@ -1288,6 +1425,7 @@ function App() {
               <h2 className="text-3xl font-bold mb-1 text-yellow-400">🏆 Победа!</h2>
               <p className="text-gray-300 mb-1 text-sm">Вы выиграли:</p>
               <p className="text-4xl font-bold text-yellow-400 mb-4">{victoryStars} ⭐️</p>
+
               {!boxOpened ? (
                 <>
                   <p className="text-gray-400 text-sm mb-3">Откройте коробку для бонусного приза</p>
@@ -1320,6 +1458,7 @@ function App() {
       </div>
     );
   }
+
   // ===== ADMIN =====
   if (isAdmin) {
     return (
@@ -1391,6 +1530,7 @@ function App() {
       </div>
     );
   }
+
   // ===== MAIN =====
   return (
     <div className="min-h-screen pb-24">
@@ -1402,9 +1542,11 @@ function App() {
           {balance.toFixed(2)} ⭐️
         </button>
       </header>
+
       {paymentStatus && (
         <div className="mx-4 mt-2 p-3 rounded-lg text-center text-xs bg-blue-500/20 border border-blue-500">{paymentStatus}</div>
       )}
+
       {/* Modals */}
       {showCollectibleModal && (
         <div className="fixed inset-0 bg-black/90 z-[60] flex items-center justify-center p-4">
@@ -1416,6 +1558,7 @@ function App() {
           </div>
         </div>
       )}
+
       {showIceGiftModal && (
         <div className="fixed inset-0 bg-black/90 z-[60] flex items-center justify-center p-4">
           <div className="glass rounded-2xl p-6 max-w-sm w-full text-center border border-cyan-500/50">
@@ -1428,6 +1571,7 @@ function App() {
           </div>
         </div>
       )}
+
       {showAdminLogin && (
         <div className="fixed inset-0 bg-black/90 z-[60] flex items-center justify-center p-4">
           <div className="glass rounded-2xl p-6 max-w-sm w-full">
@@ -1439,6 +1583,7 @@ function App() {
           </div>
         </div>
       )}
+
       {showWithdrawModal && (
         <div className="fixed inset-0 bg-black/90 z-[60] flex items-center justify-center p-4">
           <div className="glass rounded-2xl p-6 max-w-sm w-full">
@@ -1452,6 +1597,7 @@ function App() {
           </div>
         </div>
       )}
+
       <main className="p-4 max-w-md mx-auto">
         {/* CASES */}
         {currentScreen === 'cases' && (
@@ -1490,6 +1636,7 @@ function App() {
             </div>
           </div>
         )}
+
         {/* GAMES */}
         {currentScreen === 'games' && (
           <div>
@@ -1511,6 +1658,7 @@ function App() {
             </div>
           </div>
         )}
+
         {/* TASKS */}
         {currentScreen === 'tasks' && (
           <div>
@@ -1529,6 +1677,7 @@ function App() {
                   {tasks.subscribe?.completed ? 'Выполнено' : 'Подписаться'}
                 </button>
               </div>
+
               {/* Invite 3 friends */}
               <div className={`glass rounded-xl p-4 ${tasks.inviteThree?.completed ? 'bg-green-500/20' : ''}`}>
                 <div className="flex justify-between items-start mb-2">
@@ -1545,6 +1694,7 @@ function App() {
                   {tasks.inviteThree?.completed ? 'Выполнено' : 'Пригласить'}
                 </button>
               </div>
+
               {/* Deposit 100 */}
               <div className={`glass rounded-xl p-4 ${tasks.deposit?.completed ? 'bg-green-500/20' : ''}`}>
                 <div className="flex justify-between items-start mb-2">
@@ -1558,6 +1708,7 @@ function App() {
                   {tasks.deposit?.completed ? 'Выполнено' : 'Пополнить'}
                 </button>
               </div>
+
               {/* Deposit 350 */}
               <div className={`glass rounded-xl p-4 ${tasks.depositMajor?.completed ? 'bg-green-500/20' : ''}`}>
                 <div className="flex justify-between items-start mb-2">
@@ -1574,6 +1725,7 @@ function App() {
             </div>
           </div>
         )}
+
         {/* PROFILE */}
         {currentScreen === 'profile' && (
           <div>
@@ -1628,6 +1780,7 @@ function App() {
           </div>
         )}
       </main>
+
       {/* ROULETTE MODAL */}
       {selectedCase && (
         <div className="fullscreen-modal flex items-center justify-center p-4">
@@ -1676,6 +1829,7 @@ function App() {
           </div>
         </div>
       )}
+
       {/* TOP UP MODAL */}
       {showTopUp && (
         <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
@@ -1705,6 +1859,7 @@ function App() {
           </div>
         </div>
       )}
+
       {/* BOTTOM NAV */}
       <nav className="fixed bottom-0 left-0 right-0 glass border-t border-white/10 p-2">
         <div className="max-w-md mx-auto flex justify-around">
@@ -1724,6 +1879,7 @@ function App() {
     </div>
   );
 }
+
 ReactDOM.createRoot(document.getElementById('root')).render(<App />);
 </script>
 </body>
