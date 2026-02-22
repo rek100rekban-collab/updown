@@ -194,7 +194,7 @@ function App() {
   const [cases, setCases] = useState(INITIAL_CASES);
   const [inventory, setInventory] = useState([]);
   const [inventorySlots, setInventorySlots] = useState(5);
-  const [tasks, setTasks] = useState({ subscribe: { completed: false }, deposit: { completed: false }, depositMajor: { completed: false }, inviteThree: { completed: false, count: 0, required: 3, reward: 25 } });
+  const [tasks, setTasks] = useState({ subscribe: { completed: false }, deposit: { completed: false }, depositMajor: { completed: false }, invite: { completed: false, count: 0 } });
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -294,7 +294,7 @@ function App() {
           setBalance(data.balance || 0);
           setCases(data.cases || INITIAL_CASES);
           setInventory(data.inventory || []);
-          setTasks(data.tasks || { subscribe: { completed: false }, deposit: { completed: false }, depositMajor: { completed: false }, inviteThree: { completed: false, count: 0, required: 3, reward: 25 } });
+          setTasks(data.tasks || { subscribe: { completed: false }, deposit: { completed: false }, depositMajor: { completed: false }, invite: { completed: false, count: 0 } });
           setInventorySlots(data.inventorySlots || 5);
           setUsedPromos(data.usedPromos || []);
           setWonPromos(data.wonPromos || []);
@@ -303,7 +303,7 @@ function App() {
           db.ref('users/' + userId).update({ name: userData.name, username: userData.username || '' });
         } else {
           const newCases = { ...INITIAL_CASES, diamond: { ...INITIAL_CASES.diamond, freeCount: 5 } };
-          const newUser = { balance: 0, cases: newCases, inventory: [], tasks: { subscribe: { completed: false }, deposit: { completed: false }, depositMajor: { completed: false }, inviteThree: { completed: false, count: 0, required: 3, reward: 25 } }, inventorySlots: 5, usedPromos: [], wonPromos: [], createdAt: Date.now(), lastActive: Date.now(), totalDeposits: 0, freeEliteSpin: 0, name: userData.name, username: userData.username || '' };
+          const newUser = { balance: 0, cases: newCases, inventory: [], tasks: { subscribe: { completed: false }, deposit: { completed: false }, depositMajor: { completed: false }, invite: { completed: false, count: 0 } }, inventorySlots: 5, usedPromos: [], wonPromos: [], createdAt: Date.now(), lastActive: Date.now(), totalDeposits: 0, freeEliteSpin: 0, name: userData.name, username: userData.username || '' };
           setCases(newCases);
           setUser({ id: userId, ...userData });
           await db.ref('users/' + userId).set(newUser);
@@ -447,11 +447,22 @@ function App() {
       return;
     }
 
-    // Add to presence with random color
-    const playerColor = `hsl(${Math.floor(Math.random() * 360)}, 70%, 55%)`;
+    // Add to presence
     const presRef = db.ref('iceLobbies/' + lobbyId + '/presence/' + user.id);
-    await presRef.set({ name: user.name, avatar: user.avatar || null, joinedAt: Date.now(), color: playerColor });
+    await presRef.set({ name: user.name, avatar: user.avatar || null, joinedAt: Date.now() });
     presRef.onDisconnect().remove();
+
+    // Check if player already has a bet in this lobby
+    const existingBet = data.players?.[user.id];
+    if (existingBet) {
+      // Player rejoining - restore their state
+      setHasBet(true);
+      setMyBet(existingBet.bet);
+      setIsReady(!!data.readyPlayers?.[user.id]);
+    } else {
+      setHasBet(false);
+      setIsReady(false);
+    }
 
     // Check how many are present now
     const newSnap = await lobbyRef.once('value');
@@ -464,8 +475,6 @@ function App() {
     }
 
     setCurrentGame({ type: 'ice', lobbyId, spectator: false });
-    setHasBet(false);
-    setIsReady(false);
     setOpenedChestCount(0);
     setShowPrizeChest(false);
     setShowNewGamePrompt(false);
@@ -530,16 +539,11 @@ function App() {
     setBalance(newBalance);
     await db.ref('users/' + user.id + '/balance').set(newBalance);
 
-    // Get color from presence or generate new one
-    const presSnap = await lobbyRef.child('presence/' + user.id).once('value');
-    const presData = presSnap.val() || {};
-    const playerColor = presData.color || `hsl(${Math.floor(Math.random() * 360)}, 70%, 55%)`;
-    
     await lobbyRef.child('players/' + user.id).set({
       name: user.name,
       avatar: user.avatar || null,
       bet: myBet,
-      color: playerColor,
+      color: `hsl(${Math.random() * 360}, 70%, 55%)`,
       timestamp: Date.now()
     });
 
@@ -642,13 +646,21 @@ function App() {
     let x = 50, y = 50;
     // Random initial velocity in any direction
     let angle = Math.random() * Math.PI * 2;
-    let speed = 12 + Math.random() * 8;
+    let speed = 12 + Math.random() * 8; // Начальная скорость
     let vx = Math.cos(angle) * speed;
     let vy = Math.sin(angle) * speed;
 
     const iv = setInterval(async () => {
       x += vx * 0.5;
       y += vy * 0.5;
+      
+      // Random direction change occasionally (makes it more unpredictable)
+      if (Math.random() < 0.02) {
+        angle = Math.random() * Math.PI * 2;
+        speed = Math.max(5, speed * 0.8); // Новая скорость, но не ускоряется
+        vx = Math.cos(angle) * speed;
+        vy = Math.sin(angle) * speed;
+      }
       
       // Bounce off circular boundary
       const dx = x - 50, dy = y - 50;
@@ -660,7 +672,7 @@ function App() {
         const dot = vx * nx + vy * ny;
         vx = vx - 2 * dot * nx;
         vy = vy - 2 * dot * ny;
-        // Add randomness to bounce for unpredictability
+        // Add some randomness to bounce
         vx += (Math.random() - 0.5) * 3;
         vy += (Math.random() - 0.5) * 3;
         // Move puck inside boundary
@@ -671,13 +683,13 @@ function App() {
         vy *= 0.92;
       }
       
-      // Friction (always slowing down)
-      vx *= 0.996;
-      vy *= 0.996;
+      // Friction - шайба только замедляется
+      vx *= 0.995;
+      vy *= 0.995;
       
       await lobbyRef.child('ballPosition').set({ x, y, vx, vy });
       
-      if (Math.abs(vx) < 0.1 && Math.abs(vy) < 0.1) {
+      if (Math.abs(vx) < 0.08 && Math.abs(vy) < 0.08) {
         clearInterval(iv);
         await finishIceGame(lobbyRef, x, y);
       }
@@ -757,29 +769,26 @@ function App() {
     }
     if (prize.id === 'fire') { alert(prize.message); }
 
-    setTimeout(() => { setShowPrizeChest(false); setShowNewGamePrompt(true); }, 1500);
+    // Автоматически сбрасываем лобби после получения приза
+    setTimeout(async () => {
+      setShowPrizeChest(false);
+      // Полностью очищаем лобби
+      const lobbyRef = db.ref('iceLobbies/' + currentGame.lobbyId);
+      await lobbyRef.update(emptyLobby());
+      
+      // Показываем сообщение о победе
+      setShowNewGamePrompt(true);
+    }, 1500);
   };
 
-  // ===== RESET LOBBY FOR NEW GAME (CLEAR EVERYTHING) =====
+  // ===== RESET LOBBY FOR NEW GAME =====
   const resetLobbyForNewGame = async () => {
     if (!currentGame?.lobbyId) return;
     const lobbyRef = db.ref('iceLobbies/' + currentGame.lobbyId);
-    // Clear everything completely
-    await lobbyRef.update({
-      status: 'waiting',
-      players: {},
-      presence: {},
-      readyPlayers: {},
-      winner: null,
-      prizes: [],
-      wonStars: 0,
-      ballPosition: { x: 50, y: 50, vx: 0, vy: 0 },
-      countdownEnd: null,
-      prizeClaimed: {},
-      finalBall: null
-    });
-    // Exit player from lobby
-    setCurrentGame(null);
+    // Полностью очищаем лобби
+    await lobbyRef.update(emptyLobby());
+    
+    // Сбрасываем локальное состояние
     setHasBet(false);
     setIsReady(false);
     setOpenedChestCount(0);
@@ -787,7 +796,9 @@ function App() {
     setShowNewGamePrompt(false);
     setWonStars(0);
     setWonPrize(null);
-    setMyBet(25);
+    
+    // Выходим из лобби
+    setCurrentGame(null);
   };
 
   // ===== RENDER ICE ARENA FIELD =====
@@ -1004,9 +1015,26 @@ function App() {
         }
       }, 2000);
     } else if (taskId === 'deposit' || taskId === 'depositMajor') { setShowTopUp(true); }
-    else if (taskId === 'inviteThree') { 
-        window.open('https://t.me/share/url?url=' + encodeURIComponent(`https://t.me/stepbystep_game_bot?start=${user.id}`), '_blank'); 
+    else if (taskId === 'invite') { 
+      window.open('https://t.me/share/url?url=' + encodeURIComponent(`https://t.me/stepbystep_game_bot?start=${user.id}`), '_blank');
+      // Увеличиваем счетчик приглашенных
+      const newCount = (tasks.invite?.count || 0) + 1;
+      const newTasks = { ...tasks, invite: { ...tasks.invite, count: newCount } };
+      setTasks(newTasks);
+      
+      // Если пригласили 3 друзей - даем награду
+      if (newCount >= 3 && !tasks.invite?.completed) {
+        const finalTasks = { ...newTasks, invite: { ...newTasks.invite, completed: true } };
+        const newBalance = balance + 25;
+        setTasks(finalTasks);
+        setBalance(newBalance);
+        await db.ref(`users/${user.id}`).update({ tasks: finalTasks, balance: newBalance });
+        alert('🎉 Вы пригласили 3 друзей! Получено 25 ⭐️!');
+      } else {
+        await db.ref(`users/${user.id}/tasks/invite/count`).set(newCount);
+        alert(`Вы пригласили друга! Осталось пригласить ${3 - newCount} для получения 25 ⭐️`);
       }
+    }
   };
 
   const confirmWithdraw = () => { alert('Для получения награды обратитесь к администрации! https://t.me/stepbystepdelision'); setShowWithdrawModal(false); setWithdrawAmount(''); };
@@ -1238,38 +1266,30 @@ function App() {
           <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
             <div className="glass rounded-2xl p-8 max-w-sm w-full text-center border border-yellow-500/50">
               <h2 className="text-3xl font-bold mb-2 text-yellow-400">🏆 Победа!</h2>
-              <p className="text-gray-300 mb-2">Вы выиграли <span className="text-yellow-400 font-bold">{wonStars}⭐️</span>!</p>
+              <p className="text-gray-300 mb-2">Вы выиграли <span className="text-yellow-400 font-bold">{wonStars}⭐️</span> (40% от банка)!</p>
               <p className="text-gray-400 mb-6 text-sm">Откройте коробку для получения бонусного приза</p>
               <div className="text-8xl mb-4 cursor-pointer hover:scale-110 transition-transform active:scale-95 select-none" onClick={openChest}>📦</div>
               {openedChestCount === 0 && <p className="text-cyan-300 text-sm animate-pulse">Нажмите на коробку!</p>}
               {openedChestCount === 1 && wonPrize && (
                 <div className="mt-4">
-                  <p className="text-green-400 font-bold">Получено: {wonPrize.emoji} {wonPrize.name}</p>
+                  <p className="text-green-400 font-bold text-lg">🎉 Получено: {wonPrize.emoji} {wonPrize.name}</p>
+                  <p className="text-gray-300 mt-2">Итого: {wonStars}⭐️ + {wonPrize.emoji} {wonPrize.name}</p>
                 </div>
               )}
             </div>
           </div>
         )}
 
-        {/* Prize claimed - show final screen */}
+        {/* New game prompt / Exit */}
         {showNewGamePrompt && (
-          <div className="fixed inset-0 bg-black/90 z-40 flex items-center justify-center p-4">
-            <div className="glass rounded-2xl p-8 text-center max-w-md w-full border border-yellow-500/50">
-              <div className="text-6xl mb-4">🎉</div>
-              <h2 className="text-3xl font-bold mb-4 text-yellow-400">Победа!</h2>
-              <div className="mb-6 space-y-3">
-                <p className="text-xl text-white">Вы выиграли:</p>
-                <p className="text-3xl font-bold text-yellow-400">{wonStars} ⭐️</p>
-                {wonPrize && (
-                  <div className="mt-4 p-4 bg-gray-800/50 rounded-xl">
-                    <p className="text-gray-400 mb-2">Дополнительный приз:</p>
-                    <p className="text-2xl">{wonPrize.emoji} {wonPrize.name}</p>
-                  </div>
-                )}
+          <div className="fixed inset-0 bg-black/80 z-40 flex items-center justify-center p-4">
+            <div className="glass rounded-2xl p-6 text-center max-w-sm w-full border border-cyan-500/30">
+              <div className="text-5xl mb-4">🎮</div>
+              <h3 className="text-xl font-bold mb-2">Игра завершена!</h3>
+              <p className="text-gray-400 text-sm mb-5">Лобби #{currentGame.lobbyId} очищено</p>
+              <div className="flex gap-3">
+                <button onClick={resetLobbyForNewGame} className="flex-1 bg-green-600 hover:bg-green-500 px-4 py-3 rounded-xl font-bold transition">✅ Выйти</button>
               </div>
-              <button onClick={resetLobbyForNewGame} className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 px-6 py-4 rounded-xl font-bold text-xl transition shadow-lg">
-                ✅ Выйти из лобби
-              </button>
             </div>
           </div>
         )}
@@ -1476,21 +1496,13 @@ function App() {
             <div className="space-y-4">
               {[
                 { id: 'subscribe', title: 'Подпишись на канал', reward: '1 кейс «Элита» + 1 прокрут 🎖', btn: 'Подписаться' },
-                { id: 'inviteThree', title: 'Пригласить 3 друзей', reward: '25 ⭐️ звезд', btn: 'Пригласить' },
                 { id: 'deposit', title: 'Пополнить баланс на 100⭐️', reward: '1 золотой кейс 👑', btn: 'Пополнить' },
-                { id: 'depositMajor', title: 'Пополнить баланс на 350⭐️', reward: 'Кейс «Коллекционер» + 1 прокрут', btn: 'Пополнить' }
+                { id: 'depositMajor', title: 'Пополнить баланс на 350⭐️', reward: 'Кейс «Коллекционер» + 1 прокрут', btn: 'Пополнить' },
+                { id: 'invite', title: 'Пригласи 3 друзей', reward: '25 ⭐️', btn: 'Пригласить' }
               ].map(task => (
                 <div key={task.id} className={`glass rounded-xl p-4 ${tasks[task.id]?.completed ? 'bg-green-500/20' : ''}`}>
                   <div className="flex justify-between items-start mb-2">
-                    <div>
-                      <h3 className="font-bold">{task.title}</h3>
-                      <p className="text-sm opacity-75">Награда: {task.reward}</p>
-                      {task.id === 'inviteThree' && !tasks[task.id]?.completed && (
-                        <p className="text-xs text-cyan-400 mt-1">
-                          Прогресс: {tasks.inviteThree?.count || 0}/{tasks.inviteThree?.required || 3}
-                        </p>
-                      )}
-                    </div>
+                    <div><h3 className="font-bold">{task.title}</h3><p className="text-sm opacity-75">Награда: {task.reward}</p></div>
                     {tasks[task.id]?.completed && <span className="text-green-400 text-2xl">✅</span>}
                   </div>
                   <button onClick={() => completeTask(task.id)} disabled={tasks[task.id]?.completed} className={`w-full py-2 rounded-lg ${tasks[task.id]?.completed ? 'bg-green-600' : 'bg-blue-600 hover:bg-blue-500'} transition`}>
