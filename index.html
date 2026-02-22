@@ -34,14 +34,28 @@ tailwind.config = {
 .glass { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); }
 .line-through { text-decoration: line-through; opacity: 0.5; }
 .fullscreen-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 100; overflow-y: auto; }
-.ice-circle { width: 320px; height: 320px; border-radius: 50%; border: 4px solid rgba(0,210,255,0.5); position: relative; overflow: hidden; background: radial-gradient(circle, rgba(0,210,255,0%) 0%, rgba(0,128,255,0.2) 60%, rgba(0,128,255,0.4) 100%); box-shadow: 0 0 30px rgba(0,210,255,0.3); }
-.ice-ball { position: absolute; width: 36px; height: 36px; background: radial-gradient(circle at 30% 30%, #fff, #00d2ff); border-radius: 50%; box-shadow: 0 0 20px rgba(0,210,255,0.8); z-index: 10; transform: translate(-50%, -50%); border: 2px solid rgba(255,255,255,0.5); transition: left 0.025s linear, top 0.025s linear; }
-.player-avatar { position: absolute; width: 36px; height: 36px; border-radius: 50%; border: 2px solid white; overflow: hidden; transform: translate(-50%, -50%); z-index: 5; }
+.ice-circle {
+  width: 300px; height: 300px; border-radius: 50%;
+  border: 4px solid rgba(0,210,255,0.6);
+  position: relative; overflow: hidden;
+  background: rgba(0, 40, 80, 0.6);
+  box-shadow: 0 0 40px rgba(0,210,255,0.4), inset 0 0 60px rgba(0,0,0,0.5);
+}
+.ice-ball {
+  position: absolute; width: 32px; height: 32px;
+  background: radial-gradient(circle at 30% 30%, #ffffff, #00d2ff, #0066ff);
+  border-radius: 50%;
+  box-shadow: 0 0 15px rgba(0,210,255,0.9), 0 0 30px rgba(0,150,255,0.5);
+  z-index: 20; transform: translate(-50%, -50%);
+  border: 2px solid rgba(255,255,255,0.8);
+  transition: left 0.025s linear, top 0.025s linear;
+}
+.player-avatar { position: absolute; width: 36px; height: 36px; border-radius: 50%; border: 3px solid white; overflow: hidden; transform: translate(-50%, -50%); z-index: 10; box-shadow: 0 0 10px rgba(0,0,0,0.5); }
 .case-cardboard { background: linear-gradient(135deg, #8B4513 0%, #D2691E 50%, #8B4513 100%); border: 3px solid #A0522D; }
 .case-collector { background: linear-gradient(135deg, #DC143C 0%, #FF1493 50%, #8B008B 100%); border: 3px solid #FFD700; }
-.player-row-ready { border-color: rgba(0,255,100,0.4) !important; background: rgba(0,255,100,0.08) !important; }
-.player-row-waiting { border-color: rgba(255,200,0,0.3) !important; }
-.player-row-spectator { border-color: rgba(150,150,150,0.2) !important; opacity: 0.7; }
+.player-row-ready { border-color: rgba(0,255,100,0.5) !important; background: rgba(0,255,100,0.1) !important; }
+.player-row-waiting { border-color: rgba(255,200,0,0.4) !important; background: rgba(255,200,0,0.05) !important; }
+.player-row-presence { border-color: rgba(150,150,150,0.3) !important; }
 </style>
 </head>
 <body class="bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 min-h-screen text-white overflow-x-hidden">
@@ -51,7 +65,6 @@ tailwind.config = {
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 <script type="text/babel">
 const { useState, useEffect, useRef, useCallback } = React;
-
 const firebaseConfig = {
   apiKey: "AIzaSyDZPRiByz69HQa8b7GFMCJeqq56J3Y-bOY",
   authDomain: "step-by-step-279df.firebaseapp.com",
@@ -67,7 +80,15 @@ const TelegramWebApp = window.Telegram?.WebApp;
 const ADMIN_WALLET = 'UQAWqaIPFSg81l9MlgAx0HBE9o3gpJMhk1dnyryKJXhWNHIc';
 const TONCENTER_API = 'https://toncenter.com/api/v2';
 const BOT_TOKEN = '8325421899:AAHRdmMYdjJMXmAVIynDsQtpUNsSeKkaOis';
-
+// Случайный цвет для игрока
+const PLAYER_COLORS = [
+  '#FF6B6B','#FF9F43','#FFEAA7','#55EFC4','#74B9FF',
+  '#A29BFE','#FD79A8','#E17055','#00CEC9','#6C5CE7',
+  '#FDCB6E','#81ECEC','#FF7675','#DFE6E9','#B2BEC3'
+];
+function getRandomColor() {
+  return PLAYER_COLORS[Math.floor(Math.random() * PLAYER_COLORS.length)];
+}
 const CASE_REWARDS = {
   cardboard: [
     { id: 'stars_0_25', name: '0.25 ⭐️', displayChance: '80%', realChance: 80, type: 'stars', value: 0.25, emoji: '⭐️' },
@@ -149,7 +170,6 @@ const CASE_REWARDS = {
     { id: 'bird_pro', name: '🦅 Rare bird', displayChance: '0.5%', realChance: 0, type: 'collectible', emoji: '🦅' }
   ]
 };
-
 const INITIAL_CASES = {
   cardboard: { id: 'cardboard', name: 'Картон', emoji: '📦', price: 3, color: 'from-amber-800 to-amber-900', locked: false, isNew: true, freeCount: 0 },
   coal: { id: 'coal', name: 'Уголёк', emoji: '🪨', price: 22, originalPrice: 22, discountPrice: 20, color: 'from-gray-600 to-gray-800', locked: false, isNew: false, freeCount: 0 },
@@ -162,42 +182,52 @@ const INITIAL_CASES = {
   major: { id: 'major', name: 'Мажор', emoji: '🤴', price: 800, color: 'from-purple-500 to-indigo-700', locked: true, isNew: false, freeCount: 0 },
   collector: { id: 'collector', name: 'Коллекционер', emoji: '🎩', price: 650, color: 'from-rose-600 to-pink-800', locked: true, isNew: true, freeCount: 0 }
 };
-
 const ICE_ARENA_PRIZES = [
   { id: 'bear', name: '🧸 Мишка', chance: 40, type: 'item', sellPrice: 20, emoji: '🧸' },
   { id: 'gloves', name: '🧤 Варежки', chance: 30, type: 'item', sellPrice: 50, emoji: '🧤' },
-  { id: 'fire', name: '🔥 Огонь', chance: 10, type: 'special', emoji: '🔥', message: 'Вы растопили лед! Получаете 40% от ставок' },
+  { id: 'fire', name: '🔥 Огонь', chance: 10, type: 'special', emoji: '🔥', message: 'Вы растопили лёд! Получаете 40% от ставок' },
   { id: 'snow', name: '❄️ Снежинка', chance: 5, type: 'item', sellPrice: 125, emoji: '❄️' },
   { id: 'snoop', name: '🐕 Snoop Dog', chance: 5, type: 'item', sellPrice: 130, emoji: '🐕' },
   { id: 'winter_case', name: '☃️ Кейс Зимний', chance: 4, type: 'case_free', caseType: 'winter', emoji: '☃️' },
   { id: 'elite_case', name: '🎖 Кейс Элитный', chance: 3, type: 'case_free', caseType: 'elite', emoji: '🎖' },
-  { id: 'stars_350', name: '350 ⭐️', chance: 2, type: 'stars', value: 350, emoji: '350⭐️' },
+  { id: 'stars_350', name: '350 ⭐️', chance: 2, type: 'stars', value: 350, emoji: '⭐️' },
   { id: 'scarf', name: '🧣 Зимнее сокровище', chance: 0.5, type: 'collectible', emoji: '🧣' },
   { id: 'dellko', name: '🔑 Promocode DELLKO', chance: 0.5, type: 'promo', code: 'DELLKO', emoji: '🔑' }
 ];
-
 const TON_RATES = [{ stars: 50, ton: 0.6 }, { stars: 250, ton: 3 }, { stars: 500, ton: 6 }, { stars: 1000, ton: 12 }];
-const STARS_PACKAGES = [{ stars: 50, price: 50 }, { stars: 100, price: 100 }, { stars: 250, price: 250 }, { stars: 500, price: 500 }, { stars: 1000, price: 1000 }];
-
-// ============================================================
-// LOBBY STATUS ENUM
-// waiting      — лобби открыто, ждём игроков (присутствующих)
-// open         — 2+ игрока в лобби, можно делать ставки и жать "Готов"
-// countdown    — все готовы, идёт 10-сек отсчёт
-// playing      — шайба катится
-// finished     — игра завершена
-// ============================================================
-
+const STARS_PACKAGES = [
+  { stars: 50, price: 50 }, { stars: 100, price: 100 },
+  { stars: 250, price: 250 }, { stars: 500, price: 500 }, { stars: 1000, price: 1000 }
+];
+// Дефолтное состояние лобби
+const DEFAULT_LOBBY = {
+  status: 'waiting',
+  players: {},
+  presence: {},
+  readyPlayers: {},
+  winner: null,
+  prizes: [],
+  wonStars: 0,
+  ballPosition: { x: 50, y: 50, vx: 0, vy: 0 },
+  countdownEnd: null,
+  prizeClaimed: {},
+  finalBall: null,
+  gameStartedAt: null
+};
 function App() {
   const [currentScreen, setCurrentScreen] = useState('cases');
   const [balance, setBalance] = useState(0);
   const [cases, setCases] = useState(INITIAL_CASES);
   const [inventory, setInventory] = useState([]);
   const [inventorySlots, setInventorySlots] = useState(5);
-  const [tasks, setTasks] = useState({ subscribe: { completed: false }, deposit: { completed: false }, depositMajor: { completed: false }, inviteThree: { completed: false, count: 0, required: 3, reward: 25 } });
+  const [tasks, setTasks] = useState({
+    subscribe: { completed: false },
+    deposit: { completed: false },
+    depositMajor: { completed: false },
+    inviteThree: { completed: false, count: 0, required: 3, reward: 25 }
+  });
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-
   // Roulette
   const [selectedCase, setSelectedCase] = useState(null);
   const [isSpinning, setIsSpinning] = useState(false);
@@ -206,7 +236,6 @@ function App() {
   const [fakeItems, setFakeItems] = useState([]);
   const [rouletteKey, setRouletteKey] = useState(0);
   const rouletteContainerRef = useRef(null);
-
   // UI modals
   const [showTopUp, setShowTopUp] = useState(false);
   const [promoCode, setPromoCode] = useState('');
@@ -234,34 +263,31 @@ function App() {
   const [paymentStatus, setPaymentStatus] = useState('');
   const [totalDeposits, setTotalDeposits] = useState(0);
   const [freeEliteSpin, setFreeEliteSpin] = useState(0);
-
-  // ===== ICE ARENA STATE =====
-  const [currentGame, setCurrentGame] = useState(null);   // { type:'ice', lobbyId, spectator }
+  // Ice Arena
+  const [currentGame, setCurrentGame] = useState(null);
   const [iceLobby, setIceLobby] = useState(null);
-  const [gameStatus, setGameStatus] = useState('waiting'); // waiting | open | countdown | playing | finished
+  const [gameStatus, setGameStatus] = useState('waiting');
   const [ballPos, setBallPos] = useState({ x: 50, y: 50 });
   const [timerRemaining, setTimerRemaining] = useState(0);
-  const [showPrizeChest, setShowPrizeChest] = useState(false);
-  const [chestPrizes, setChestPrizes] = useState([]);
-  const [openedChestCount, setOpenedChestCount] = useState(0);
-  const [showNewGamePrompt, setShowNewGamePrompt] = useState(false);
-  const [wonStars, setWonStars] = useState(0);
-  const [wonPrize, setWonPrize] = useState(null);
-
-  // Локальные данные текущего игрока в лобби
+  // Локальное состояние игрока
   const [myBet, setMyBet] = useState(25);
-  const [hasBet, setHasBet] = useState(false);        // сделал ставку
-  const [isReady, setIsReady] = useState(false);       // нажал "Готов"
-
-  // Производные счётчики
+  const [myBetInput, setMyBetInput] = useState(25);
+  const [hasBet, setHasBet] = useState(false);
+  const [isReady, setIsReady] = useState(false);
+  const [myColor, setMyColor] = useState('');
+  // Счётчики
   const [presenceCount, setPresenceCount] = useState(0);
   const [bettingCount, setBettingCount] = useState(0);
   const [readyCount, setReadyCount] = useState(0);
-
-  const countdownTimerRef = useRef(null);
+  // Победный экран
+  const [showVictoryBox, setShowVictoryBox] = useState(false);
+  const [victoryStars, setVictoryStars] = useState(0);
+  const [victoryPrize, setVictoryPrize] = useState(null);
+  const [boxOpened, setBoxOpened] = useState(false);
+  const [prizeClaimedLocal, setPrizeClaimedLocal] = useState(false);
   const gameIntervalRef = useRef(null);
-
-  // ===== INIT APP =====
+  const countdownRef = useRef(null);
+  // ===== INIT =====
   useEffect(() => {
     const initApp = async () => {
       let userId = null;
@@ -280,8 +306,7 @@ function App() {
         }
       }
       if (!userId) {
-        const saved = localStorage.getItem('sbs_user_id');
-        userId = saved || ('guest_' + Date.now());
+        userId = localStorage.getItem('sbs_user_id') || ('guest_' + Date.now());
         localStorage.setItem('sbs_user_id', userId);
       } else {
         localStorage.setItem('sbs_user_id', userId);
@@ -303,7 +328,14 @@ function App() {
           db.ref('users/' + userId).update({ name: userData.name, username: userData.username || '' });
         } else {
           const newCases = { ...INITIAL_CASES, diamond: { ...INITIAL_CASES.diamond, freeCount: 5 } };
-          const newUser = { balance: 0, cases: newCases, inventory: [], tasks: { subscribe: { completed: false }, deposit: { completed: false }, depositMajor: { completed: false }, inviteThree: { completed: false, count: 0, required: 3, reward: 25 } }, inventorySlots: 5, usedPromos: [], wonPromos: [], createdAt: Date.now(), lastActive: Date.now(), totalDeposits: 0, freeEliteSpin: 0, name: userData.name, username: userData.username || '' };
+          const newUser = {
+            balance: 0, cases: newCases, inventory: [],
+            tasks: { subscribe: { completed: false }, deposit: { completed: false }, depositMajor: { completed: false }, inviteThree: { completed: false, count: 0, required: 3, reward: 25 } },
+            inventorySlots: 5, usedPromos: [], wonPromos: [],
+            createdAt: Date.now(), lastActive: Date.now(),
+            totalDeposits: 0, freeEliteSpin: 0,
+            name: userData.name, username: userData.username || ''
+          };
           setCases(newCases);
           setUser({ id: userId, ...userData });
           await db.ref('users/' + userId).set(newUser);
@@ -313,17 +345,17 @@ function App() {
     };
     initApp();
   }, []);
-
   // Online presence
   useEffect(() => {
     if (!user?.id) return;
     const ref = db.ref('online/' + user.id);
     ref.set({ name: user.name, timestamp: Date.now() });
     ref.onDisconnect().remove();
-    db.ref('online').on('value', snap => setOnlineCount(Math.floor(Math.random() * 300) + 200 + snap.numChildren()));
+    db.ref('online').on('value', snap => {
+      setOnlineCount(Math.floor(Math.random() * 300) + 200 + snap.numChildren());
+    });
     return () => ref.remove();
   }, [user?.id]);
-
   // Auto-save
   useEffect(() => {
     if (!user?.id || isLoading) return;
@@ -332,47 +364,48 @@ function App() {
     }, 5000);
     return () => clearInterval(iv);
   }, [balance, cases, inventory, tasks, inventorySlots, usedPromos, wonPromos, user?.id, isLoading, totalDeposits, freeEliteSpin]);
-
   // ===== LOBBY LISTENER =====
   useEffect(() => {
-    if (!currentGame?.type === 'ice' || !currentGame?.lobbyId || !user?.id) return;
-    const lobbyRef = db.ref('iceLobbies/' + currentGame.lobbyId);
-
+    if (!currentGame?.lobbyId || !user?.id) return;
+    const lobbyId = currentGame.lobbyId;
+    const lobbyRef = db.ref('iceLobbies/' + lobbyId);
     lobbyRef.on('value', snap => {
       const data = snap.val();
       if (!data) return;
       setIceLobby(data);
       const status = data.status || 'waiting';
       setGameStatus(status);
-
       // Presence count
-      const pres = data.presence ? Object.keys(data.presence).length : 0;
-      setPresenceCount(pres);
-
-      // Players who bet
+      const presCount = data.presence ? Object.keys(data.presence).length : 0;
+      setPresenceCount(presCount);
+      // Players (with bets)
       const players = data.players || {};
       const bCount = Object.keys(players).length;
       setBettingCount(bCount);
-
       // Ready count
       const rCount = data.readyPlayers ? Object.keys(data.readyPlayers).length : 0;
       setReadyCount(rCount);
-
-      // Sync my state
+      // Sync my bet state
       if (players[user.id]) {
         setHasBet(true);
         setMyBet(players[user.id].bet);
+        setMyBetInput(players[user.id].bet);
+        if (players[user.id].color) setMyColor(players[user.id].color);
       } else {
-        setHasBet(false);
+        // If I was in game (playing) and rejoining, check if game is still running
+        if (status !== 'playing' && status !== 'countdown') {
+          setHasBet(false);
+          setIsReady(false);
+        }
+      }
+      // Ready status
+      if (data.readyPlayers?.[user.id]) {
+        setIsReady(true);
+      } else if (status === 'open') {
         setIsReady(false);
       }
-
-      if (data.readyPlayers?.[user.id]) setIsReady(true);
-      else setIsReady(false);
-
-      // Ball
+      // Ball position
       if (data.ballPosition) setBallPos(data.ballPosition);
-
       // Countdown timer
       if (data.countdownEnd && status === 'countdown') {
         const rem = Math.max(0, Math.ceil((data.countdownEnd - Date.now()) / 1000));
@@ -380,33 +413,31 @@ function App() {
       } else {
         setTimerRemaining(0);
       }
-
-      // Prize chest for winner
+      // Victory screen for winner
       if (status === 'finished' && data.winner?.id === user.id) {
-        if (!data.prizeClaimed?.[user.id] && !showPrizeChest) {
-          setChestPrizes(data.prizes || []);
-          setWonStars(data.wonStars || 0);
-          setWonPrize(data.prizes?.[0] || null);
-          setShowPrizeChest(true);
+        if (!data.prizeClaimed?.[user.id] && !prizeClaimedLocal) {
+          setVictoryStars(data.wonStars || 0);
+          setVictoryPrize(data.prizes?.[0] || null);
+          setShowVictoryBox(true);
+          setBoxOpened(false);
         }
       }
-
-      // Auto-reset if empty
-      if (bCount === 0 && status !== 'waiting' && status !== 'open') {
-        lobbyRef.update(emptyLobby());
+      // If game finished and I'm not winner, show exit option after delay
+      if (status === 'finished' && data.winner && data.winner.id !== user.id) {
+        // Non-winners see result and can exit
       }
     });
-
     return () => {
       lobbyRef.off();
       // Remove presence on unmount
-      if (user?.id) db.ref('iceLobbies/' + currentGame.lobbyId + '/presence/' + user.id).remove();
+      if (user?.id) {
+        db.ref('iceLobbies/' + lobbyId + '/presence/' + user.id).remove();
+      }
     };
-  }, [currentGame, user?.id]);
-
-  // Countdown timer tick
+  }, [currentGame?.lobbyId, user?.id]);
+  // Countdown tick
   useEffect(() => {
-    if (gameStatus !== 'countdown') return;
+    if (gameStatus !== 'countdown') { setTimerRemaining(0); return; }
     const iv = setInterval(() => {
       setTimerRemaining(prev => {
         if (prev <= 1) { clearInterval(iv); return 0; }
@@ -415,76 +446,61 @@ function App() {
     }, 1000);
     return () => clearInterval(iv);
   }, [gameStatus]);
-
-  const emptyLobby = () => ({
-    status: 'waiting',
-    players: {},
-    presence: {},
-    readyPlayers: {},
-    winner: null,
-    prizes: [],
-    wonStars: 0,
-    ballPosition: { x: 50, y: 50, vx: 0, vy: 0 },
-    countdownEnd: null,
-    prizeClaimed: {}
-  });
-
   // ===== JOIN LOBBY =====
   const joinIceLobby = async (lobbyId) => {
+    if (!user?.id) return;
     const lobbyRef = db.ref('iceLobbies/' + lobbyId);
     const snap = await lobbyRef.once('value');
     const data = snap.val() || {};
-
     const status = data.status || 'waiting';
-
-    // If game is already playing — spectator
+    // Generate color for this player
+    const color = myColor || getRandomColor();
+    setMyColor(color);
+    // If game is playing or countdown — spectator
     if (status === 'playing' || status === 'countdown') {
-      setCurrentGame({ type: 'ice', lobbyId, spectator: true });
-      // Still add to presence for count
+      // Check if I had a bet (reconnecting player)
+      if (data.players?.[user.id]) {
+        setCurrentGame({ type: 'ice', lobbyId, spectator: false });
+      } else {
+        setCurrentGame({ type: 'ice', lobbyId, spectator: true });
+      }
+      // Still add to presence
       const presRef = db.ref('iceLobbies/' + lobbyId + '/presence/' + user.id);
-      await presRef.set({ name: user.name, avatar: user.avatar || null, joinedAt: Date.now(), spectator: true });
+      await presRef.set({ name: user.name, avatar: user.avatar || null, joinedAt: Date.now(), color, spectator: true });
       presRef.onDisconnect().remove();
       return;
     }
-
-    // Add to presence with random color
-    const playerColor = `hsl(${Math.floor(Math.random() * 360)}, 70%, 55%)`;
-    const presRef = db.ref('iceLobbies/' + lobbyId + '/presence/' + user.id);
-    await presRef.set({ name: user.name, avatar: user.avatar || null, joinedAt: Date.now(), color: playerColor });
-    presRef.onDisconnect().remove();
-
-    // Check how many are present now
-    const newSnap = await lobbyRef.once('value');
-    const newData = newSnap.val() || {};
-    const presCount = newData.presence ? Object.keys(newData.presence).length : 0;
-
-    // If 2+ are present and lobby is waiting → open for betting
-    if (presCount >= 2 && (newData.status === 'waiting' || !newData.status)) {
-      await lobbyRef.update({ status: 'open' });
-    }
-
-    setCurrentGame({ type: 'ice', lobbyId, spectator: false });
+    // Reset victory states
+    setShowVictoryBox(false);
+    setBoxOpened(false);
+    setPrizeClaimedLocal(false);
     setHasBet(false);
     setIsReady(false);
-    setOpenedChestCount(0);
-    setShowPrizeChest(false);
-    setShowNewGamePrompt(false);
+    // Add to presence
+    const presRef = db.ref('iceLobbies/' + lobbyId + '/presence/' + user.id);
+    await presRef.set({ name: user.name, avatar: user.avatar || null, joinedAt: Date.now(), color });
+    presRef.onDisconnect().remove();
+    setCurrentGame({ type: 'ice', lobbyId, spectator: false });
+    // Check presence count → maybe open betting
+    const snap2 = await db.ref('iceLobbies/' + lobbyId).once('value');
+    const data2 = snap2.val() || {};
+    const presCount = data2.presence ? Object.keys(data2.presence).length : 0;
+    if (presCount >= 2 && (data2.status === 'waiting' || !data2.status)) {
+      await lobbyRef.update({ status: 'open' });
+    }
   };
-
   // ===== LEAVE LOBBY =====
   const leaveIceLobby = async () => {
     if (!currentGame?.lobbyId || !user?.id) { setCurrentGame(null); return; }
     const lobbyId = currentGame.lobbyId;
     const lobbyRef = db.ref('iceLobbies/' + lobbyId);
-
     // Remove from presence
     await db.ref('iceLobbies/' + lobbyId + '/presence/' + user.id).remove();
-
-    // If had a bet and game not started → refund
+    // If had a bet and game not started — refund
     if (hasBet) {
       const snap = await lobbyRef.once('value');
       const data = snap.val() || {};
-      if ((data.status === 'open' || data.status === 'waiting' || data.status === 'countdown') && data.players?.[user.id]) {
+      if ((data.status === 'open' || data.status === 'waiting') && data.players?.[user.id]) {
         const betAmt = data.players[user.id].bet;
         const newBal = balance + betAmt;
         setBalance(newBal);
@@ -493,213 +509,208 @@ function App() {
         await db.ref('iceLobbies/' + lobbyId + '/readyPlayers/' + user.id).remove();
       }
     }
-
-    // Re-check presence count → maybe revert to waiting
+    // Check remaining presence — maybe revert to waiting
     const snap2 = await lobbyRef.once('value');
     const data2 = snap2.val() || {};
     const presCount = data2.presence ? Object.keys(data2.presence).length : 0;
-    if (presCount < 2 && (data2.status === 'open' || data2.status === 'waiting')) {
-      // Not enough players — reset all bets and back to waiting
-      if (data2.players) {
-        for (const [pid, pdata] of Object.entries(data2.players)) {
-          if (pid !== user.id) {
-            await db.ref('users/' + pid + '/balance').transaction(c => (c || 0) + pdata.bet);
-          }
-        }
-      }
-      await lobbyRef.update({ status: 'waiting', players: {}, readyPlayers: {} });
+    if (presCount < 2 && (data2.status === 'open')) {
+      await lobbyRef.update({ status: 'waiting', readyPlayers: {} });
     }
-
     setCurrentGame(null);
     setHasBet(false);
     setIsReady(false);
+    setShowVictoryBox(false);
+    setPrizeClaimedLocal(false);
   };
-
   // ===== PLACE BET =====
   const placeBet = async () => {
-    if (gameStatus !== 'open') { alert('Сейчас нельзя делать ставки!'); return; }
-    if (myBet < 25) { alert('Минимум 25⭐️!'); return; }
-    if (balance < myBet) { alert('Недостаточно звезд!'); return; }
-
+    if (gameStatus !== 'open') { alert('Ставки сейчас недоступны!'); return; }
+    if (myBetInput < 25) { alert('Минимальная ставка 25⭐️!'); return; }
+    if (balance < myBetInput) { alert('Недостаточно звёзд!'); return; }
     const lobbyRef = db.ref('iceLobbies/' + currentGame.lobbyId);
     const snap = await lobbyRef.once('value');
     const data = snap.val() || {};
-    if (data.status !== 'open') { alert('Ставки сейчас закрыты!'); return; }
-
-    const newBalance = balance - myBet;
-    setBalance(newBalance);
-    await db.ref('users/' + user.id + '/balance').set(newBalance);
-
-    // Get color from presence or generate new one
-    const presSnap = await lobbyRef.child('presence/' + user.id).once('value');
-    const presData = presSnap.val() || {};
-    const playerColor = presData.color || `hsl(${Math.floor(Math.random() * 360)}, 70%, 55%)`;
-    
+    if (data.status !== 'open') { alert('Ставки закрыты!'); return; }
+    const newBal = balance - myBetInput;
+    setBalance(newBal);
+    await db.ref('users/' + user.id + '/balance').set(newBal);
+    const color = myColor || getRandomColor();
+    setMyColor(color);
     await lobbyRef.child('players/' + user.id).set({
       name: user.name,
       avatar: user.avatar || null,
-      bet: myBet,
-      color: playerColor,
+      bet: myBetInput,
+      color,
       timestamp: Date.now()
     });
-
+    setMyBet(myBetInput);
     setHasBet(true);
   };
-
   // ===== CHANGE BET =====
-  const changeBet = async (newBetAmount) => {
-    if (gameStatus !== 'open') { alert('Сейчас нельзя менять ставки!'); return; }
-    if (newBetAmount < 25) { alert('Минимум 25⭐️!'); return; }
-
+  const changeBet = async () => {
+    if (gameStatus !== 'open') { alert('Сейчас нельзя менять ставку!'); return; }
+    if (myBetInput < 25) { alert('Минимальная ставка 25⭐️!'); return; }
     const lobbyRef = db.ref('iceLobbies/' + currentGame.lobbyId);
     const snap = await lobbyRef.once('value');
     const data = snap.val() || {};
-    
-    if (!data.players?.[user.id]) { alert('Вы ещё не сделали ставку!'); return; }
-    
+    if (!data.players?.[user.id]) return;
     const oldBet = data.players[user.id].bet;
-    const balanceAfterRefund = balance + oldBet;
-    
-    if (balanceAfterRefund < newBetAmount) { alert('Недостаточно звезд для новой ставки!'); return; }
-
-    const newBalance = balanceAfterRefund - newBetAmount;
-    setBalance(newBalance);
-    await db.ref('users/' + user.id + '/balance').set(newBalance);
-
+    // Return old bet, charge new bet
+    const balAfterReturn = balance + oldBet;
+    if (balAfterReturn < myBetInput) { alert('Недостаточно звёзд!'); return; }
+    const newBal = balAfterReturn - myBetInput;
+    setBalance(newBal);
+    await db.ref('users/' + user.id + '/balance').set(newBal);
     await lobbyRef.child('players/' + user.id).update({
-      bet: newBetAmount,
+      bet: myBetInput,
       timestamp: Date.now()
     });
-
-    setMyBet(newBetAmount);
-    // Reset ready status when bet changes
+    setMyBet(myBetInput);
+    // Reset ready status
     await lobbyRef.child('readyPlayers/' + user.id).remove();
     setIsReady(false);
   };
-
   // ===== TOGGLE READY =====
   const toggleReady = async () => {
     if (!hasBet) { alert('Сначала сделайте ставку!'); return; }
     if (gameStatus !== 'open') return;
-
     const lobbyRef = db.ref('iceLobbies/' + currentGame.lobbyId);
-    const readyRef = lobbyRef.child('readyPlayers/' + user.id);
-
     if (isReady) {
-      // Unready
-      await readyRef.remove();
+      await lobbyRef.child('readyPlayers/' + user.id).remove();
       setIsReady(false);
-    } else {
-      // Ready
-      await readyRef.set({ name: user.name, readyAt: Date.now() });
-      setIsReady(true);
-
-      // Check if ALL players with bets are ready → start countdown
-      const snap = await lobbyRef.once('value');
-      const data = snap.val() || {};
-      const players = data.players || {};
-      const readyPlayers = data.readyPlayers ? { ...data.readyPlayers, [user.id]: true } : { [user.id]: true };
-      const bCount = Object.keys(players).length;
-      const rCount = Object.keys(readyPlayers).length;
-
-      if (bCount >= 2 && rCount >= bCount) {
-        // All ready — start countdown
-        const countdownEnd = Date.now() + 10000;
-        await lobbyRef.update({ status: 'countdown', countdownEnd });
-        // Schedule game start
-        setTimeout(() => triggerGameStart(lobbyRef), 10000);
-      }
+      return;
+    }
+    await lobbyRef.child('readyPlayers/' + user.id).set({ name: user.name, readyAt: Date.now() });
+    setIsReady(true);
+    // Check if ALL players with bets are ready
+    const snap = await lobbyRef.once('value');
+    const data = snap.val() || {};
+    const players = data.players || {};
+    const readyPlayers = data.readyPlayers || {};
+    const bCount = Object.keys(players).length;
+    // Include current player in ready count
+    const newReadySet = { ...readyPlayers, [user.id]: true };
+    const rCount = Object.keys(newReadySet).length;
+    if (bCount >= 2 && rCount >= bCount) {
+      // All ready — start countdown
+      const countdownEnd = Date.now() + 10000;
+      await lobbyRef.update({ status: 'countdown', countdownEnd });
+      // Trigger game start after 10s
+      setTimeout(() => triggerGameStart(lobbyRef, currentGame.lobbyId), 10000);
     }
   };
-
+  // ===== NEW PLAYER JOINS DURING COUNTDOWN =====
+  useEffect(() => {
+    if (!currentGame?.lobbyId || !user?.id) return;
+    // When a new player joins presence during countdown, reset to open
+    // This is handled server-side by checking presence in the listener
+  }, []);
+  // Watch for new players joining during countdown (handled via lobby listener)
+  useEffect(() => {
+    if (gameStatus !== 'countdown' || !currentGame?.lobbyId) return;
+    // If a new player added to presence during countdown, revert to open
+    const presRef = db.ref('iceLobbies/' + currentGame.lobbyId + '/presence');
+    presRef.on('child_added', async () => {
+      const snap = await db.ref('iceLobbies/' + currentGame.lobbyId).once('value');
+      const data = snap.val() || {};
+      if (data.status !== 'countdown') return;
+      // If new player NOT in players list joined presence — cancel countdown
+      const presence = data.presence || {};
+      const players = data.players || {};
+      const newPresKeys = Object.keys(presence).filter(k => !players[k]);
+      if (newPresKeys.length > 0) {
+        await db.ref('iceLobbies/' + currentGame.lobbyId).update({ status: 'open', countdownEnd: null });
+      }
+    });
+    return () => presRef.off('child_added');
+  }, [gameStatus, currentGame?.lobbyId]);
   // ===== TRIGGER GAME START =====
-  const triggerGameStart = async (lobbyRef) => {
+  const triggerGameStart = async (lobbyRef, lobbyId) => {
     const snap = await lobbyRef.once('value');
     const data = snap.val();
     if (!data || data.status !== 'countdown') return;
-
-    // Check again: all players ready?
     const players = data.players || {};
     const readyPlayers = data.readyPlayers || {};
     const bCount = Object.keys(players).length;
     const rCount = Object.keys(readyPlayers).length;
-
     if (bCount < 2 || rCount < bCount) {
-      // Not all ready anymore — go back to open, refund all
+      // Not all ready — refund and reset
       for (const [pid, pdata] of Object.entries(players)) {
         await db.ref('users/' + pid + '/balance').transaction(c => (c || 0) + pdata.bet);
       }
       await lobbyRef.update({ status: 'open', countdownEnd: null, players: {}, readyPlayers: {} });
       return;
     }
-
     await startIceGame(lobbyRef);
   };
-
   // ===== START GAME =====
   const startIceGame = async (lobbyRef) => {
-    await lobbyRef.update({ status: 'playing' });
+    await lobbyRef.update({ status: 'playing', gameStartedAt: Date.now() });
+    // Random initial direction, moderate speed — ONLY decelerates, never accelerates
     let x = 50, y = 50;
-    // Random initial velocity in any direction
-    let angle = Math.random() * Math.PI * 2;
-    let speed = 12 + Math.random() * 8;
-    let vx = Math.cos(angle) * speed;
-    let vy = Math.sin(angle) * speed;
-
+    const angle = Math.random() * Math.PI * 2;
+    const initialSpeed = 8 + Math.random() * 6; // 8-14 units/tick
+    let vx = Math.cos(angle) * initialSpeed;
+    let vy = Math.sin(angle) * initialSpeed;
+    const FRICTION = 0.994; // slow friction — smooth deceleration
+    const RADIUS = 44; // boundary radius (% units)
+    const CENTER = 50;
     const iv = setInterval(async () => {
-      x += vx * 0.5;
-      y += vy * 0.5;
-      
-      // Bounce off circular boundary
-      const dx = x - 50, dy = y - 50;
+      // Move
+      x += vx * 0.4;
+      y += vy * 0.4;
+      // Boundary check — reflect off circular wall
+      const dx = x - CENTER;
+      const dy = y - CENTER;
       const dist = Math.sqrt(dx * dx + dy * dy);
-      if (dist >= 42) {
-        // Calculate normal at collision point
-        const nx = dx / dist, ny = dy / dist;
+      if (dist >= RADIUS) {
+        // Normal vector at collision point
+        const nx = dx / dist;
+        const ny = dy / dist;
         // Reflect velocity
         const dot = vx * nx + vy * ny;
         vx = vx - 2 * dot * nx;
         vy = vy - 2 * dot * ny;
-        // Add randomness to bounce for unpredictability
-        vx += (Math.random() - 0.5) * 3;
-        vy += (Math.random() - 0.5) * 3;
-        // Move puck inside boundary
-        x = 50 + 41 * nx;
-        y = 50 + 41 * ny;
-        // Dampen on bounce
-        vx *= 0.92;
-        vy *= 0.92;
+        // Add small random perturbation for unpredictability
+        const perturbAngle = (Math.random() - 0.5) * 0.4;
+        const cos = Math.cos(perturbAngle);
+        const sin = Math.sin(perturbAngle);
+        const nvx = vx * cos - vy * sin;
+        const nvy = vx * sin + vy * cos;
+        vx = nvx;
+        vy = nvy;
+        // Push back inside
+        const overlap = dist - RADIUS + 1;
+        x -= nx * overlap;
+        y -= ny * overlap;
       }
-      
-      // Friction (always slowing down)
-      vx *= 0.996;
-      vy *= 0.996;
-      
+      // Apply friction — ONLY deceleration
+      vx *= FRICTION;
+      vy *= FRICTION;
+      const speed = Math.sqrt(vx * vx + vy * vy);
       await lobbyRef.child('ballPosition').set({ x, y, vx, vy });
-      
-      if (Math.abs(vx) < 0.1 && Math.abs(vy) < 0.1) {
+      // Stop when speed is very low
+      if (speed < 0.08) {
         clearInterval(iv);
         await finishIceGame(lobbyRef, x, y);
       }
     }, 25);
   };
-
   // ===== FINISH GAME =====
   const finishIceGame = async (lobbyRef, finalX, finalY) => {
     const snap = await lobbyRef.once('value');
     const data = snap.val();
     if (!data?.players) return;
-
     const players = Object.entries(data.players);
     const totalBet = players.reduce((s, [, p]) => s + p.bet, 0);
-    
-    // Calculate angle from center to final position
-    const dx = finalX - 50, dy = finalY - 50;
+    // Determine which sector the ball is in (angle from center)
+    const dx = finalX - 50;
+    const dy = finalY - 50;
     let angle = Math.atan2(dy, dx) * 180 / Math.PI;
     if (angle < 0) angle += 360;
-
-    // Determine winner based on territory (bet percentage)
-    let currentAngle = 0, winner = null;
+    // Match angle to player sector (sorted by timestamp = order of joining)
+    let currentAngle = 0;
+    let winner = null;
     const sorted = players.sort((a, b) => a[1].timestamp - b[1].timestamp);
     for (const [id, p] of sorted) {
       const sector = (p.bet / totalBet) * 360;
@@ -710,17 +721,15 @@ function App() {
       currentAngle += sector;
     }
     if (!winner) winner = { id: sorted[0][0], ...sorted[0][1] };
-
-    // Pick prize
+    // Pick bonus prize
     const rand = Math.random() * 100;
-    let cum = 0, wonPrize = ICE_ARENA_PRIZES[0];
+    let cum = 0;
+    let wonPrize = ICE_ARENA_PRIZES[0];
     for (const prize of ICE_ARENA_PRIZES) {
       cum += prize.chance;
       if (rand <= cum) { wonPrize = prize; break; }
     }
-
     const winAmount = Math.floor(totalBet * 0.40);
-
     await lobbyRef.update({
       status: 'finished',
       winner,
@@ -728,22 +737,20 @@ function App() {
       wonStars: winAmount,
       finalBall: { x: finalX, y: finalY }
     });
-
+    // Credit winner
     if (winner.id === user.id) {
       const newBal = balance + winAmount;
       setBalance(newBal);
       await db.ref('users/' + user.id + '/balance').set(newBal);
     }
   };
-
-  // ===== OPEN CHEST =====
-  const openChest = async () => {
-    if (openedChestCount >= 1) return;
-    const prize = chestPrizes[0];
-    if (!prize) return;
-    setOpenedChestCount(1);
-    await db.ref(`iceLobbies/${currentGame.lobbyId}/prizeClaimed/${user.id}`).set(true);
-
+  // ===== OPEN VICTORY BOX =====
+  const openVictoryBox = async () => {
+    if (boxOpened || !victoryPrize) return;
+    setBoxOpened(true);
+    setPrizeClaimedLocal(true);
+    await db.ref('iceLobbies/' + currentGame.lobbyId + '/prizeClaimed/' + user.id).set(true);
+    const prize = victoryPrize;
     if (prize.type === 'stars') {
       const nb = balance + prize.value;
       setBalance(nb);
@@ -751,71 +758,105 @@ function App() {
     } else if (prize.type === 'item') {
       await addToInventory(prize);
     } else if (prize.type === 'case_free') {
-      setCases(prev => ({ ...prev, [prize.caseType]: { ...prev[prize.caseType], freeCount: (prev[prize.caseType].freeCount || 0) + 1 } }));
+      const nc = { ...cases, [prize.caseType]: { ...cases[prize.caseType], freeCount: (cases[prize.caseType].freeCount || 0) + 1 } };
+      setCases(nc);
     } else if (prize.type === 'promo') {
       alert('Получен промокод: ' + prize.code);
     }
-    if (prize.id === 'fire') { alert(prize.message); }
-
-    setTimeout(() => { setShowPrizeChest(false); setShowNewGamePrompt(true); }, 1500);
   };
-
-  // ===== RESET LOBBY FOR NEW GAME (CLEAR EVERYTHING) =====
-  const resetLobbyForNewGame = async () => {
-    if (!currentGame?.lobbyId) return;
+  // ===== EXIT LOBBY AFTER GAME =====
+  const exitLobbyAfterGame = async () => {
+    if (!currentGame?.lobbyId) { setCurrentGame(null); return; }
     const lobbyRef = db.ref('iceLobbies/' + currentGame.lobbyId);
-    // Clear everything completely
-    await lobbyRef.update({
-      status: 'waiting',
-      players: {},
-      presence: {},
-      readyPlayers: {},
-      winner: null,
-      prizes: [],
-      wonStars: 0,
-      ballPosition: { x: 50, y: 50, vx: 0, vy: 0 },
-      countdownEnd: null,
-      prizeClaimed: {},
-      finalBall: null
-    });
-    // Exit player from lobby
+    // Clear everything for next game
+    await lobbyRef.set(DEFAULT_LOBBY);
     setCurrentGame(null);
     setHasBet(false);
     setIsReady(false);
-    setOpenedChestCount(0);
-    setShowPrizeChest(false);
-    setShowNewGamePrompt(false);
-    setWonStars(0);
-    setWonPrize(null);
+    setShowVictoryBox(false);
+    setBoxOpened(false);
+    setPrizeClaimedLocal(false);
+    setMyColor('');
     setMyBet(25);
+    setMyBetInput(25);
   };
-
-  // ===== RENDER ICE ARENA FIELD =====
-  const renderIceArenaField = () => {
+  // Non-winner exit
+  const exitLobbyNonWinner = async () => {
+    if (!currentGame?.lobbyId) { setCurrentGame(null); return; }
+    await db.ref('iceLobbies/' + currentGame.lobbyId + '/presence/' + user.id).remove();
+    setCurrentGame(null);
+    setHasBet(false);
+    setIsReady(false);
+    setMyColor('');
+    setMyBet(25);
+    setMyBetInput(25);
+  };
+  // ===== ICE ARENA FIELD RENDER =====
+  const renderIceField = () => {
     if (!iceLobby?.players) return null;
     const players = Object.entries(iceLobby.players);
+    if (players.length === 0) return null;
     const totalBet = players.reduce((s, [, p]) => s + p.bet, 0);
+    if (totalBet === 0) return null;
+    const sorted = players.sort((a, b) => a[1].timestamp - b[1].timestamp);
     let currentAngle = 0;
-    return players.map(([id, player]) => {
-      const percentage = totalBet > 0 ? (player.bet / totalBet) * 100 : 50;
-      const sectorAngle = (player.bet / totalBet) * 360;
-      const midAngle = currentAngle + sectorAngle / 2;
-      const avatarR = 35 * (percentage / 100);
-      const avatarX = 50 + avatarR * Math.cos((midAngle - 90) * Math.PI / 180);
-      const avatarY = 50 + avatarR * Math.sin((midAngle - 90) * Math.PI / 180);
-      currentAngle += sectorAngle;
+    return sorted.map(([id, player]) => {
+      const pct = (player.bet / totalBet) * 100;
+      const sectorDeg = (player.bet / totalBet) * 360;
+      const midAngle = currentAngle + sectorDeg / 2;
+      const startAngle = currentAngle;
+      currentAngle += sectorDeg;
+      // Avatar position
+      const avatarDist = 28;
+      const avatarX = 50 + avatarDist * Math.cos((midAngle - 90) * Math.PI / 180);
+      const avatarY = 50 + avatarDist * Math.sin((midAngle - 90) * Math.PI / 180);
+      // Percent label position
+      const labelDist = 18;
+      const labelX = 50 + labelDist * Math.cos((midAngle - 90) * Math.PI / 180);
+      const labelY = 50 + labelDist * Math.sin((midAngle - 90) * Math.PI / 180);
       return (
         <React.Fragment key={id}>
-          <div className="absolute inset-0" style={{ background: `conic-gradient(from ${currentAngle - sectorAngle}deg, ${player.color}${Math.round(percentage) > 50 ? 'cc' : '99'} 0deg, ${player.color}${Math.round(percentage) > 50 ? 'cc' : '99'} ${sectorAngle}deg, transparent ${sectorAngle}deg)`, clipPath: 'circle(50% at 50% 50%)' }} />
-          <div className="absolute text-xl font-bold pointer-events-none" style={{ left: `${50 + 25 * Math.cos((midAngle - 90) * Math.PI / 180)}%`, top: `${50 + 25 * Math.sin((midAngle - 90) * Math.PI / 180)}%`, transform: 'translate(-50%,-50%)', color: 'white', textShadow: '0 0 8px black' }}>{Math.round(percentage)}%</div>
-          <div className="player-avatar" style={{ left: `${avatarX}%`, top: `${avatarY}%`, borderColor: player.color, boxShadow: `0 0 12px ${player.color}` }}>
-            {player.avatar ? <img src={player.avatar} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-gray-600 flex items-center justify-center text-sm font-bold">{player.name[0]}</div>}
+          {/* Sector fill */}
+          <div
+            className="absolute inset-0"
+            style={{
+              background: `conic-gradient(from ${startAngle}deg at 50% 50%, ${player.color}bb ${sectorDeg}deg, transparent ${sectorDeg}deg)`,
+              clipPath: 'circle(50% at 50% 50%)',
+              borderRadius: '50%'
+            }}
+          />
+          {/* Percent label */}
+          <div
+            className="absolute pointer-events-none font-bold text-white"
+            style={{
+              left: `${labelX}%`,
+              top: `${labelY}%`,
+              transform: 'translate(-50%,-50%)',
+              fontSize: '11px',
+              textShadow: '0 0 6px black, 0 0 3px black'
+            }}
+          >
+            {Math.round(pct)}%
+          </div>
+          {/* Avatar */}
+          <div
+            className="player-avatar"
+            style={{
+              left: `${avatarX}%`,
+              top: `${avatarY}%`,
+              borderColor: player.color,
+              boxShadow: `0 0 12px ${player.color}`
+            }}
+          >
+            {player.avatar
+              ? <img src={player.avatar} className="w-full h-full object-cover" alt="" />
+              : <div className="w-full h-full flex items-center justify-center text-xs font-bold" style={{ background: player.color }}>{player.name[0]}</div>
+            }
           </div>
         </React.Fragment>
       );
     });
   };
-
   // ===== CASES =====
   const getCasePrice = (ct) => {
     const c = cases[ct];
@@ -824,59 +865,52 @@ function App() {
     if (c.discountPrice && c.discountPrice !== c.price) return c.discountPrice;
     return c.price;
   };
-
   const openCase = async (caseType) => {
-    if (caseType === 'collector' && cases.collector?.locked) { alert('Кейс «Коллекционер» заблокирован. Нужно пополнить на 350⭐️'); return; }
+    if (caseType === 'collector' && cases.collector?.locked) { alert('Кейс «Коллекционер» заблокирован!'); return; }
     const price = getCasePrice(caseType);
-    const isFreeCase = cases[caseType]?.freeCount > 0;
+    const isFree = cases[caseType]?.freeCount > 0;
     const isElite = caseType === 'elite';
-    const hasFreeEliteSpin = isElite && freeEliteSpin > 0;
-    if (!hasFreeEliteSpin && !isFreeCase && price > 0 && balance < price) { alert('Недостаточно звезд!'); return; }
-
-    let newBalanceAfter = balance;
-    if (isFreeCase) {
+    const hasFreeElite = isElite && freeEliteSpin > 0;
+    if (!hasFreeElite && !isFree && price > 0 && balance < price) { alert('Недостаточно звёзд!'); return; }
+    let newBal = balance;
+    if (isFree) {
       const nf = cases[caseType].freeCount - 1;
       setCases(prev => ({ ...prev, [caseType]: { ...prev[caseType], freeCount: nf } }));
       await db.ref(`users/${user.id}/cases/${caseType}/freeCount`).set(nf);
-    } else if (hasFreeEliteSpin) {
+    } else if (hasFreeElite) {
       const ns = freeEliteSpin - 1;
       setFreeEliteSpin(ns);
       await db.ref(`users/${user.id}/freeEliteSpin`).set(ns);
     } else if (price > 0) {
-      newBalanceAfter = balance - price;
-      setBalance(newBalanceAfter);
-      await db.ref('users/' + user.id + '/balance').set(newBalanceAfter);
+      newBal = balance - price;
+      setBalance(newBal);
+      await db.ref('users/' + user.id + '/balance').set(newBal);
     }
-
     setIsSpinning(true);
     setSelectedCase({ ...cases[caseType], id: caseType });
     setSpinResult(null);
     setRouletteOffset(0);
     setFakeItems([]);
     setRouletteKey(prev => prev + 1);
-
     const items = CASE_REWARDS[caseType];
     const rand = Math.random() * 100;
     let cum = 0, won = items[0];
     for (const item of items) { cum += item.realChance; if (rand <= cum) { won = item; break; } }
-
     const tape = [];
     for (let i = 0; i < 80; i++) tape.push(i === 70 ? won : items[Math.floor(Math.random() * items.length)]);
-
     setTimeout(() => {
       setFakeItems(tape);
       setTimeout(() => {
         const cw = rouletteContainerRef.current ? rouletteContainerRef.current.offsetWidth : window.innerWidth;
-        const ifw = 120 + 16;
+        const ifw = 136;
         setRouletteOffset(-(70 * ifw + ifw / 2 - cw / 2));
       }, 100);
     }, 100);
-
     setTimeout(async () => {
       setSpinResult(won);
       setIsSpinning(false);
       if (won.type === 'stars') {
-        const fb = newBalanceAfter + won.value;
+        const fb = newBal + won.value;
         setBalance(fb);
         await db.ref(`users/${user.id}/balance`).set(fb);
       } else {
@@ -884,15 +918,12 @@ function App() {
       }
     }, 6600);
   };
-
   const addToInventory = async (item) => {
     if (inventory.length >= inventorySlots) { alert('Инвентарь полон!'); return; }
-    const ni = { ...item, uniqueId: Date.now(), collected: Date.now() };
-    const newInv = [...inventory, ni];
-    setInventory(newInv);
-    await db.ref(`users/${user.id}/inventory`).set(newInv);
+    const ni = [...inventory, { ...item, uniqueId: Date.now(), collected: Date.now() }];
+    setInventory(ni);
+    await db.ref(`users/${user.id}/inventory`).set(ni);
   };
-
   const sellItem = async (item) => {
     if (item.type === 'ice_gift') { setSelectedIceGift(item); setShowIceGiftModal(true); return; }
     if (item.type === 'collectible') { setSelectedCollectible(item); setShowCollectibleModal(true); return; }
@@ -903,7 +934,6 @@ function App() {
       await db.ref(`users/${user.id}`).update({ balance: nb, inventory: ni });
     }
   };
-
   const sellIceGift = async () => {
     if (!selectedIceGift) return;
     const nb = balance + 25;
@@ -913,26 +943,25 @@ function App() {
     setShowIceGiftModal(false); setSelectedIceGift(null);
     alert('Продано за 25⭐️!');
   };
-
   const unlockSlot = async () => {
-    if (balance < 50) { alert('Недостаточно звезд!'); return; }
-    if (confirm('Разблокировать слот за 50 ⭐️?')) {
+    if (balance < 50) { alert('Недостаточно звёзд!'); return; }
+    if (confirm('Разблокировать слот за 50⭐️?')) {
       const nb = balance - 50, ns = inventorySlots + 1;
       setBalance(nb); setInventorySlots(ns);
       await db.ref(`users/${user.id}`).update({ balance: nb, inventorySlots: ns });
     }
   };
-
   const checkPromo = async () => {
     const code = promoCode.toUpperCase().trim();
     setPromoError(''); setPromoSuccess('');
+    if (!code) return;
     if (usedPromos.includes(code)) { setPromoError('Уже использован!'); return; }
     if (code === 'DELLKO') {
       if (!wonPromos.includes('DELLKO')) { setPromoError('Только если выиграли в Ледяном Катке!'); return; }
       const nc = { ...cases, money: { ...cases.money, freeCount: (cases.money.freeCount || 0) + 3 } };
       setCases(nc);
       await addToInventory({ name: '🧊 Лёд (1/3)', emoji: '🧊', type: 'ice', part: 1 });
-      setPromoSuccess('Промокод активирован! +3 денежных кейса + 🧊');
+      setPromoSuccess('+3 денежных кейса + 🧊!');
       const np = [...usedPromos, code]; setUsedPromos(np); setPromoCode('');
       await db.ref(`users/${user.id}/usedPromos`).set(np);
     } else if (code === 'DIAMOND') {
@@ -942,21 +971,19 @@ function App() {
       await db.ref(`users/${user.id}/usedPromos`).set(np);
     } else { setPromoError('Неверный промокод'); }
   };
-
   const topUpBalance = async (stars, ton) => {
-    const pid = 'PAY_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    const pid = 'PAY_' + Date.now();
     const memo = `SBS_${user.id}_${stars}_${pid}`;
-    const tonLink = `ton://transfer/${ADMIN_WALLET}?amount=${Math.round(ton * 1e9)}&text=${encodeURIComponent(memo)}`;
-    window.open(tonLink, '_blank');
+    const link = `ton://transfer/${ADMIN_WALLET}?amount=${Math.round(ton * 1e9)}&text=${encodeURIComponent(memo)}`;
+    window.open(link, '_blank');
     setPaymentStatus(`Отправьте ${ton} TON с комментарием: ${memo}`);
     setShowTopUp(false);
   };
-
   const buyStars = async (pkg) => {
     try {
       const r = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/createInvoiceLink`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: `${pkg.stars} звезд`, description: `Покупка ${pkg.stars} звезд`, payload: `stars_${user.id}_${pkg.stars}_${Date.now()}`, currency: 'XTR', prices: [{ label: `${pkg.stars} звезд`, amount: pkg.price }] })
+        body: JSON.stringify({ title: `${pkg.stars} звёзд`, description: `Покупка ${pkg.stars} звёзд`, payload: `stars_${user.id}_${pkg.stars}_${Date.now()}`, currency: 'XTR', prices: [{ label: `${pkg.stars} звёзд`, amount: pkg.price }] })
       });
       const data = await r.json();
       if (data.ok && data.result) {
@@ -967,14 +994,13 @@ function App() {
               setBalance(nb); setTotalDeposits(nd);
               await db.ref(`users/${user.id}`).update({ balance: nb, totalDeposits: nd });
               checkDepositTasks(nd);
-              alert(`✅ Зачислено ${pkg.stars} звезд!`);
+              alert(`✅ Зачислено ${pkg.stars} звёзд!`);
             }
           });
         } else { window.open(data.result, '_blank'); }
       }
     } catch (e) { alert('Ошибка платежа.'); }
   };
-
   const checkDepositTasks = async (nd) => {
     if (!tasks.deposit?.completed && nd >= 100) {
       const nt = { ...tasks, deposit: { completed: true } };
@@ -989,29 +1015,29 @@ function App() {
       await db.ref(`users/${user.id}`).update({ tasks: nt, cases: nc });
     }
   };
-
   const completeTask = async (taskId) => {
     if (taskId === 'subscribe') {
       window.open('https://t.me/stepbystepdelision', '_blank');
       setTimeout(async () => {
         if (!tasks.subscribe?.completed) {
           const nt = { ...tasks, subscribe: { completed: true } };
-          const nc = { ...cases, elite: { ...cases.elite, freeCount: (cases.elite?.freeCount || 0) + 1 } };
+          const nc = { ...cases, elite: { ...cases.elite, freeCount: (cases.elite.freeCount || 0) + 1 } };
           const ns = freeEliteSpin + 1;
           setTasks(nt); setCases(nc); setFreeEliteSpin(ns);
           await db.ref(`users/${user.id}`).update({ tasks: nt, cases: nc, freeEliteSpin: ns });
-          alert('🎉 Получен 1 кейс «Элита» + 1 бесплатный прокрут!');
+          alert('🎉 Получен 1 кейс «Элита» + 1 прокрут!');
         }
       }, 2000);
-    } else if (taskId === 'deposit' || taskId === 'depositMajor') { setShowTopUp(true); }
-    else if (taskId === 'inviteThree') { 
-        window.open('https://t.me/share/url?url=' + encodeURIComponent(`https://t.me/stepbystep_game_bot?start=${user.id}`), '_blank'); 
-      }
+    } else if (taskId === 'inviteThree') {
+      window.open('https://t.me/share/url?url=' + encodeURIComponent(`https://t.me/stepbystep_game_bot?start=${user.id}`), '_blank');
+    } else if (taskId === 'deposit' || taskId === 'depositMajor') {
+      setShowTopUp(true);
+    }
   };
-
-  const confirmWithdraw = () => { alert('Для получения награды обратитесь к администрации! https://t.me/stepbystepdelision'); setShowWithdrawModal(false); setWithdrawAmount(''); };
-
-  // Admin
+  const confirmWithdraw = () => {
+    alert('Для получения награды обратитесь к администрации! https://t.me/stepbystepdelision');
+    setShowWithdrawModal(false); setWithdrawAmount('');
+  };
   const handleTitleClick = () => {
     const n = adminAttempts + 1; setAdminAttempts(n);
     if (n >= 11) { setShowAdminLogin(true); setAdminAttempts(0); }
@@ -1019,7 +1045,9 @@ function App() {
   const checkAdminLogin = () => {
     if (adminLogin === '_*\\^BAGUETTE_642819_6281' && adminPassword === '3628874910ZTWMI_') {
       setIsAdmin(true); setShowAdminLogin(false);
-      db.ref('users').once('value').then(snap => { const u = []; snap.forEach(c => u.push({ id: c.key, ...c.val() })); setAllUsers(u); });
+      db.ref('users').once('value').then(snap => {
+        const u = []; snap.forEach(c => u.push({ id: c.key, ...c.val() })); setAllUsers(u);
+      });
     } else { alert('Неверный логин или пароль!'); }
   };
   const adminGiveReward = async (tid, reward) => {
@@ -1030,7 +1058,6 @@ function App() {
     else if (reward.type === 'unlock_collector') { await db.ref(`users/${tid}/cases/collector/locked`).set(false); if (tid === user.id) setCases(prev => ({ ...prev, collector: { ...prev.collector, locked: false } })); }
     alert('Награда выдана!');
   };
-
   // ===== ICE LOBBY SCREEN =====
   if (currentGame?.type === 'ice') {
     const isSpectator = currentGame.spectator === true;
@@ -1039,245 +1066,261 @@ function App() {
     const readySet = new Set(iceLobby?.readyPlayers ? Object.keys(iceLobby.readyPlayers) : []);
     const bettedSet = new Set(players.map(([id]) => id));
     const totalBank = players.reduce((s, [, p]) => s + p.bet, 0);
-
-    const canBet = gameStatus === 'open' && presenceCount >= 2 && !hasBet && !isSpectator;
-    const canReady = gameStatus === 'open' && hasBet && !isSpectator;
-
-    const statusLabel = () => {
-      if (isSpectator) return '👁 Вы наблюдатель';
+    const myPlayerData = iceLobby?.players?.[user?.id];
+    const isWinner = gameStatus === 'finished' && iceLobby?.winner?.id === user?.id;
+    const isLoser = gameStatus === 'finished' && iceLobby?.winner && iceLobby.winner.id !== user?.id;
+    const statusText = () => {
+      if (isSpectator) return '👁 Наблюдатель';
       switch (gameStatus) {
-        case 'waiting': return `⏳ Ожидание игроков (${presenceCount}/2)`;
-        case 'open': return '✅ Делайте ставки и жмите «Готов»!';
-        case 'countdown': return `⏰ Игра начнётся через ${timerRemaining} сек!`;
+        case 'waiting': return `⏳ Ожидание игроков (${presenceCount}/2+)`;
+        case 'open': return presenceCount >= 2 ? '✅ Ставки открыты!' : '⏳ Ожидание...';
+        case 'countdown': return `⏰ Старт через ${timerRemaining} сек!`;
         case 'playing': return '🔴 Игра идёт!';
-        case 'finished': return '🏆 Игра завершена';
+        case 'finished': return isWinner ? '🏆 Вы победили!' : `🏆 Победил: ${iceLobby?.winner?.name}`;
         default: return '';
       }
     };
-
     return (
-      <div className="min-h-screen bg-gradient-to-b from-blue-900 via-indigo-900 to-blue-950 pb-6">
-        <div className="max-w-lg mx-auto p-4">
+      <div className="min-h-screen bg-gradient-to-b from-blue-950 via-indigo-950 to-blue-900 pb-4">
+        <div className="max-w-lg mx-auto p-3">
           {/* Header */}
-          <div className="flex justify-between items-center mb-4">
+          <div className="flex justify-between items-center mb-3">
             <div>
-              <h1 className="text-2xl font-bold">☃️ Ледяной Каток</h1>
+              <h1 className="text-xl font-bold text-white">☃️ Ледяной Каток</h1>
               <div className="text-xs text-cyan-400">Лобби #{currentGame.lobbyId}</div>
             </div>
-            <button onClick={leaveIceLobby} className="bg-red-600/40 hover:bg-red-600/70 border border-red-500/50 px-4 py-2 rounded-xl font-bold transition text-sm">✕ Выйти</button>
+            <button onClick={leaveIceLobby} className="bg-red-600/40 hover:bg-red-600 border border-red-500/50 px-3 py-1.5 rounded-xl font-bold transition text-sm">✕ Выйти</button>
           </div>
-
           {/* Status bar */}
-          <div className={`rounded-xl p-3 mb-4 text-center font-bold text-lg border ${gameStatus === 'countdown' ? 'bg-yellow-500/20 border-yellow-500/50 animate-pulse' : gameStatus === 'open' ? 'bg-cyan-500/20 border-cyan-500/50' : gameStatus === 'playing' ? 'bg-red-500/20 border-red-500/50' : 'bg-gray-700/50 border-gray-600/50'}`}>
-            {statusLabel()}
+          <div className={`rounded-xl p-2.5 mb-3 text-center font-bold border text-sm ${
+            gameStatus === 'countdown' ? 'bg-yellow-500/20 border-yellow-500/50 animate-pulse' :
+            gameStatus === 'open' ? 'bg-cyan-500/20 border-cyan-500/50' :
+            gameStatus === 'playing' ? 'bg-red-500/20 border-red-500/50' :
+            gameStatus === 'finished' ? 'bg-purple-500/20 border-purple-500/50' :
+            'bg-gray-700/50 border-gray-600/50'
+          }`}>
+            {statusText()}
           </div>
-
-          {/* Countdown big */}
+          {/* Countdown */}
           {gameStatus === 'countdown' && timerRemaining > 0 && (
-            <div className="text-center mb-4">
-              <div className="text-7xl font-bold text-yellow-400 animate-pulse">{timerRemaining}</div>
-              <div className="text-gray-400 text-sm">секунд до старта</div>
+            <div className="text-center mb-3">
+              <div className="text-6xl font-bold text-yellow-400 animate-pulse">{timerRemaining}</div>
+              <div className="text-gray-400 text-xs">секунд до старта</div>
             </div>
           )}
-
-          {/* Ice circle */}
-          <div className="flex justify-center mb-5">
+          {/* ICE CIRCLE */}
+          <div className="flex justify-center mb-4">
             <div className={`ice-circle relative ${gameStatus === 'open' ? 'pulse-glow' : gameStatus === 'countdown' ? 'ready-glow' : ''}`}>
-              {renderIceArenaField()}
-              {(gameStatus === 'waiting' || gameStatus === 'open' || gameStatus === 'countdown') && (
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-black/80 rounded-full flex items-center justify-center text-3xl border-4 border-cyan-400">
-                  {gameStatus === 'countdown' ? '⏰' : '❓'}
+              {/* Center grid lines */}
+              <div className="absolute inset-0 opacity-10" style={{
+                backgroundImage: 'radial-gradient(circle, #00d2ff 1px, transparent 1px)',
+                backgroundSize: '20px 20px'
+              }} />
+              {/* Sector fills — always render when players exist */}
+              {(gameStatus === 'open' || gameStatus === 'countdown' || gameStatus === 'playing' || gameStatus === 'finished') && renderIceField()}
+              {/* Center puck area when waiting */}
+              {(gameStatus === 'waiting') && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="text-5xl opacity-30">❓</div>
                 </div>
               )}
-              {gameStatus === 'playing' && <div className="ice-ball" style={{ left: ballPos.x + '%', top: ballPos.y + '%' }} />}
-              {gameStatus === 'finished' && iceLobby?.finalBall && <div className="ice-ball" style={{ left: iceLobby.finalBall.x + '%', top: iceLobby.finalBall.y + '%', background: '#ffd700', boxShadow: '0 0 30px #ffd700' }} />}
+              {/* Ball during play */}
+              {gameStatus === 'playing' && (
+                <div className="ice-ball" style={{ left: ballPos.x + '%', top: ballPos.y + '%' }} />
+              )}
+              {/* Ball stopped at end */}
+              {gameStatus === 'finished' && iceLobby?.finalBall && (
+                <div className="ice-ball" style={{
+                  left: iceLobby.finalBall.x + '%',
+                  top: iceLobby.finalBall.y + '%',
+                  background: 'radial-gradient(circle at 30% 30%, #fff, #ffd700)',
+                  boxShadow: '0 0 25px #ffd700, 0 0 50px rgba(255,215,0,0.5)'
+                }} />
+              )}
             </div>
           </div>
-
-          {/* BET + READY BLOCK */}
+          {/* BETTING BLOCK */}
           {!isSpectator && gameStatus === 'open' && (
-            <div className="glass rounded-xl p-4 mb-4 border border-cyan-500/30">
+            <div className="glass rounded-xl p-3 mb-3 border border-cyan-500/30">
               {!hasBet ? (
                 <>
-                  <p className="text-center text-cyan-300 font-bold mb-3">💰 Ваша ставка</p>
-                  <div className="flex gap-2 mb-3">
+                  <p className="text-center text-cyan-300 font-bold mb-2 text-sm">💰 Ваша ставка</p>
+                  <div className="flex gap-2 mb-2">
                     <input
-                      type="number" min="25" value={myBet}
-                      onChange={e => setMyBet(Math.max(25, Number(e.target.value)))}
-                      className="flex-1 bg-gray-800 border border-cyan-600 rounded-lg p-3 text-center text-xl text-white"
+                      type="number" min="25" value={myBetInput}
+                      onChange={e => setMyBetInput(Math.max(25, Number(e.target.value)))}
+                      className="flex-1 bg-gray-800 border border-cyan-600 rounded-lg p-2.5 text-center text-lg text-white"
                     />
-                    <button onClick={() => setMyBet(p => p + 25)} className="bg-cyan-700 hover:bg-cyan-600 px-3 rounded-lg font-bold transition">+25</button>
-                    <button onClick={() => setMyBet(p => p + 100)} className="bg-cyan-700 hover:bg-cyan-600 px-3 rounded-lg font-bold transition">+100</button>
+                    <button onClick={() => setMyBetInput(p => p + 25)} className="bg-cyan-700 hover:bg-cyan-600 px-3 rounded-lg font-bold transition text-sm">+25</button>
+                    <button onClick={() => setMyBetInput(p => p + 100)} className="bg-cyan-700 hover:bg-cyan-600 px-3 rounded-lg font-bold transition text-sm">+100</button>
                   </div>
-                  <button onClick={placeBet} disabled={balance < myBet} className="w-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 py-3 rounded-xl font-bold text-lg disabled:opacity-50 transition shadow-lg">
-                    Поставить {myBet}⭐️
+                  <button onClick={placeBet} disabled={balance < myBetInput || myBetInput < 25} className="w-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 py-2.5 rounded-xl font-bold disabled:opacity-50 transition text-sm">
+                    Поставить {myBetInput}⭐️
                   </button>
-                  <p className="text-center text-xs text-gray-400 mt-2">Мин. ставка: 25⭐️ | Баланс: {balance.toFixed(0)}⭐️</p>
+                  <p className="text-center text-xs text-gray-500 mt-1">Баланс: {balance.toFixed(0)}⭐️ | Мин: 25⭐️</p>
                 </>
               ) : (
                 <>
-                  <div className="text-center mb-3">
-                    <div className="text-green-400 font-bold text-lg">✅ Ставка принята: {myBet}⭐️</div>
-                    <div className="text-gray-400 text-sm mt-1">Нажмите «Готов» когда будете готовы к игре</div>
-                    <button onClick={() => changeBet(myBet + 25)} className="text-xs text-cyan-400 underline mt-2">Изменить ставку</button>
+                  <div className="text-center mb-2">
+                    <div className="text-green-400 font-bold">✅ Ставка: {myBet}⭐️</div>
+                  </div>
+                  {/* Change bet */}
+                  <div className="flex gap-2 mb-2">
+                    <input
+                      type="number" min="25" value={myBetInput}
+                      onChange={e => setMyBetInput(Math.max(25, Number(e.target.value)))}
+                      className="flex-1 bg-gray-800 border border-gray-600 rounded-lg p-2 text-center text-sm text-white"
+                    />
+                    <button onClick={changeBet} disabled={myBetInput === myBet} className="bg-orange-600 hover:bg-orange-500 px-3 rounded-lg font-bold transition text-xs disabled:opacity-40">
+                      Изменить
+                    </button>
                   </div>
                   <button
                     onClick={toggleReady}
-                    className={`w-full py-4 rounded-xl font-bold text-xl transition shadow-lg ${
+                    className={`w-full py-3 rounded-xl font-bold transition ${
                       isReady
-                        ? 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 ready-glow'
+                        ? 'bg-gradient-to-r from-green-500 to-emerald-600 ready-glow text-white'
                         : 'bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 border border-gray-500'
                     }`}
                   >
-                    {isReady ? '✅ Готов! (нажмите для отмены)' : '🏁 Нажмите «Готов»'}
+                    {isReady ? '✅ Готов! (нажмите для отмены)' : '🏁 Готов к игре'}
                   </button>
-                  {bettingCount > 0 && readyCount > 0 && (
-                    <div className="text-center text-sm text-gray-400 mt-2">
-                      Готовы: {readyCount} из {bettingCount}
-                    </div>
+                  {bettingCount > 0 && (
+                    <p className="text-center text-xs text-gray-400 mt-1">
+                      Готовы: {readyCount}/{bettingCount}
+                    </p>
                   )}
                 </>
               )}
             </div>
           )}
-
-          {/* Spectator notice */}
-          {isSpectator && (
-            <div className="glass rounded-xl p-4 mb-4 text-center border border-yellow-500/30">
-              <div className="text-4xl mb-2">👁</div>
-              <div className="font-bold text-yellow-400">Вы наблюдаете за игрой</div>
-              <div className="text-gray-400 text-sm mt-1">Присоединитесь к следующему раунду!</div>
-            </div>
-          )}
-
-          {/* Waiting for players */}
+          {/* Waiting for 2nd player */}
           {!isSpectator && gameStatus === 'waiting' && (
-            <div className="glass rounded-xl p-4 mb-4 text-center border border-gray-600/30">
-              <div className="text-4xl mb-2 animate-bounce">⏳</div>
-              <div className="font-bold text-gray-300">Ожидаем второго игрока...</div>
-              <div className="text-gray-500 text-sm mt-1">Нужно минимум 2 игрока для начала</div>
-              <div className="mt-3 flex justify-center gap-2">
+            <div className="glass rounded-xl p-4 mb-3 text-center border border-gray-600/30">
+              <div className="text-3xl mb-2 animate-bounce">⏳</div>
+              <div className="font-bold text-gray-300 text-sm">Ожидаем ещё игроков...</div>
+              <div className="text-gray-500 text-xs mt-1">Ставки откроются когда зайдут 2+ игроков</div>
+              <div className="flex justify-center gap-2 mt-2">
                 {[1, 2].map(i => (
-                  <div key={i} className={`w-10 h-10 rounded-full border-2 flex items-center justify-center text-lg ${i <= presenceCount ? 'border-cyan-400 bg-cyan-400/20' : 'border-gray-600 bg-gray-800'}`}>
+                  <div key={i} className={`w-8 h-8 rounded-full border-2 flex items-center justify-center text-sm ${i <= presenceCount ? 'border-cyan-400 bg-cyan-400/20 text-cyan-300' : 'border-gray-600 bg-gray-800 text-gray-600'}`}>
                     {i <= presenceCount ? '👤' : '○'}
                   </div>
                 ))}
               </div>
-              <div className="text-cyan-400 text-sm mt-2">{presenceCount}/2 игроков</div>
+              <div className="text-cyan-400 text-xs mt-1">{presenceCount}/2</div>
             </div>
           )}
-
-          {/* Playing + waiting for result */}
+          {/* Playing status for betted player */}
           {!isSpectator && gameStatus === 'playing' && hasBet && (
-            <div className="glass rounded-xl p-4 mb-4 text-center border border-red-500/30">
-              <div className="text-3xl animate-spin mb-2">🌀</div>
-              <div className="font-bold text-red-300">Шайба катится...</div>
-              <div className="text-gray-400 text-sm mt-1">Ставка: {myBet}⭐️ | Банк: {totalBank}⭐️</div>
+            <div className="glass rounded-xl p-3 mb-3 text-center border border-red-500/30">
+              <div className="text-2xl animate-spin mb-1">🌀</div>
+              <div className="font-bold text-red-300 text-sm">Шайба катится...</div>
+              <div className="text-gray-400 text-xs">Ставка: {myBet}⭐️ | Банк: {totalBank}⭐️</div>
             </div>
           )}
-
-          {/* PLAYER LIST */}
-          <div className="glass rounded-xl p-4 mb-4">
-            <div className="flex justify-between items-center mb-3">
-              <h3 className="font-bold text-cyan-300">👥 Игроки в лобби</h3>
-              <span className="text-xs text-gray-400">{presenceCount} чел.</span>
+          {/* Spectator */}
+          {isSpectator && (
+            <div className="glass rounded-xl p-3 mb-3 text-center border border-yellow-500/30">
+              <div className="text-2xl mb-1">👁</div>
+              <div className="text-yellow-400 font-bold text-sm">Вы наблюдатель</div>
+              <div className="text-gray-500 text-xs">Игра уже началась</div>
             </div>
-            <div className="space-y-2 max-h-52 overflow-y-auto">
+          )}
+          {/* FINISHED — Non-winner */}
+          {isLoser && (
+            <div className="glass rounded-xl p-4 mb-3 text-center border border-gray-500/30">
+              <div className="text-4xl mb-2">😔</div>
+              <div className="font-bold text-gray-300">Победил {iceLobby?.winner?.name}</div>
+              <div className="text-gray-400 text-xs mt-1 mb-3">Банк: {totalBank}⭐️ → победитель получил {Math.floor(totalBank * 0.4)}⭐️</div>
+              <button onClick={exitLobbyNonWinner} className="w-full bg-gray-600 hover:bg-gray-500 py-2.5 rounded-xl font-bold transition text-sm">
+                Выйти из лобби
+              </button>
+            </div>
+          )}
+          {/* PLAYERS LIST */}
+          <div className="glass rounded-xl p-3 mb-3">
+            <div className="flex justify-between items-center mb-2">
+              <h3 className="font-bold text-cyan-300 text-sm">👥 В лобби ({presenceCount})</h3>
+              <span className="text-xs text-gray-400">Банк: {totalBank}⭐️</span>
+            </div>
+            <div className="space-y-1.5 max-h-44 overflow-y-auto">
               {presence.map(([id, p]) => {
                 const hasBetted = bettedSet.has(id);
                 const isReadyP = readySet.has(id);
-                const playerData = hasBetted ? iceLobby.players[id] : null;
+                const pData = hasBetted ? iceLobby.players[id] : null;
                 const isMe = id === user.id;
                 return (
-                  <div key={id} className={`flex items-center gap-2 p-2 rounded-lg border transition ${
+                  <div key={id} className={`flex items-center gap-2 p-2 rounded-lg border text-xs transition ${
                     isReadyP ? 'player-row-ready' :
-                    hasBetted ? 'player-row-waiting bg-yellow-500/5' :
-                    'player-row-spectator bg-gray-800/30'
+                    hasBetted ? 'player-row-waiting' :
+                    'player-row-presence bg-gray-800/30'
                   }`}>
-                    <div className={`w-3 h-3 rounded-full flex-shrink-0 ${isReadyP ? 'bg-green-400' : hasBetted ? 'bg-yellow-400' : 'bg-gray-500'}`}></div>
-                    <div className="flex-1 min-w-0">
-                      <span className={`font-bold text-sm ${isMe ? 'text-cyan-300' : 'text-white'}`}>
-                        {p.name} {isMe && '(Вы)'}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      {hasBetted && playerData && (
-                        <span className="text-yellow-400 font-bold text-sm">{playerData.bet}⭐️</span>
-                      )}
-                      {isReadyP && <span className="text-green-400 text-sm font-bold">✅ Готов</span>}
-                      {hasBetted && !isReadyP && <span className="text-yellow-400 text-xs">ожидает...</span>}
-                      {!hasBetted && <span className="text-gray-500 text-xs italic">в лобби</span>}
+                    <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: pData?.color || p.color || '#888' }} />
+                    <span className={`flex-1 font-medium ${isMe ? 'text-cyan-300' : 'text-white'}`}>
+                      {p.name}{isMe && ' (Вы)'}
+                    </span>
+                    <div className="flex items-center gap-1.5">
+                      {hasBetted && pData && <span className="text-yellow-400 font-bold">{pData.bet}⭐️</span>}
+                      {isReadyP && <span className="text-green-400 font-bold">✅</span>}
+                      {hasBetted && !isReadyP && <span className="text-yellow-500">⏳</span>}
+                      {!hasBetted && <span className="text-gray-500 italic">в лобби</span>}
                     </div>
                   </div>
                 );
               })}
-              {presence.length === 0 && <div className="text-gray-400 text-center py-4 text-sm">Пока никого нет...</div>}
+              {presence.length === 0 && <div className="text-gray-500 text-center py-3 text-xs">Никого нет...</div>}
             </div>
-            {totalBank > 0 && (
-              <div className="border-t border-gray-600 mt-3 pt-3 flex justify-between font-bold">
-                <span className="text-gray-300">💰 Общий банк:</span>
-                <span className="text-yellow-400 text-lg">{totalBank}⭐️</span>
-              </div>
-            )}
           </div>
-
-          {/* Possible prizes */}
-          <div className="glass rounded-xl p-4">
-            <h3 className="font-bold text-center text-cyan-300 mb-3">🎁 Возможные награды</h3>
-            <div className="flex flex-wrap justify-center gap-2 text-2xl">
+          {/* Prizes info */}
+          <div className="glass rounded-xl p-3">
+            <h3 className="font-bold text-center text-cyan-300 text-xs mb-2">🎁 Возможные бонусы</h3>
+            <div className="flex flex-wrap justify-center gap-1.5 text-xl">
               {['🧸', '🧤', '❄️', '🐕', '☃️', '🎖', '⭐️', '🧣', '🔑'].map((e, i) => (
-                <span key={i} className="bg-gray-800/60 p-2 rounded-lg border border-white/10 hover:scale-110 transition">{e}</span>
+                <span key={i} className="bg-gray-800/60 p-1.5 rounded-lg border border-white/10">{e}</span>
               ))}
             </div>
-            <div className="text-xs text-center text-gray-500 mt-2">+ скрытые призы!</div>
           </div>
         </div>
-
-        {/* Prize chest modal */}
-        {showPrizeChest && iceLobby?.winner?.id === user.id && (
-          <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
-            <div className="glass rounded-2xl p-8 max-w-sm w-full text-center border border-yellow-500/50">
-              <h2 className="text-3xl font-bold mb-2 text-yellow-400">🏆 Победа!</h2>
-              <p className="text-gray-300 mb-2">Вы выиграли <span className="text-yellow-400 font-bold">{wonStars}⭐️</span>!</p>
-              <p className="text-gray-400 mb-6 text-sm">Откройте коробку для получения бонусного приза</p>
-              <div className="text-8xl mb-4 cursor-pointer hover:scale-110 transition-transform active:scale-95 select-none" onClick={openChest}>📦</div>
-              {openedChestCount === 0 && <p className="text-cyan-300 text-sm animate-pulse">Нажмите на коробку!</p>}
-              {openedChestCount === 1 && wonPrize && (
-                <div className="mt-4">
-                  <p className="text-green-400 font-bold">Получено: {wonPrize.emoji} {wonPrize.name}</p>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Prize claimed - show final screen */}
-        {showNewGamePrompt && (
-          <div className="fixed inset-0 bg-black/90 z-40 flex items-center justify-center p-4">
-            <div className="glass rounded-2xl p-8 text-center max-w-md w-full border border-yellow-500/50">
-              <div className="text-6xl mb-4">🎉</div>
-              <h2 className="text-3xl font-bold mb-4 text-yellow-400">Победа!</h2>
-              <div className="mb-6 space-y-3">
-                <p className="text-xl text-white">Вы выиграли:</p>
-                <p className="text-3xl font-bold text-yellow-400">{wonStars} ⭐️</p>
-                {wonPrize && (
-                  <div className="mt-4 p-4 bg-gray-800/50 rounded-xl">
-                    <p className="text-gray-400 mb-2">Дополнительный приз:</p>
-                    <p className="text-2xl">{wonPrize.emoji} {wonPrize.name}</p>
+        {/* VICTORY MODAL */}
+        {showVictoryBox && isWinner && (
+          <div className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center p-4">
+            <div className="glass rounded-2xl p-6 max-w-sm w-full text-center border border-yellow-500/60">
+              <h2 className="text-3xl font-bold mb-1 text-yellow-400">🏆 Победа!</h2>
+              <p className="text-gray-300 mb-1 text-sm">Вы выиграли:</p>
+              <p className="text-4xl font-bold text-yellow-400 mb-4">{victoryStars} ⭐️</p>
+              {!boxOpened ? (
+                <>
+                  <p className="text-gray-400 text-sm mb-3">Откройте коробку для бонусного приза</p>
+                  <div
+                    className="text-7xl mb-3 cursor-pointer hover:scale-110 transition-transform active:scale-95 select-none"
+                    onClick={openVictoryBox}
+                  >
+                    📦
                   </div>
-                )}
-              </div>
-              <button onClick={resetLobbyForNewGame} className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 px-6 py-4 rounded-xl font-bold text-xl transition shadow-lg">
-                ✅ Выйти из лобби
-              </button>
+                  <p className="text-cyan-300 text-xs animate-pulse">Нажмите на коробку!</p>
+                </>
+              ) : (
+                <>
+                  <div className="bg-gray-800/60 rounded-xl p-4 mb-4">
+                    <p className="text-gray-400 text-xs mb-1">Бонусный приз:</p>
+                    <p className="text-3xl">{victoryPrize?.emoji}</p>
+                    <p className="text-white font-bold mt-1">{victoryPrize?.name}</p>
+                  </div>
+                  <button
+                    onClick={exitLobbyAfterGame}
+                    className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 py-3 rounded-xl font-bold transition"
+                  >
+                    ✅ Выйти из лобби
+                  </button>
+                </>
+              )}
             </div>
           </div>
         )}
       </div>
     );
   }
-
-  // ===== ADMIN PANEL =====
+  // ===== ADMIN =====
   if (isAdmin) {
     return (
       <div className="min-h-screen bg-gray-900 p-4">
@@ -1288,18 +1331,18 @@ function App() {
           </div>
           <div className="flex gap-2 mb-6 overflow-x-auto">
             {['stats', 'users', 'rewards', 'settings'].map(tab => (
-              <button key={tab} onClick={() => setAdminScreen(tab)} className={`px-4 py-2 rounded-lg ${adminScreen === tab ? 'bg-indigo-600' : 'bg-gray-700'}`}>
-                {tab === 'stats' ? '📊 stats' : tab === 'users' ? '👥 users' : tab === 'rewards' ? '🎀 rewards' : '⚙️ settings'}
+              <button key={tab} onClick={() => setAdminScreen(tab)} className={`px-4 py-2 rounded-lg ${adminScreen === tab ? 'bg-indigo-600' : 'bg-gray-700'} text-sm`}>
+                {tab === 'stats' ? '📊 Стат.' : tab === 'users' ? '👥 Юзеры' : tab === 'rewards' ? '🎀 Награды' : '⚙️ Настр.'}
               </button>
             ))}
           </div>
           <div className="glass rounded-xl p-6">
             {adminScreen === 'stats' && (
               <div className="grid grid-cols-2 gap-4">
-                <div className="bg-gray-800 p-4 rounded-lg"><div className="text-gray-400">Игроков</div><div className="text-3xl font-bold">{allUsers.length}</div></div>
-                <div className="bg-gray-800 p-4 rounded-lg"><div className="text-gray-400">Онлайн</div><div className="text-3xl font-bold text-green-400">{onlineCount}</div></div>
-                <div className="bg-gray-800 p-4 rounded-lg"><div className="text-gray-400">Общий баланс</div><div className="text-2xl font-bold">{allUsers.reduce((s, u) => s + (u.balance || 0), 0).toFixed(0)}⭐️</div></div>
-                <div className="bg-gray-800 p-4 rounded-lg"><div className="text-gray-400">Предметов</div><div className="text-3xl font-bold">{allUsers.reduce((s, u) => s + (u.inventory?.length || 0), 0)}</div></div>
+                <div className="bg-gray-800 p-4 rounded-lg"><div className="text-gray-400 text-sm">Игроков</div><div className="text-3xl font-bold">{allUsers.length}</div></div>
+                <div className="bg-gray-800 p-4 rounded-lg"><div className="text-gray-400 text-sm">Онлайн</div><div className="text-3xl font-bold text-green-400">{onlineCount}</div></div>
+                <div className="bg-gray-800 p-4 rounded-lg"><div className="text-gray-400 text-sm">Общий баланс</div><div className="text-2xl font-bold">{allUsers.reduce((s, u) => s + (u.balance || 0), 0).toFixed(0)}⭐️</div></div>
+                <div className="bg-gray-800 p-4 rounded-lg"><div className="text-gray-400 text-sm">Предметов</div><div className="text-3xl font-bold">{allUsers.reduce((s, u) => s + (u.inventory?.length || 0), 0)}</div></div>
               </div>
             )}
             {adminScreen === 'users' && !selectedUser && (
@@ -1307,15 +1350,15 @@ function App() {
                 <h3 className="font-bold mb-2">Выберите игрока:</h3>
                 {allUsers.map(u => (
                   <div key={u.id} onClick={() => setSelectedUser(u)} className="bg-gray-800 p-3 rounded-lg cursor-pointer hover:bg-gray-700 flex justify-between">
-                    <div><div className="font-bold">{u.name}</div><div className="text-sm text-gray-400">{u.username || u.id.slice(0, 12)}</div></div>
-                    <div className="text-yellow-400">{(u.balance || 0).toFixed(0)}⭐️</div>
+                    <div><div className="font-bold text-sm">{u.name}</div><div className="text-xs text-gray-400">{u.username || u.id.slice(0,12)}</div></div>
+                    <div className="text-yellow-400 text-sm">{(u.balance || 0).toFixed(0)}⭐️</div>
                   </div>
                 ))}
               </div>
             )}
             {adminScreen === 'users' && selectedUser && (
               <div>
-                <h3 className="font-bold mb-4 text-xl">👤 {selectedUser.name}</h3>
+                <h3 className="font-bold mb-4 text-lg">👤 {selectedUser.name}</h3>
                 <div className="grid grid-cols-3 gap-2 mb-4">
                   <button onClick={() => adminGiveReward(selectedUser.id, { type: 'stars', amount: 100 })} className="bg-green-600 p-2 rounded text-sm">+100⭐️</button>
                   <button onClick={() => adminGiveReward(selectedUser.id, { type: 'stars', amount: 500 })} className="bg-green-600 p-2 rounded text-sm">+500⭐️</button>
@@ -1324,23 +1367,23 @@ function App() {
                   <button onClick={() => adminGiveReward(selectedUser.id, { type: 'case', caseType: 'elite', count: 2 })} className="bg-red-600 p-2 rounded text-sm">+2🎖</button>
                   <button onClick={() => adminGiveReward(selectedUser.id, { type: 'unlock_collector' })} className="bg-pink-800 p-2 rounded text-sm">🔓 Коллекц.</button>
                 </div>
-                <button onClick={() => setSelectedUser(null)} className="w-full bg-gray-600 p-2 rounded">← Назад</button>
+                <button onClick={() => setSelectedUser(null)} className="w-full bg-gray-600 p-2 rounded text-sm">← Назад</button>
               </div>
             )}
             {adminScreen === 'rewards' && (
               <div>
                 <h3 className="text-lg mb-4">Выдать себе:</h3>
                 <div className="grid grid-cols-3 gap-2">
-                  <button onClick={() => adminGiveReward(user.id, { type: 'stars', amount: 10000 })} className="bg-indigo-600 p-3 rounded">+10000⭐️</button>
-                  <button onClick={() => adminGiveReward(user.id, { type: 'case', caseType: 'diamond', count: 10 })} className="bg-blue-600 p-3 rounded">+10💎</button>
-                  <button onClick={() => adminGiveReward(user.id, { type: 'unlock_collector' })} className="bg-pink-800 p-3 rounded">🔓 Коллекц.</button>
+                  <button onClick={() => adminGiveReward(user.id, { type: 'stars', amount: 10000 })} className="bg-indigo-600 p-3 rounded text-sm">+10000⭐️</button>
+                  <button onClick={() => adminGiveReward(user.id, { type: 'case', caseType: 'diamond', count: 10 })} className="bg-blue-600 p-3 rounded text-sm">+10💎</button>
+                  <button onClick={() => adminGiveReward(user.id, { type: 'unlock_collector' })} className="bg-pink-800 p-3 rounded text-sm">🔓 Коллекц.</button>
                 </div>
               </div>
             )}
             {adminScreen === 'settings' && (
               <div>
                 <h3 className="text-lg mb-4">Сбросить аккаунт</h3>
-                <button onClick={async () => { if (confirm('Удалить ВСЕ данные?')) { await db.ref('users/' + user.id).remove(); localStorage.removeItem('sbs_user_id'); window.location.reload(); } }} className="bg-red-600 px-4 py-2 rounded-lg">🗑 Сбросить</button>
+                <button onClick={async () => { if (confirm('Удалить ВСЕ данные?')) { await db.ref('users/' + user.id).remove(); localStorage.removeItem('sbs_user_id'); window.location.reload(); } }} className="bg-red-600 px-4 py-2 rounded-lg text-sm">🗑 Сбросить</button>
               </div>
             )}
           </div>
@@ -1348,37 +1391,36 @@ function App() {
       </div>
     );
   }
-
-  // ===== MAIN APP =====
+  // ===== MAIN =====
   return (
     <div className="min-h-screen pb-24">
       <header className="p-4 flex justify-between items-center glass sticky top-0 z-50">
-        <h1 onClick={handleTitleClick} className="text-xl font-bold cursor-pointer select-none hover:text-cyan-300 transition">Step By Step Game</h1>
-        <button onClick={() => setShowTopUp(true)} className="bg-gradient-to-r from-yellow-400 to-orange-500 px-4 py-2 rounded-full font-bold text-gray-900 shadow-lg">{balance.toFixed(2)} ⭐️</button>
+        <h1 onClick={handleTitleClick} className="text-xl font-bold cursor-pointer select-none hover:text-cyan-300 transition">
+          Step By Step Game
+        </h1>
+        <button onClick={() => setShowTopUp(true)} className="bg-gradient-to-r from-yellow-400 to-orange-500 px-4 py-2 rounded-full font-bold text-gray-900 shadow-lg text-sm">
+          {balance.toFixed(2)} ⭐️
+        </button>
       </header>
-
       {paymentStatus && (
-        <div className="mx-4 mt-2 p-3 rounded-lg text-center text-sm bg-blue-500/20 border border-blue-500">{paymentStatus}</div>
+        <div className="mx-4 mt-2 p-3 rounded-lg text-center text-xs bg-blue-500/20 border border-blue-500">{paymentStatus}</div>
       )}
-
       {/* Modals */}
       {showCollectibleModal && (
         <div className="fixed inset-0 bg-black/90 z-[60] flex items-center justify-center p-4">
           <div className="glass rounded-2xl p-6 max-w-sm w-full text-center">
             <div className="text-6xl mb-4 animate-bounce">{selectedCollectible?.emoji}</div>
             <h3 className="text-xl font-bold mb-2">Коллекционный предмет!</h3>
-            <p className="mb-4">Обратитесь к <a href="https://t.me/stepbystepdelision" target="_blank" className="text-blue-400 underline font-bold">администрации</a>.</p>
+            <p className="mb-4 text-sm">Обратитесь к <a href="https://t.me/stepbystepdelision" target="_blank" className="text-blue-400 underline">администрации</a></p>
             <button onClick={() => setShowCollectibleModal(false)} className="w-full bg-indigo-600 hover:bg-indigo-500 py-3 rounded-xl font-bold">Понятно</button>
           </div>
         </div>
       )}
-
       {showIceGiftModal && (
         <div className="fixed inset-0 bg-black/90 z-[60] flex items-center justify-center p-4">
           <div className="glass rounded-2xl p-6 max-w-sm w-full text-center border border-cyan-500/50">
             <div className="text-6xl mb-4">🧊</div>
             <h3 className="text-xl font-bold mb-2 text-cyan-300">Ледяной Подарок!</h3>
-            <p className="mb-4 text-gray-300">Сохраните до оттепели или продайте!</p>
             <div className="space-y-3">
               <button onClick={sellIceGift} className="w-full bg-orange-600 hover:bg-orange-500 py-3 rounded-xl font-bold transition">🔥 Продать за 25⭐️</button>
               <button onClick={() => { setShowIceGiftModal(false); setSelectedIceGift(null); }} className="w-full bg-cyan-600 hover:bg-cyan-500 py-3 rounded-xl font-bold transition">💎 Оставить</button>
@@ -1386,196 +1428,233 @@ function App() {
           </div>
         </div>
       )}
-
       {showAdminLogin && (
         <div className="fixed inset-0 bg-black/90 z-[60] flex items-center justify-center p-4">
           <div className="glass rounded-2xl p-6 max-w-sm w-full">
             <h2 className="text-xl font-bold text-center mb-4">🔐 Вход в админ-панель</h2>
-            <input type="text" placeholder="Логин" value={adminLogin} onChange={e => setAdminLogin(e.target.value)} className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 mb-3 text-center" />
-            <input type="password" placeholder="Пароль" value={adminPassword} onChange={e => setAdminPassword(e.target.value)} className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 mb-4 text-center" />
+            <input type="text" placeholder="Логин" value={adminLogin} onChange={e => setAdminLogin(e.target.value)} className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 mb-3 text-center text-sm" />
+            <input type="password" placeholder="Пароль" value={adminPassword} onChange={e => setAdminPassword(e.target.value)} className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 mb-4 text-center text-sm" />
             <button onClick={checkAdminLogin} className="w-full bg-indigo-600 hover:bg-indigo-500 py-3 rounded-xl font-bold mb-2">Войти</button>
-            <button onClick={() => setShowAdminLogin(false)} className="w-full bg-gray-700 hover:bg-gray-600 py-2 rounded-xl">Отмена</button>
+            <button onClick={() => setShowAdminLogin(false)} className="w-full bg-gray-700 hover:bg-gray-600 py-2 rounded-xl text-sm">Отмена</button>
           </div>
         </div>
       )}
-
       {showWithdrawModal && (
         <div className="fixed inset-0 bg-black/90 z-[60] flex items-center justify-center p-4">
           <div className="glass rounded-2xl p-6 max-w-sm w-full">
             <h2 className="text-xl font-bold text-center mb-4">📊 Вывод призов</h2>
-            <input type="number" placeholder="Кол-во звезд" value={withdrawAmount} onChange={e => setWithdrawAmount(e.target.value)} className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 mb-4 text-center" />
+            <input type="number" placeholder="Кол-во звёзд" value={withdrawAmount} onChange={e => setWithdrawAmount(e.target.value)} className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 mb-4 text-center" />
             <div className="grid grid-cols-2 gap-3 mb-4">
-              <button onClick={confirmWithdraw} className="bg-yellow-600 hover:bg-yellow-500 py-3 rounded-xl font-bold">В звездах</button>
+              <button onClick={confirmWithdraw} className="bg-yellow-600 hover:bg-yellow-500 py-3 rounded-xl font-bold">В звёздах</button>
               <button onClick={confirmWithdraw} className="bg-purple-600 hover:bg-purple-500 py-3 rounded-xl font-bold">В подарках</button>
             </div>
-            <button onClick={() => setShowWithdrawModal(false)} className="w-full bg-gray-700 hover:bg-gray-600 py-2 rounded-xl">Отмена</button>
+            <button onClick={() => setShowWithdrawModal(false)} className="w-full bg-gray-700 hover:bg-gray-600 py-2 rounded-xl text-sm">Отмена</button>
           </div>
         </div>
       )}
-
       <main className="p-4 max-w-md mx-auto">
         {/* CASES */}
         {currentScreen === 'cases' && (
           <div>
             <h2 className="text-2xl font-bold mb-4 text-center">🎰 Кейсы</h2>
-            {cases.diamond?.freeCount > 0 && <div className="bg-green-500/20 border border-green-500 rounded-lg p-3 mb-3 text-center animate-pulse">🎁 Бесплатных кейсов Алмаз: {cases.diamond.freeCount}</div>}
-            {cases.elite?.freeCount > 0 && <div className="bg-green-500/20 border border-green-500 rounded-lg p-3 mb-3 text-center animate-pulse">🎁 Бесплатных кейсов Элита: {cases.elite.freeCount}</div>}
-            {freeEliteSpin > 0 && <div className="bg-green-500/20 border border-green-500 rounded-lg p-3 mb-3 text-center animate-pulse">🎁 Бесплатных прокрутов Элита: {freeEliteSpin}</div>}
+            {cases.diamond?.freeCount > 0 && <div className="bg-green-500/20 border border-green-500 rounded-lg p-3 mb-3 text-center text-sm animate-pulse">🎁 Бесплатных кейсов Алмаз: {cases.diamond.freeCount}</div>}
+            {cases.elite?.freeCount > 0 && <div className="bg-green-500/20 border border-green-500 rounded-lg p-3 mb-3 text-center text-sm animate-pulse">🎁 Бесплатных кейсов Элита: {cases.elite.freeCount}</div>}
+            {freeEliteSpin > 0 && <div className="bg-green-500/20 border border-green-500 rounded-lg p-3 mb-3 text-center text-sm animate-pulse">🎁 Бесплатных прокрутов Элита: {freeEliteSpin}</div>}
             <div className="grid grid-cols-2 gap-4">
               {Object.values(cases).filter(c => !c.locked).map(c => (
                 <div key={c.id} className={`glass rounded-xl p-4 relative hover:scale-105 transition ${c.id === 'cardboard' ? 'case-cardboard' : c.id === 'collector' ? 'case-collector' : ''}`}>
                   {c.isNew && <span className="absolute -top-2 -right-2 bg-red-500 text-xs px-2 py-1 rounded-full animate-pulse">Новое!</span>}
-                  {(c.id === 'diamond' || c.id === 'coal' || c.id === 'winter') && !c.freeCount && c.discountPrice && c.discountPrice !== c.price && <span className="absolute -top-2 -left-2 bg-green-500 text-xs px-2 py-1 rounded-full animate-pulse">Скидка!</span>}
+                  {(c.id === 'diamond' || c.id === 'coal' || c.id === 'winter') && !c.freeCount && c.discountPrice && c.discountPrice !== c.price && (
+                    <span className="absolute -top-2 -left-2 bg-green-500 text-xs px-2 py-1 rounded-full animate-pulse">Скидка!</span>
+                  )}
                   <div className={`w-16 h-16 mx-auto rounded-lg ${c.id === 'cardboard' || c.id === 'collector' ? 'bg-white/20' : `bg-gradient-to-br ${c.color}`} flex items-center justify-center text-3xl mb-2 shadow-lg`}>{c.emoji}</div>
-                  <h3 className="font-bold text-center">{c.name}</h3>
-                  <p className="text-center text-sm opacity-75">
+                  <h3 className="font-bold text-center text-sm">{c.name}</h3>
+                  <p className="text-center text-xs opacity-75 mb-2">
                     {c.freeCount > 0 ? <span className="text-green-400 font-bold">Бесплатно!</span>
-                      : c.discountPrice && c.discountPrice !== c.price ? <span><span className="line-through">{c.originalPrice || c.price}</span> {c.discountPrice}⭐️</span>
+                      : c.discountPrice && c.discountPrice !== c.price
+                        ? <span><span className="line-through">{c.originalPrice || c.price}</span> {c.discountPrice}⭐️</span>
                         : `${c.price}⭐️`}
                   </p>
-                  <button onClick={() => setSelectedCase(c)} className="w-full mt-2 py-2 rounded-lg font-bold bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 transition">Открыть</button>
+                  <button onClick={() => setSelectedCase(c)} className="w-full py-2 rounded-lg font-bold text-sm bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 transition">Открыть</button>
                 </div>
               ))}
               {Object.values(cases).filter(c => c.locked).map(c => (
                 <div key={c.id} className="glass rounded-xl p-4 relative opacity-50">
                   <div className="absolute inset-0 bg-black/70 rounded-xl flex items-center justify-center"><span className="text-2xl">🔒</span></div>
                   <div className={`w-16 h-16 mx-auto rounded-lg bg-gradient-to-br ${c.color} flex items-center justify-center text-3xl mb-2`}>{c.emoji}</div>
-                  <h3 className="font-bold text-center">{c.name}</h3>
-                  <p className="text-center text-sm">{c.price}⭐️</p>
-                  <button className="w-full mt-2 py-2 rounded-lg font-bold bg-gray-600 cursor-not-allowed">Недоступно</button>
+                  <h3 className="font-bold text-center text-sm">{c.name}</h3>
+                  <p className="text-center text-xs mb-2">{c.price}⭐️</p>
+                  <button className="w-full py-2 rounded-lg font-bold text-sm bg-gray-600 cursor-not-allowed">Недоступно</button>
                 </div>
               ))}
             </div>
           </div>
         )}
-
         {/* GAMES */}
         {currentScreen === 'games' && (
           <div>
             <h2 className="text-2xl font-bold mb-4 text-center">🎮 Игры</h2>
             <div className="space-y-4">
-              <div className="glass rounded-xl p-6 border border-cyan-500/30">
-                <h3 className="text-2xl font-bold mb-2 text-center text-cyan-300">☃️ Ледяной Каток</h3>
-                <p className="text-gray-400 mb-2 text-center text-sm">Зайдите в лобби → дождитесь 2 игроков → ставьте ставки → жмите «Готов» → играйте!</p>
-                <p className="text-cyan-400 text-center text-xs mb-4">Победитель получает 40% от банка</p>
+              <div className="glass rounded-xl p-5 border border-cyan-500/30">
+                <h3 className="text-xl font-bold mb-1 text-center text-cyan-300">☃️ Ледяной Каток</h3>
+                <p className="text-gray-400 mb-1 text-center text-xs">Дождитесь 2+ игроков → ставьте → жмите «Готов»</p>
+                <p className="text-cyan-400 text-center text-xs mb-3">Победитель получает 40% от банка + бонус 📦</p>
                 <div className="grid grid-cols-5 gap-2">
-                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(i => (
+                  {[1,2,3,4,5,6,7,8,9,10].map(i => (
                     <button key={i} onClick={() => joinIceLobby(i)} className="bg-cyan-700 hover:bg-cyan-600 py-2 rounded-lg text-sm font-bold transition">#{i}</button>
                   ))}
                 </div>
               </div>
-              <div className="glass rounded-xl p-6 opacity-50 text-center"><h3 className="text-xl font-bold">В разработке... 👲</h3></div>
+              <div className="glass rounded-xl p-5 opacity-50 text-center">
+                <h3 className="text-lg font-bold">В разработке... 👲</h3>
+              </div>
             </div>
           </div>
         )}
-
         {/* TASKS */}
         {currentScreen === 'tasks' && (
           <div>
-            <h2 className="text-2xl font-bold mb-4 text-center">📋 Мои Задания</h2>
-            <div className="space-y-4">
-              {[
-                { id: 'subscribe', title: 'Подпишись на канал', reward: '1 кейс «Элита» + 1 прокрут 🎖', btn: 'Подписаться' },
-                { id: 'inviteThree', title: 'Пригласить 3 друзей', reward: '25 ⭐️ звезд', btn: 'Пригласить' },
-                { id: 'deposit', title: 'Пополнить баланс на 100⭐️', reward: '1 золотой кейс 👑', btn: 'Пополнить' },
-                { id: 'depositMajor', title: 'Пополнить баланс на 350⭐️', reward: 'Кейс «Коллекционер» + 1 прокрут', btn: 'Пополнить' }
-              ].map(task => (
-                <div key={task.id} className={`glass rounded-xl p-4 ${tasks[task.id]?.completed ? 'bg-green-500/20' : ''}`}>
-                  <div className="flex justify-between items-start mb-2">
-                    <div>
-                      <h3 className="font-bold">{task.title}</h3>
-                      <p className="text-sm opacity-75">Награда: {task.reward}</p>
-                      {task.id === 'inviteThree' && !tasks[task.id]?.completed && (
-                        <p className="text-xs text-cyan-400 mt-1">
-                          Прогресс: {tasks.inviteThree?.count || 0}/{tasks.inviteThree?.required || 3}
-                        </p>
-                      )}
-                    </div>
-                    {tasks[task.id]?.completed && <span className="text-green-400 text-2xl">✅</span>}
+            <h2 className="text-2xl font-bold mb-4 text-center">📋 Задания</h2>
+            <div className="space-y-3">
+              {/* Subscribe */}
+              <div className={`glass rounded-xl p-4 ${tasks.subscribe?.completed ? 'bg-green-500/20' : ''}`}>
+                <div className="flex justify-between items-start mb-2">
+                  <div>
+                    <h3 className="font-bold text-sm">Подпишись на канал</h3>
+                    <p className="text-xs opacity-75">Награда: 1 кейс «Элита» + 1 прокрут 🎖</p>
                   </div>
-                  <button onClick={() => completeTask(task.id)} disabled={tasks[task.id]?.completed} className={`w-full py-2 rounded-lg ${tasks[task.id]?.completed ? 'bg-green-600' : 'bg-blue-600 hover:bg-blue-500'} transition`}>
-                    {tasks[task.id]?.completed ? 'Выполнено' : task.btn}
-                  </button>
+                  {tasks.subscribe?.completed && <span className="text-green-400 text-xl">✅</span>}
                 </div>
-              ))}
+                <button onClick={() => completeTask('subscribe')} disabled={tasks.subscribe?.completed} className={`w-full py-2 rounded-lg text-sm ${tasks.subscribe?.completed ? 'bg-green-600' : 'bg-blue-600 hover:bg-blue-500'} transition`}>
+                  {tasks.subscribe?.completed ? 'Выполнено' : 'Подписаться'}
+                </button>
+              </div>
+              {/* Invite 3 friends */}
+              <div className={`glass rounded-xl p-4 ${tasks.inviteThree?.completed ? 'bg-green-500/20' : ''}`}>
+                <div className="flex justify-between items-start mb-2">
+                  <div>
+                    <h3 className="font-bold text-sm">Пригласить 3 друзей</h3>
+                    <p className="text-xs opacity-75">Награда: 25 ⭐️</p>
+                    {!tasks.inviteThree?.completed && (
+                      <p className="text-xs text-cyan-400 mt-0.5">Прогресс: {tasks.inviteThree?.count || 0}/3</p>
+                    )}
+                  </div>
+                  {tasks.inviteThree?.completed && <span className="text-green-400 text-xl">✅</span>}
+                </div>
+                <button onClick={() => completeTask('inviteThree')} disabled={tasks.inviteThree?.completed} className={`w-full py-2 rounded-lg text-sm ${tasks.inviteThree?.completed ? 'bg-green-600' : 'bg-blue-600 hover:bg-blue-500'} transition`}>
+                  {tasks.inviteThree?.completed ? 'Выполнено' : 'Пригласить'}
+                </button>
+              </div>
+              {/* Deposit 100 */}
+              <div className={`glass rounded-xl p-4 ${tasks.deposit?.completed ? 'bg-green-500/20' : ''}`}>
+                <div className="flex justify-between items-start mb-2">
+                  <div>
+                    <h3 className="font-bold text-sm">Пополнить на 100 ⭐️</h3>
+                    <p className="text-xs opacity-75">Награда: 1 золотой кейс 👑</p>
+                  </div>
+                  {tasks.deposit?.completed && <span className="text-green-400 text-xl">✅</span>}
+                </div>
+                <button onClick={() => completeTask('deposit')} disabled={tasks.deposit?.completed} className={`w-full py-2 rounded-lg text-sm ${tasks.deposit?.completed ? 'bg-green-600' : 'bg-blue-600 hover:bg-blue-500'} transition`}>
+                  {tasks.deposit?.completed ? 'Выполнено' : 'Пополнить'}
+                </button>
+              </div>
+              {/* Deposit 350 */}
+              <div className={`glass rounded-xl p-4 ${tasks.depositMajor?.completed ? 'bg-green-500/20' : ''}`}>
+                <div className="flex justify-between items-start mb-2">
+                  <div>
+                    <h3 className="font-bold text-sm">Пополнить на 350 ⭐️</h3>
+                    <p className="text-xs opacity-75">Награда: Кейс «Коллекционер» + 1 прокрут</p>
+                  </div>
+                  {tasks.depositMajor?.completed && <span className="text-green-400 text-xl">✅</span>}
+                </div>
+                <button onClick={() => completeTask('depositMajor')} disabled={tasks.depositMajor?.completed} className={`w-full py-2 rounded-lg text-sm ${tasks.depositMajor?.completed ? 'bg-green-600' : 'bg-blue-600 hover:bg-blue-500'} transition`}>
+                  {tasks.depositMajor?.completed ? 'Выполнено' : 'Пополнить'}
+                </button>
+              </div>
             </div>
           </div>
         )}
-
         {/* PROFILE */}
         {currentScreen === 'profile' && (
           <div>
-            <div className="glass rounded-xl p-4 mb-4 flex justify-between items-center">
-              <span className="text-gray-400">🟢 Онлайн:</span>
-              <span className="font-bold text-green-400">{onlineCount} игроков</span>
+            <div className="glass rounded-xl p-3 mb-4 flex justify-between items-center">
+              <span className="text-gray-400 text-sm">🟢 Онлайн:</span>
+              <span className="font-bold text-green-400 text-sm">{onlineCount} игроков</span>
             </div>
             <h2 className="text-2xl font-bold mb-4 text-center">👤 Мой Профиль</h2>
-            <div className="glass rounded-xl p-6 text-center mb-4">
-              <div className="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center text-4xl mb-3 overflow-hidden border-2 border-white/20">
+            <div className="glass rounded-xl p-5 text-center mb-4">
+              <div className="w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center text-3xl mb-3 overflow-hidden border-2 border-white/20">
                 {user?.avatar ? <img src={user.avatar} alt="" className="w-full h-full object-cover" /> : user?.name?.charAt(0).toUpperCase()}
               </div>
-              <h3 className="text-xl font-bold">{user?.name}</h3>
-              {user?.username && <p className="text-gray-400">{user.username}</p>}
+              <h3 className="text-lg font-bold">{user?.name}</h3>
+              {user?.username && <p className="text-gray-400 text-sm">{user.username}</p>}
             </div>
             <div className="flex gap-2 mb-4">
-              <button onClick={() => setShowTopUp(true)} className="flex-1 bg-gradient-to-r from-yellow-400 to-orange-500 text-gray-900 font-bold py-3 rounded-xl shadow-lg transition">💎 Пополнить</button>
+              <button onClick={() => setShowTopUp(true)} className="flex-1 bg-gradient-to-r from-yellow-400 to-orange-500 text-gray-900 font-bold py-3 rounded-xl shadow-lg transition text-sm">💎 Пополнить</button>
             </div>
             <div className="mb-4">
-              <button onClick={() => setShowWithdrawModal(true)} disabled={!tasks.depositMajor?.completed} className="w-full bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-bold py-3 rounded-xl shadow-lg transition disabled:opacity-50 disabled:cursor-not-allowed">
+              <button onClick={() => setShowWithdrawModal(true)} disabled={!tasks.depositMajor?.completed} className="w-full bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-bold py-3 rounded-xl shadow-lg transition text-sm disabled:opacity-50 disabled:cursor-not-allowed">
                 {tasks.depositMajor?.completed ? '🏆 Вывести призы 🏆' : '🔒 Вывести призы (нужно 350⭐️)'}
               </button>
             </div>
             <div className="glass rounded-xl p-4 mb-4">
-              <h3 className="font-bold mb-2">🎁 Промокод</h3>
+              <h3 className="font-bold mb-2 text-sm">🎁 Промокод</h3>
               <div className="flex gap-2">
-                <input type="text" placeholder="ВВЕДИТЕ ПРОМОКОД" value={promoCode} onChange={e => setPromoCode(e.target.value)} className="flex-1 bg-gray-700/50 border border-gray-600 rounded-lg px-3 py-2 text-center uppercase" />
-                <button onClick={checkPromo} className="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-lg font-bold transition">OK</button>
+                <input type="text" placeholder="ПРОМОКОД" value={promoCode} onChange={e => setPromoCode(e.target.value)} className="flex-1 bg-gray-700/50 border border-gray-600 rounded-lg px-3 py-2 text-center uppercase text-sm" />
+                <button onClick={checkPromo} className="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-lg font-bold transition text-sm">OK</button>
               </div>
-              {promoError && <p className="text-red-400 text-sm mt-2 text-center">{promoError}</p>}
-              {promoSuccess && <p className="text-green-400 text-sm mt-2 text-center">{promoSuccess}</p>}
+              {promoError && <p className="text-red-400 text-xs mt-2 text-center">{promoError}</p>}
+              {promoSuccess && <p className="text-green-400 text-xs mt-2 text-center">{promoSuccess}</p>}
             </div>
             <div className="glass rounded-xl p-4">
               <div className="flex justify-between items-center mb-3">
-                <h3 className="font-bold">🎒 Инвентарь</h3>
-                <span className="text-sm text-gray-400">{inventory.length}/{inventorySlots}</span>
+                <h3 className="font-bold text-sm">🎒 Инвентарь</h3>
+                <span className="text-xs text-gray-400">{inventory.length}/{inventorySlots}</span>
               </div>
-              <div className="grid grid-cols-5 gap-2 mb-4">
+              <div className="grid grid-cols-5 gap-2 mb-3">
                 {[...Array(inventorySlots)].map((_, i) => (
                   <div key={i} className="aspect-square bg-gray-700/50 rounded-lg flex items-center justify-center text-2xl hover:bg-gray-600/50 transition cursor-pointer">
-                    {inventory[i] ? <span onClick={() => sellItem(inventory[i])} className="hover:scale-110 transition">{inventory[i].emoji}</span> : <span className="text-gray-600 text-xs">○</span>}
+                    {inventory[i]
+                      ? <span onClick={() => sellItem(inventory[i])} className="hover:scale-110 transition">{inventory[i].emoji}</span>
+                      : <span className="text-gray-600 text-xs">○</span>
+                    }
                   </div>
                 ))}
               </div>
-              <button onClick={unlockSlot} disabled={balance < 50} className="w-full bg-gray-700 hover:bg-gray-600 disabled:opacity-50 py-2 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition">
+              <button onClick={unlockSlot} disabled={balance < 50} className="w-full bg-gray-700 hover:bg-gray-600 disabled:opacity-50 py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition">
                 🔓 Разблокировать слот (50⭐️)
               </button>
             </div>
           </div>
         )}
       </main>
-
-      {/* CASE ROULETTE MODAL */}
+      {/* ROULETTE MODAL */}
       {selectedCase && (
         <div className="fullscreen-modal flex items-center justify-center p-4">
           <div className="w-full max-w-lg" ref={rouletteContainerRef}>
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-3xl font-bold">{selectedCase.emoji} {selectedCase.name}</h3>
+            <div className="flex justify-between items-center mb-5">
+              <h3 className="text-2xl font-bold">{selectedCase.emoji} {selectedCase.name}</h3>
               <button onClick={() => { setSelectedCase(null); setSpinResult(null); setFakeItems([]); }} className="text-3xl hover:text-red-400 transition">×</button>
             </div>
-            <div key={rouletteKey} className="roulette-container mb-6">
-              <div className="roulette-pointer"></div>
+            <div key={rouletteKey} className="roulette-container mb-5">
+              <div className="roulette-pointer" />
               <div className="roulette-inner" style={{ transform: `translateX(${rouletteOffset}px)` }}>
                 {fakeItems.length > 0
-                  ? fakeItems.map((item, i) => (<div key={i} className="roulette-item"><div className="emoji">{item.emoji}</div><div className="name">{item.name}</div></div>))
-                  : [...Array(80)].map((_, i) => (<div key={i} className="roulette-item"><div className="emoji">❓</div></div>))
+                  ? fakeItems.map((item, i) => (
+                    <div key={i} className="roulette-item">
+                      <div className="emoji">{item.emoji}</div>
+                      <div className="name">{item.name}</div>
+                    </div>
+                  ))
+                  : [...Array(80)].map((_, i) => <div key={i} className="roulette-item"><div className="emoji">❓</div></div>)
                 }
               </div>
             </div>
-            <div className="glass rounded-xl p-4 mb-6 max-h-44 overflow-y-auto">
-              <p className="font-bold mb-2 text-center">Возможные награды:</p>
-              <div className="space-y-1 text-sm">
+            <div className="glass rounded-xl p-4 mb-5 max-h-40 overflow-y-auto">
+              <p className="font-bold mb-2 text-center text-sm">Возможные награды:</p>
+              <div className="space-y-1">
                 {CASE_REWARDS[selectedCase.id]?.map((r, i) => (
-                  <div key={i} className="flex justify-between py-1 border-b border-white/10 last:border-0">
+                  <div key={i} className="flex justify-between py-1 border-b border-white/10 last:border-0 text-xs">
                     <span>{r.emoji} {r.name}</span>
                     <span className="text-yellow-400 font-bold">{r.displayChance}</span>
                   </div>
@@ -1584,50 +1663,48 @@ function App() {
             </div>
             {spinResult ? (
               <div className="text-center">
-                <p className="text-2xl font-bold mb-2">🎉 Выпало: {spinResult.name}!</p>
-                {spinResult.type === 'collectible' && <p className="text-yellow-400 text-sm mb-4">⭐️ Коллекционный предмет!</p>}
-                <button onClick={() => setSpinResult(null)} className="w-full bg-green-600 hover:bg-green-500 py-4 rounded-xl font-bold text-xl mb-2 transition">Забрать и открыть ещё</button>
-                <button onClick={() => { setSelectedCase(null); setSpinResult(null); setFakeItems([]); }} className="w-full bg-gray-600 hover:bg-gray-500 py-3 rounded-xl font-bold transition">К кейсам</button>
+                <p className="text-xl font-bold mb-2">🎉 Выпало: {spinResult.name}!</p>
+                {spinResult.type === 'collectible' && <p className="text-yellow-400 text-xs mb-4">⭐️ Коллекционный предмет!</p>}
+                <button onClick={() => setSpinResult(null)} className="w-full bg-green-600 hover:bg-green-500 py-3 rounded-xl font-bold mb-2 transition">Забрать и открыть ещё</button>
+                <button onClick={() => { setSelectedCase(null); setSpinResult(null); setFakeItems([]); }} className="w-full bg-gray-600 hover:bg-gray-500 py-2.5 rounded-xl font-bold transition text-sm">К кейсам</button>
               </div>
             ) : (
-              <button onClick={() => openCase(selectedCase.id)} disabled={isSpinning} className="w-full bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 py-4 rounded-xl font-bold text-xl disabled:opacity-50 shadow-lg transition">
+              <button onClick={() => openCase(selectedCase.id)} disabled={isSpinning} className="w-full bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 py-4 rounded-xl font-bold text-lg disabled:opacity-50 shadow-lg transition">
                 {isSpinning ? '🌀 Крутим...' : `Открыть за ${getCasePrice(selectedCase.id) === 0 ? 'Бесплатно' : getCasePrice(selectedCase.id) + '⭐️'}`}
               </button>
             )}
           </div>
         </div>
       )}
-
       {/* TOP UP MODAL */}
       {showTopUp && (
         <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
-          <div className="glass rounded-2xl p-6 max-w-sm w-full">
+          <div className="glass rounded-2xl p-5 max-w-sm w-full">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-bold">💳 Пополнение</h3>
+              <h3 className="text-lg font-bold">💳 Пополнение</h3>
               <button onClick={() => setShowTopUp(false)} className="text-2xl hover:text-red-400 transition">×</button>
             </div>
-            <p className="text-sm text-gray-400 text-center mb-3">⭐️ Telegram Stars</p>
+            <p className="text-xs text-gray-400 text-center mb-3">⭐️ Telegram Stars</p>
             <div className="space-y-2 mb-4">
               {STARS_PACKAGES.map(pkg => (
-                <button key={pkg.stars} onClick={() => buyStars(pkg)} className="w-full glass p-4 rounded-xl flex justify-between items-center hover:bg-white/10 transition border border-white/10">
-                  <span className="font-bold text-yellow-400">+{pkg.stars} ⭐️</span>
-                  <span className="text-gray-300 text-sm">Купить</span>
+                <button key={pkg.stars} onClick={() => buyStars(pkg)} className="w-full glass p-3 rounded-xl flex justify-between items-center hover:bg-white/10 transition border border-white/10">
+                  <span className="font-bold text-yellow-400 text-sm">+{pkg.stars} ⭐️</span>
+                  <span className="text-gray-300 text-xs">Купить</span>
                 </button>
               ))}
             </div>
             <div className="border-t border-gray-600 pt-4">
-              <p className="text-sm text-gray-400 text-center mb-3">💎 TON</p>
+              <p className="text-xs text-gray-400 text-center mb-3">💎 TON</p>
               {TON_RATES.map(rate => (
                 <button key={rate.stars} onClick={() => topUpBalance(rate.stars, rate.ton)} className="w-full glass p-3 rounded-xl flex justify-between items-center hover:bg-white/10 transition border border-white/10 mb-2">
-                  <span className="font-bold">+{rate.stars}⭐️</span>
-                  <span className="text-yellow-400 font-bold">{rate.ton} TON</span>
+                  <span className="font-bold text-sm">+{rate.stars}⭐️</span>
+                  <span className="text-yellow-400 font-bold text-sm">{rate.ton} TON</span>
                 </button>
               ))}
             </div>
           </div>
         </div>
       )}
-
       {/* BOTTOM NAV */}
       <nav className="fixed bottom-0 left-0 right-0 glass border-t border-white/10 p-2">
         <div className="max-w-md mx-auto flex justify-around">
@@ -1647,9 +1724,7 @@ function App() {
     </div>
   );
 }
-
 ReactDOM.createRoot(document.getElementById('root')).render(<App />);
 </script>
 </body>
 </html>
-
