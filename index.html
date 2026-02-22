@@ -35,6 +35,8 @@ extend: { colors: { primary: '#6366f1', secondary: '#8b5cf6', accent: '#f59e0b',
 .player-avatar { position: absolute; width: 40px; height: 40px; border-radius: 50%; border: 2px solid white; overflow: hidden; transform: translate(-50%, -50%); z-index: 5; }
 .case-cardboard { background: linear-gradient(135deg, #8B4513 0%, #D2691E 50%, #8B4513 100%); border: 3px solid #A0522D; }
 .case-collector { background: linear-gradient(135deg, #DC143C 0%, #FF1493 50%, #8B008B 100%); border: 3px solid #FFD700; }
+@keyframes pulseGlow { 0%, 100% { box-shadow: 0 0 10px rgba(0,210,255,0.3); } 50% { box-shadow: 0 0 25px rgba(0,210,255,0.7); } }
+.pulse-glow { animation: pulseGlow 2s ease-in-out infinite; }
 </style>
 </head>
 <body class="bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 min-h-screen text-white overflow-x-hidden">
@@ -223,6 +225,10 @@ const [showWithdrawModal, setShowWithdrawModal] = useState(false);
 const [totalDeposits, setTotalDeposits] = useState(0);
 const [freeEliteSpin, setFreeEliteSpin] = useState(0);
 const [icePlayerCount, setIcePlayerCount] = useState(0);
+// NEW: присутствующие в лобби (без ставки)
+const [icePresenceCount, setIcePresenceCount] = useState(0);
+const [bettingAllowed, setBettingAllowed] = useState(false);
+const iceTimerRef = useRef(null);
 useEffect(() => {
 const initApp = async () => {
 let userId = null;
@@ -293,21 +299,32 @@ const interval = setInterval(saveData, 5000);
 return () => clearInterval(interval);
 }
 }, [balance, cases, inventory, tasks, inventorySlots, usedPromos, wonPromos, user?.id, isLoading, totalDeposits, freeEliteSpin]);
+// ВЫХОД ИЗ ЛОББИ: убираем присутствие и возвращаем ставку если был один
 useEffect(() => {
 return () => {
-if (currentGame?.type === 'ice' && user && hasBet) {
+if (currentGame?.type === 'ice' && user) {
+const lobbyId = currentGame.lobbyId;
+// Убираем из presence
+db.ref('iceLobbies/' + lobbyId + '/presence/' + user.id).remove();
+// Возвращаем ставку если был один
+if (hasBet) {
 const checkAndRefund = async () => {
-const snap = await db.ref('iceLobbies/' + currentGame.lobbyId).once('value');
+const snap = await db.ref('iceLobbies/' + lobbyId).once('value');
 const data = snap.val();
-if (data && data.players && Object.keys(data.players).length === 1 && data.players[user.id]) {
-await db.ref('users/' + user.id + '/balance').transaction(c => (c || 0) + myBet);
-await db.ref('iceLobbies/' + currentGame.lobbyId + '/players/' + user.id).remove();
+if (data && data.players && data.players[user.id]) {
+const playerCount = Object.keys(data.players).length;
+if (playerCount === 1) {
+await db.ref('users/' + user.id + '/balance').transaction(c => (c || 0) + data.players[user.id].bet);
+await db.ref('iceLobbies/' + lobbyId + '/players/' + user.id).remove();
+}
 }
 };
 checkAndRefund();
 }
+}
 };
-}, [currentGame, user, hasBet, myBet]);
+}, [currentGame, user, hasBet]);
+// ЛОББИ ЛЕДЯНОГО КАТКА - слушаем изменения
 useEffect(() => {
 if (currentGame?.type === 'ice' && currentGame.lobbyId) {
 const lobbyRef = db.ref('iceLobbies/' + currentGame.lobbyId);
@@ -316,18 +333,40 @@ const data = snap.val();
 if (data) {
 setIceLobby(data);
 setGameStatus(data.status || 'waiting');
+// Считаем присутствующих (presence)
+const presCount = data.presence ? Object.keys(data.presence).length : 0;
+setIcePresenceCount(presCount);
+// Считаем игроков со ставками
 const pCount = data.players ? Object.keys(data.players).length : 0;
 setIcePlayerCount(pCount);
+// Ставки разрешены только когда 2+ присутствующих в лобби
+setBettingAllowed(presCount >= 2 && (data.status === 'waiting' || data.status === 'betting'));
 if (data.players?.[user?.id]) { setHasBet(true); setMyBet(data.players[user?.id].bet); }
 else { setHasBet(false); }
 if (data.ballPosition) setBallPos(data.ballPosition);
-if (data.timerEnd && data.status === 'betting') { const remaining = Math.max(0, Math.ceil((data.timerEnd - Date.now()) / 1000)); setTimerRemaining(remaining); }
-else { setTimerRemaining(0); }
-if (data.status === 'finished' && data.winner?.id === user?.id) { if (!data.prizeClaimed || !data.prizeClaimed[user.id]) { if (!showPrizeChest) { setChestPrizes(data.prizes || []); setShowPrizeChest(true); } } }
-if (data.players && Object.keys(data.players).length === 0 && data.status !== 'waiting') { lobbyRef.update({ status: 'waiting', players: {}, winner: null, prizes: [], ballPosition: { x: 50, y: 50, vx: 0, vy: 0 }, timerEnd: null, lastWinnerId: null, allBetsPlaced: false, prizeClaimed: {}, readyPlayers: {}, countdownStarted: false }); }
+if (data.timerEnd && data.status === 'betting') {
+const remaining = Math.max(0, Math.ceil((data.timerEnd - Date.now()) / 1000));
+setTimerRemaining(remaining);
+} else { setTimerRemaining(0); }
+if (data.status === 'finished' && data.winner?.id === user?.id) {
+if (!data.prizeClaimed || !data.prizeClaimed[user.id]) {
+if (!showPrizeChest) { setChestPrizes(data.prizes || []); setShowPrizeChest(true); }
+}
+}
+// Сброс пустого лобби
+if (data.players && Object.keys(data.players).length === 0 && data.status !== 'waiting') {
+lobbyRef.update({ status: 'waiting', players: {}, winner: null, prizes: [], ballPosition: { x: 50, y: 50, vx: 0, vy: 0 }, timerEnd: null, lastWinnerId: null, allBetsPlaced: false, prizeClaimed: {}, readyPlayers: {}, countdownStarted: false });
+}
 }
 });
-return () => lobbyRef.off();
+// Таймер для обновления обратного отсчёта
+const timerInterval = setInterval(() => {
+if (iceLobby?.timerEnd && iceLobby?.status === 'betting') {
+const remaining = Math.max(0, Math.ceil((iceLobby.timerEnd - Date.now()) / 1000));
+setTimerRemaining(remaining);
+}
+}, 1000);
+return () => { lobbyRef.off(); clearInterval(timerInterval); };
 }
 }, [currentGame, user?.id, showPrizeChest]);
 const handleTitleClick = () => { const newAttempts = adminAttempts + 1; setAdminAttempts(newAttempts); if (newAttempts >= 11) { setShowAdminLogin(true); setAdminAttempts(0); } };
@@ -342,40 +381,106 @@ else if (reward.type === 'ice_gift') { const newItem = { id: 'ice_gift', name: '
 else if (reward.type === 'unlock_collector') { const updatedCases = { ...userData.cases, collector: { ...userData.cases?.collector, locked: false } }; await db.ref(`users/${targetUserId}/cases`).update({ collector: { ...userData.cases?.collector, locked: false } }); if (targetUserId === user.id) setCases(updatedCases); }
 alert('Награда выдана!');
 };
+// НОВАЯ МЕХАНИКА: При заходе в лобби — регистрация присутствия
 const joinIceLobby = async (lobbyId) => {
 const lobbyRef = db.ref('iceLobbies/' + lobbyId);
 const snap = await lobbyRef.once('value');
 if (snap.exists()) {
 const data = snap.val();
-if (data.status === 'playing' || data.status === 'betting') { alert('Игра уже идет!'); setCurrentGame({ type: 'ice', lobbyId, spectator: true }); return; }
-if (data.status === 'finished') { await lobbyRef.update({ status: 'waiting', players: {}, winner: null, prizes: [], ballPosition: { x: 50, y: 50, vx: 0, vy: 0 }, timerEnd: null, lastWinnerId: null, allBetsPlaced: false, prizeClaimed: {}, readyPlayers: {}, countdownStarted: false }); }
+if (data.status === 'playing') {
+alert('Игра уже идёт! Вы можете только наблюдать.');
+setCurrentGame({ type: 'ice', lobbyId, spectator: true });
+// Всё равно добавляем в presence как наблюдатель
+const presRef = db.ref('iceLobbies/' + lobbyId + '/presence/' + user.id);
+presRef.set({ name: user.name, avatar: user.avatar || null, joinedAt: Date.now() });
+presRef.onDisconnect().remove();
+return;
 }
+if (data.status === 'finished') {
+await lobbyRef.update({ status: 'waiting', players: {}, presence: {}, winner: null, prizes: [], ballPosition: { x: 50, y: 50, vx: 0, vy: 0 }, timerEnd: null, lastWinnerId: null, allBetsPlaced: false, prizeClaimed: {}, readyPlayers: {}, countdownStarted: false });
+}
+}
+// Регистрируем присутствие игрока в лобби (без ставки)
+const presRef = db.ref('iceLobbies/' + lobbyId + '/presence/' + user.id);
+await presRef.set({ name: user.name, avatar: user.avatar || null, joinedAt: Date.now() });
+presRef.onDisconnect().remove();
 setCurrentGame({ type: 'ice', lobbyId, spectator: false });
+setHasBet(false);
+setOpenedChestCount(0);
+setShowPrizeChest(false);
+setShowNewGamePrompt(false);
 };
+// Покинуть лобби (кнопка выхода)
+const leaveIceLobby = async () => {
+if (currentGame?.lobbyId && user) {
+const lobbyId = currentGame.lobbyId;
+// Убираем из presence
+await db.ref('iceLobbies/' + lobbyId + '/presence/' + user.id).remove();
+// Если есть ставка и игра не идёт — возвращаем
+if (hasBet) {
+const snap = await db.ref('iceLobbies/' + lobbyId).once('value');
+const data = snap.val();
+if (data && data.status !== 'playing' && data.players?.[user.id]) {
+const betAmount = data.players[user.id].bet;
+await db.ref('users/' + user.id + '/balance').transaction(c => (c || 0) + betAmount);
+await db.ref('iceLobbies/' + lobbyId + '/players/' + user.id).remove();
+setBalance(prev => prev + betAmount);
+}
+}
+}
+setCurrentGame(null);
+setHasBet(false);
+};
+// СТАВКА — разрешена только при 2+ присутствующих
 const placeBet = async () => {
-if (!iceLobby) { alert('Ошибка: лобби не загружено'); return; }
-const pCount = iceLobby.players ? Object.keys(iceLobby.players).length : 0;
-if (pCount < 2) { alert('Нужно минимум 2 игрока! Сейчас: ' + pCount); return; }
+if (!bettingAllowed) { alert('Нужно минимум 2 игрока в лобби!'); return; }
 if (balance < myBet) { alert('Недостаточно звезд!'); return; }
 if (myBet < 25) { alert('Минимум 25⭐️!'); return; }
 const lobbyRef = db.ref('iceLobbies/' + currentGame.lobbyId);
 const snap = await lobbyRef.once('value');
 const data = snap.val() || {};
 if (data.status === 'playing' || data.status === 'finished') { alert('Игра уже идет!'); return; }
+// Проверяем что реально 2+ presence
+const presCount = data.presence ? Object.keys(data.presence).length : 0;
+if (presCount < 2) { alert('Нужно минимум 2 игрока в лобби!'); return; }
 const newBalance = balance - myBet;
 setBalance(newBalance);
 await db.ref('users/' + user.id + '/balance').set(newBalance);
-await lobbyRef.child('players/' + user.id).set({ name: user.name, avatar: user.avatar, bet: myBet, color: `hsl(${Math.random() * 360}, 70%, 50%)`, timestamp: Date.now() });
+await lobbyRef.child('players/' + user.id).set({
+name: user.name,
+avatar: user.avatar,
+bet: myBet,
+color: `hsl(${Math.random() * 360}, 70%, 50%)`,
+timestamp: Date.now()
+});
 setHasBet(true);
+// ПРОВЕРКА СТАРТА: Если 2+ игрока со ставками и статус waiting — запускаем 10 сек таймер
 const newSnap = await lobbyRef.once('value');
 const newData = newSnap.val() || {};
-const newPCount = newData.players ? Object.keys(newData.players).length : 0;
-if (newPCount >= 2 && newData.status === 'waiting') {
-await lobbyRef.update({ status: 'betting', timerEnd: Date.now() + 10000 });
-setTimeout(() => startIceGame(lobbyRef), 10000);
+const pCount = newData.players ? Object.keys(newData.players).length : 0;
+if (pCount >= 2 && newData.status === 'waiting') {
+const timerEnd = Date.now() + 10000;
+await lobbyRef.update({ status: 'betting', timerEnd: timerEnd });
+// Запускаем таймер на старт
+if (iceTimerRef.current) clearTimeout(iceTimerRef.current);
+iceTimerRef.current = setTimeout(() => startIceGame(lobbyRef), 10000);
 }
 };
 const startIceGame = async (lobbyRef) => {
+const snap = await lobbyRef.once('value');
+const data = snap.val();
+if (!data || data.status !== 'betting') return;
+const pCount = data.players ? Object.keys(data.players).length : 0;
+if (pCount < 2) {
+// Недостаточно игроков — возвращаем ставки
+if (data.players) {
+for (const [pid, pdata] of Object.entries(data.players)) {
+await db.ref('users/' + pid + '/balance').transaction(c => (c || 0) + pdata.bet);
+}
+}
+await lobbyRef.update({ status: 'waiting', players: {}, timerEnd: null });
+return;
+}
 await lobbyRef.update({ status: 'playing' });
 let x = 50, y = 50, vx = (Math.random() - 0.5) * 20, vy = (Math.random() - 0.5) * 20;
 const interval = setInterval(async () => {
@@ -433,6 +538,7 @@ if (c.freeCount > 0) return 0;
 if (c.discountPrice && c.discountPrice !== c.price) return c.discountPrice;
 return c.price;
 };
+// ПРАВИЛЬНАЯ РУЛЕТКА
 const openCase = async (caseType) => {
 if (caseType === 'collector' && cases.collector?.locked) { alert('Кейс «Коллекционер» заблокирован. Нужно пополнить на 350⭐️'); return; }
 const price = getCasePrice(caseType);
@@ -664,28 +770,61 @@ return (
 }
 if (currentGame?.type === 'ice') {
 const isSpectator = currentGame?.spectator === true;
-const pCount = iceLobby?.players ? Object.keys(iceLobby.players).length : 0;
-const canPlaceBet = pCount >= 2 && !hasBet;
+const presenceList = iceLobby?.presence ? Object.entries(iceLobby.presence) : [];
+const playersList = iceLobby?.players ? Object.entries(iceLobby.players) : [];
+const bettedIds = new Set(playersList.map(([id]) => id));
 return (
 <div className="min-h-screen bg-gradient-to-b from-blue-900 to-indigo-900 p-4">
 <div className="max-w-2xl mx-auto">
-<div className="flex justify-between items-center mb-4"><h1 className="text-2xl font-bold">☃️ Ледяной Каток</h1><button onClick={() => setCurrentGame(null)} className="text-white hover:text-red-400">✕</button></div>
+<div className="flex justify-between items-center mb-4">
+<h1 className="text-2xl font-bold">☃️ Ледяной Каток</h1>
+<button onClick={leaveIceLobby} className="text-white hover:text-red-400 bg-red-600/30 px-3 py-1 rounded-lg border border-red-500/50 hover:bg-red-600/50 transition">✕ Выйти</button>
+</div>
 <div className="text-center mb-4">
 <div className="text-sm text-cyan-300">Лобби #{currentGame.lobbyId}</div>
-<div className="text-lg font-bold text-white">{gameStatus === 'waiting' ? '⏳ Ожидание игроков...' : gameStatus === 'betting' ? '⏰ Отсчёт 10 секунд!' : gameStatus === 'playing' ? '🔴 Игра началась!' : '🏆 Игра окончена'}</div>
+<div className="text-lg font-bold text-white">
+{gameStatus === 'waiting' && icePresenceCount < 2 && '⏳ Ожидание игроков...'}
+{gameStatus === 'waiting' && icePresenceCount >= 2 && icePlayerCount < 2 && '✅ Можно делать ставки!'}
+{gameStatus === 'betting' && '⏰ Отсчёт до старта!'}
+{gameStatus === 'playing' && '🔴 Игра началась!'}
+{gameStatus === 'finished' && '🏆 Игра окончена'}
+</div>
 {isSpectator && gameStatus === 'playing' && (<div className="text-yellow-400 text-sm mt-2">Игра началась! Вы можете только наблюдать.</div>)}
 {gameStatus === 'betting' && timerRemaining > 0 && (<div className="text-3xl font-bold text-yellow-400 animate-pulse mt-2">⏰ {timerRemaining} сек</div>)}
+{gameStatus === 'waiting' && icePresenceCount < 2 && (
+<div className="mt-2 text-sm text-gray-400 animate-pulse">
+👥 В лобби: {icePresenceCount}/2 — ожидаем ещё {2 - icePresenceCount} игрок(а)
+</div>
+)}
+{gameStatus === 'waiting' && icePresenceCount >= 2 && icePlayerCount < 2 && (
+<div className="mt-2 text-sm text-green-400 font-bold">
+👥 В лобби: {icePresenceCount} игроков — делайте ставки!
+</div>
+)}
 </div>
 <div className="flex justify-center mb-6">
-<div className="ice-circle relative">
+<div className={`ice-circle relative ${icePresenceCount >= 2 && gameStatus === 'waiting' ? 'pulse-glow' : ''}`}>
 {renderIceArenaField()}
 {(gameStatus === 'waiting' || gameStatus === 'betting') && (<div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 bg-black rounded-full flex items-center justify-center text-4xl mystery-box border-4 border-cyan-400 shadow-lg shadow-cyan-500/50">❓</div>)}
 {gameStatus === 'playing' && (<div className="ice-ball" style={{ left: ballPos.x + '%', top: ballPos.y + '%' }} />)}
 {gameStatus === 'finished' && iceLobby?.finalBall && (<div className="ice-ball" style={{ left: iceLobby.finalBall.x + '%', top: iceLobby.finalBall.y + '%', background: '#ffd700', boxShadow: '0 0 30px #ffd700' }} />)}
 </div>
 </div>
-{!isSpectator && canPlaceBet ? (
-<div className="glass rounded-xl p-4 mb-4 border border-cyan-500/30">
+{/* БЛОК СТАВКИ — доступен только при 2+ присутствующих */}
+{!isSpectator && (gameStatus === 'waiting' || gameStatus === 'betting') && !hasBet ? (
+<div className={`glass rounded-xl p-4 mb-4 border ${bettingAllowed ? 'border-cyan-500/30' : 'border-gray-600/30'}`}>
+{!bettingAllowed ? (
+<div className="text-center py-4">
+<div className="text-4xl mb-3">⏳</div>
+<p className="text-gray-400 font-bold text-lg">Ожидание соперников...</p>
+<p className="text-gray-500 text-sm mt-1">Нужно минимум 2 игрока в лобби для ставок</p>
+<div className="mt-3 flex items-center justify-center gap-2">
+<div className="w-3 h-3 rounded-full bg-green-500 animate-pulse"></div>
+<span className="text-cyan-300 text-sm">Вы в лобби ({icePresenceCount}/2)</span>
+</div>
+</div>
+) : (
+<>
 <div className="flex gap-2 mb-4">
 <input type="number" min="25" value={myBet} onChange={(e) => setMyBet(Number(e.target.value))} className="flex-1 bg-gray-800 border border-cyan-600 rounded-lg p-3 text-center text-xl text-white" />
 <button onClick={() => setMyBet(p => p + 25)} className="bg-cyan-700 px-4 rounded-lg font-bold">+25</button>
@@ -693,38 +832,54 @@ return (
 </div>
 <button onClick={placeBet} disabled={balance < myBet} className="w-full bg-gradient-to-r from-cyan-600 to-blue-600 py-4 rounded-xl font-bold text-xl disabled:opacity-50 shadow-lg">Сделать ставку ({myBet}⭐️)</button>
 <p className="text-center text-sm text-cyan-300 mt-2">Минимальная ставка: 25⭐️</p>
-</div>
-) : !isSpectator && pCount < 2 ? (
-<div className="glass rounded-xl p-4 mb-4 border border-red-500/50 bg-red-900/20">
-<p className="text-center text-red-300 font-bold mb-2">⏳ Ожидание игроков</p>
-<p className="text-center text-sm text-red-200">Нужно минимум 2 игрока! Сейчас: {pCount}/2</p>
+</>
+)}
 </div>
 ) : !isSpectator && hasBet ? (
 <div className="text-center mb-4">
 <div className="text-green-400 font-bold text-xl mb-2">✓ Вы в игре! Ставка: {myBet}⭐️</div>
-{pCount < 2 && (<div className="text-yellow-400 font-bold animate-pulse mt-2">⏳ Ожидаем соперников (сейчас {pCount})...</div>)}
+{icePlayerCount < 2 && (<div className="text-yellow-400 font-bold animate-pulse mt-2">⏳ Ожидаем ставки соперников ({icePlayerCount}/2)...</div>)}
+{icePlayerCount >= 2 && gameStatus === 'waiting' && (<div className="text-cyan-400 font-bold animate-pulse mt-2">🎮 Игра начнётся через несколько секунд...</div>)}
 </div>
 ) : null}
 {showPrizeChest && iceLobby?.winner?.id === user.id && (<div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"><div className="glass rounded-2xl p-6 max-w-md w-full text-center border border-yellow-500/50"><h2 className="text-3xl font-bold mb-2 text-yellow-400">🏆 Победа!</h2><p className="mb-4 text-gray-300">Откройте сундук</p><div className="text-7xl mb-4 cursor-pointer transition-transform active:scale-95" onClick={openChest}>🎁</div><p className="text-sm text-gray-400">+ 40% от общей ставки</p></div></div>)}
-{showNewGamePrompt && (<div className="fixed inset-0 bg-black/80 z-40 flex items-center justify-center p-4"><div className="glass rounded-2xl p-6 text-center max-w-sm w-full"><h3 className="text-xl font-bold mb-4">Начать новую игру?</h3><div className="flex gap-4 justify-center"><button onClick={async () => { setShowNewGamePrompt(false); setOpenedChestCount(0); setHasBet(false); await db.ref('iceLobbies/' + currentGame.lobbyId).update({ status: 'waiting', players: {}, winner: null, prizes: [], ballPosition: { x: 50, y: 50, vx: 0, vy: 0 }, timerEnd: null, allBetsPlaced: false, prizeClaimed: {}, readyPlayers: {}, countdownStarted: false }); }} className="bg-green-600 px-6 py-3 rounded-lg font-bold text-lg">✅ Да</button><button onClick={() => setCurrentGame(null)} className="bg-red-600 px-6 py-3 rounded-lg font-bold text-lg">❌ Нет</button></div></div></div>)}
+{showNewGamePrompt && (<div className="fixed inset-0 bg-black/80 z-40 flex items-center justify-center p-4"><div className="glass rounded-2xl p-6 text-center max-w-sm w-full"><h3 className="text-xl font-bold mb-4">Начать новую игру?</h3><div className="flex gap-4 justify-center"><button onClick={async () => { setShowNewGamePrompt(false); setOpenedChestCount(0); setHasBet(false); await db.ref('iceLobbies/' + currentGame.lobbyId).update({ status: 'waiting', players: {}, winner: null, prizes: [], ballPosition: { x: 50, y: 50, vx: 0, vy: 0 }, timerEnd: null, allBetsPlaced: false, prizeClaimed: {}, readyPlayers: {}, countdownStarted: false }); }} className="bg-green-600 px-6 py-3 rounded-lg font-bold text-lg">✅ Да</button><button onClick={leaveIceLobby} className="bg-red-600 px-6 py-3 rounded-lg font-bold text-lg">❌ Нет</button></div></div></div>)}
+{/* СПИСОК ПРИСУТСТВУЮЩИХ И ИГРОКОВ */}
 <div className="glass rounded-xl p-4 mb-4">
-<h3 className="font-bold mb-2 text-cyan-300">Игроки ({icePlayerCount}/15):</h3>
-<div className="space-y-2 max-h-40 overflow-y-auto">
-{iceLobby?.players && Object.entries(iceLobby.players).map(([id, p]) => (
-<div key={id} className="flex justify-between items-center bg-gray-800/50 p-2 rounded border border-white/10">
+<h3 className="font-bold mb-2 text-cyan-300">
+👥 В лобби ({icePresenceCount}) | 🎮 Со ставкой ({icePlayerCount}):
+</h3>
+<div className="space-y-2 max-h-48 overflow-y-auto">
+{presenceList.map(([id, p]) => {
+const hasBetted = bettedIds.has(id);
+const playerData = hasBetted ? iceLobby.players[id] : null;
+return (
+<div key={id} className={`flex justify-between items-center p-2 rounded border ${hasBetted ? 'bg-cyan-900/40 border-cyan-500/30' : 'bg-gray-800/50 border-white/10'}`}>
 <div className="flex items-center gap-2">
-<div className="w-3 h-3 rounded-full" style={{background: p.color}}></div>
-<span className={id === user.id ? 'font-bold text-cyan-300' : ''}>{p.name} {id === user.id && '(Вы)'}</span>
+{hasBetted && <div className="w-3 h-3 rounded-full" style={{background: playerData?.color || '#00d2ff'}}></div>}
+{!hasBetted && <div className="w-3 h-3 rounded-full bg-gray-500 animate-pulse"></div>}
+<span className={id === user.id ? 'font-bold text-cyan-300' : ''}>
+{p.name} {id === user.id && '(Вы)'}
+</span>
 </div>
-<div className="text-right"><span className="font-bold text-yellow-400">{p.bet}⭐️</span></div>
+<div className="text-right">
+{hasBetted ? (
+<span className="font-bold text-yellow-400">{playerData.bet}⭐️</span>
+) : (
+<span className="text-gray-500 text-sm italic">ожидает...</span>
+)}
 </div>
-))}
-{!iceLobby?.players || Object.keys(iceLobby.players).length === 0 && (<p className="text-gray-400 text-center py-4">Пока никого нет. Будьте первым!</p>)}
 </div>
+);
+})}
+{presenceList.length === 0 && (<p className="text-gray-400 text-center py-4">Пока никого нет. Будьте первым!</p>)}
+</div>
+{icePlayerCount > 0 && (
 <div className="border-t border-gray-600 mt-2 pt-2 flex justify-between font-bold text-lg">
 <span className="text-gray-300">Общий банк:</span>
 <span className="text-yellow-400">{iceLobby?.players ? Object.values(iceLobby.players).reduce((s, p) => s + p.bet, 0) : 0}⭐️</span>
 </div>
+)}
 </div>
 <div className="glass rounded-xl p-4">
 <h3 className="font-bold mb-3 text-center text-cyan-300">Возможные награды:</h3>
@@ -792,7 +947,7 @@ return (
 <div className="space-y-4">
 <div className="glass rounded-xl p-6 cursor-pointer hover:bg-white/5 transition border border-cyan-500/30" onClick={() => joinIceLobby(1)}>
 <h3 className="text-2xl font-bold mb-2 text-center text-cyan-300">☃️ Ледяной Каток</h3>
-<p className="text-gray-400 mb-4 text-center">Соревнуйтесь с другими игроками! Мин. ставка 25⭐️<br/>Победитель получает 40% от банка</p>
+<p className="text-gray-400 mb-4 text-center">Соревнуйтесь с другими игроками! Мин. ставка 25⭐️<br/>Победитель получает 40% от банка<br/><span className="text-cyan-400 text-xs">Ставки доступны от 2 игроков в лобби</span></p>
 <div className="grid grid-cols-5 gap-2">
 {[1,2,3,4,5,6,7,8,9,10].map(i => (
 <button key={i} onClick={(e) => { e.stopPropagation(); joinIceLobby(i); }} className="bg-cyan-700 hover:bg-cyan-600 py-2 rounded-lg text-sm font-bold transition">#{i}</button>
