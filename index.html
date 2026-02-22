@@ -3,407 +3,437 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Step By Step Game</title>
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Expires" content="0">
+<title>Step By Step Game v4.5 - FULL EDITION</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 <script>
 tailwind.config = {
-    darkMode: 'class',
-    theme: {
-        extend: {
-            colors: {
-                primary: '#6366f1',
-                secondary: '#8b5cf6',
-                accent: '#f59e0b',
-                ice: '#00d2ff',
-            }
-        }
+  darkMode: 'class',
+  theme: {
+    extend: {
+      colors: { primary: '#6366f1', secondary: '#8b5cf6', accent: '#f59e0b', ice: '#00d2ff' }
     }
+  }
 }
 </script>
 <style>
+@keyframes spin-slow { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-/* --- НОВАЯ АНИМАЦИЯ РУЛЕТКИ --- */
-.roulette-container {
-    position: relative; width: 100%; height: 160px; overflow: hidden;
-    background: rgba(0, 0, 0, 0.4); border-radius: 16px;
-    border: 2px solid rgba(255, 255, 255, 0.15); box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
-}
-.roulette-inner {
-    display: flex; position: absolute; left: 0; top: 15px;
-    transition: transform 6.5s cubic-bezier(0.1, 0, 0.05, 1); will-change: transform;
-}
-.roulette-item {
-    width: 120px; height: 130px; flex-shrink: 0; margin: 0 5px;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.02));
-    border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);
-}
-.roulette-item .emoji { font-size: 3.5rem; }
-.roulette-item .name { font-size: 0.75rem; margin-top: 8px; color: #e2e8f0; text-align: center; }
-.roulette-pointer {
-    position: absolute; left: 50%; top: 0; bottom: 0; width: 4px;
-    background: #ff4757; z-index: 20; transform: translateX(-50%);
-    box-shadow: 0 0 20px #ff4757, 0 0 10px #ff4757;
-}
-/* --- ОРИГИНАЛЬНЫЕ СТИЛИ --- */
+.roulette-container { mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent); }
 .glass { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); }
 .line-through { text-decoration: line-through; opacity: 0.5; }
-.fullscreen-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 100; overflow-y: auto; }
-.ice-circle { width: 320px; height: 320px; border-radius: 50%; border: 4px solid rgba(0,210,255,0.5); position: relative; overflow: hidden; background: radial-gradient(circle, rgba(0,210,255, 0%), rgba(0,128,255,0.2) 160px, rgba(0,128,255,0.4) 100%); }
-.ice-ball { position: absolute; width: 40px; height: 40px; background: radial-gradient(circle at 30% 30%, #fff, #00d2ff); border-radius: 50%; z-index: 10; transform: translate(-50%, -50%); transition: left 0.025s linear, top 0.025s linear; }
+.fullscreen-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 100; overflow-y: auto; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+.ice-circle { width: 320px; height: 320px; border-radius: 50%; border: 4px solid rgba(0,210,255,0.5); position: relative; overflow: hidden; background: radial-gradient(circle, rgba(0,210,255, 0%), rgba(0,128,255,0.2) 160px, rgba(0,128,255,0.4) 100%); box-shadow: 0 0 30px rgba(0,210,255,0.3); }
+.ice-ball { position: absolute; width: 40px; height: 40px; background: radial-gradient(circle at 30% 30%, #fff, #00d2ff); border-radius: 50%; box-shadow: 0 0 20px rgba(0,210,255,0.8); z-index: 10; transform: translate(-50%, -50%); border: 2px solid rgba(255,255,255,0.5); transition: left 0.025s linear, top 0.025s linear; }
 .player-avatar { position: absolute; width: 40px; height: 40px; border-radius: 50%; border: 2px solid white; overflow: hidden; transform: translate(-50%, -50%); z-index: 5; }
 .case-cardboard { background: linear-gradient(135deg, #8B4513 0%, #D2691E 50%, #8B4513 100%); border: 3px solid #A0522D; }
 .case-collector { background: linear-gradient(135deg, #DC143C 0%, #FF1493 50%, #8B008B 100%); border: 3px solid #FFD700; }
+
+/* НОВАЯ АНИМАЦИЯ РУЛЕТКИ */
+.roulette-window { width: 100%; height: 140px; overflow: hidden; position: relative; background: #020617; border-radius: 16px; border: 2px solid #6366f1; }
+.roulette-line { position: absolute; left: 50%; top: 0; bottom: 0; width: 4px; background: #fbbf24; z-index: 30; transform: translateX(-50%); box-shadow: 0 0 15px #fbbf24; }
+.roulette-track { display: flex; height: 100%; align-items: center; will-change: transform; }
+.roulette-item { min-width: 110px; height: 110px; margin: 0 5px; background: #1e293b; border-radius: 14px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid #334155; flex-shrink: 0; }
 </style>
 </head>
 <body class="bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 min-h-screen text-white overflow-x-hidden">
 <div id="root"></div>
 
-<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-
 <script type="text/babel">
 const { useState, useEffect, useRef } = React;
 
 const firebaseConfig = {
-    apiKey: "AIzaSyDZPRiByz69HQa8b7GFMCJeqq56J3Y-bOY",
-    authDomain: "step-by-step-279df.firebaseapp.com",
-    databaseURL: "https://step-by-step-279df-default-rtdb.europe-west1.firebasedatabase.app",
-    projectId: "step-by-step-279df",
-    storageBucket: "step-by-step-279df.firebasestorage.app",
-    messagingSenderId: "302641152597",
-    appId: "1:302641152597:web:6479b9ae03104666cd8adc"
+  apiKey: "AIzaSyDZPRiByz69HQa8b7GFMCJeqq56J3Y-bOY",
+  authDomain: "step-by-step-279df.firebaseapp.com",
+  databaseURL: "https://step-by-step-279df-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "step-by-step-279df",
+  storageBucket: "step-by-step-279df.firebasestorage.app",
+  messagingSenderId: "302641152597",
+  appId: "1:302641152597:web:6479b9ae03104666cd8adc"
 };
-if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
 const db = firebase.database();
 const TelegramWebApp = window.Telegram?.WebApp;
-const ADMIN_WALLET = 'UQAWqaIPFSg81l9MlgAx0HBE9o3gpJMhk1dnyryKJXhWNHIc';
-const BOT_TOKEN = '8325421899:AAHRdmMYdjJMXmAVIynDsQtpUNsSeKkaOis';
 
+// --- КОНСТАНТЫ ---
 const CASE_REWARDS = {
-    cardboard: [
-        { id: 'stars_0_25', name: '0.25 ⭐️', realChance: 80, type: 'stars', value: 0.25, emoji: '⭐️' },
-        { id: 'stars_0_75', name: '0.75 ⭐️', realChance: 10, type: 'stars', value: 0.75, emoji: '⭐️' },
-        { id: 'stars_1_5', name: '1.5 ⭐️', realChance: 6, type: 'stars', value: 1.5, emoji: '⭐️' },
-        { id: 'stars_5', name: '5 ⭐️', realChance: 2, type: 'stars', value: 5, emoji: '⭐️' },
-        { id: 'bear', name: '🧸', realChance: 1.5, type: 'item', sellPrice: 20, emoji: '🧸' },
-        { id: 'diamond_pro', name: '💎 PRO', realChance: 0.5, type: 'collectible', emoji: '💎' }
-    ],
-    coal: [
-        { id: 'stars_2_5', name: '2.5 ⭐️', realChance: 60, type: 'stars', value: 2.5, emoji: '⭐️' },
-        { id: 'stars_5', name: '5 ⭐️', realChance: 18, type: 'stars', value: 5, emoji: '⭐️' },
-        { id: 'pickaxe', name: 'Кирка ⛏️', realChance: 10, type: 'item', sellPrice: 10, emoji: '⛏️' },
-        { id: 'stars_15', name: '15 ⭐️', realChance: 6, type: 'stars', value: 15, emoji: '⭐️' },
-        { id: 'material', name: 'Материал 🧱', realChance: 5, type: 'item', sellPrice: 40, emoji: '🧱' },
-        { id: 'brownie_pro', name: 'Happy Brownie PRO 💩', realChance: 1, type: 'collectible', emoji: '💩' }
-    ],
-    platinum: [
-        { id: 'stars_35', name: '35 ⭐️', realChance: 55, type: 'stars', value: 35, emoji: '⭐️' },
-        { id: 'stars_50', name: '50 ⭐️', realChance: 35, type: 'stars', value: 50, emoji: '⭐️' },
-        { id: 'ring', name: '💍', realChance: 5, type: 'collectible', emoji: '💍' },
-        { id: 'bday', name: 'B-day 🗓', realChance: 4, type: 'item', sellPrice: 150, emoji: '🗓' },
-        { id: 'bday_pro', name: 'B-Day PRO 📅', realChance: 1, type: 'collectible', emoji: '📅' }
-    ],
-    gold: [
-        { id: 'stars_50', name: '50 ⭐️', realChance: 50, type: 'stars', value: 50, emoji: '⭐️' },
-        { id: 'stars_125', name: '125 ⭐️', realChance: 35, type: 'stars', value: 125, emoji: '⭐️' },
-        { id: 'clover', name: '🍀 Clover Pin', realChance: 10, type: 'item', sellPrice: 200, emoji: '🍀' },
-        { id: 'icecream', name: 'Ice Cream 🍦', realChance: 3, type: 'collectible', emoji: '🍦' },
-        { id: 'clover_pro', name: '🍀 Clover Pin PRO', realChance: 2, type: 'collectible', emoji: '🍀' }
-    ],
-    money: [
-        { id: 'stars_150', name: '150 ⭐️', realChance: 45, type: 'stars', value: 150, emoji: '⭐️' },
-        { id: 'stars_75', name: '75 ⭐️', realChance: 40, type: 'stars', value: 75, emoji: '⭐️' },
-        { id: 'trophy', name: '🏆', realChance: 5, type: 'collectible', emoji: '🏆' },
-        { id: 'gem', name: '💎', realChance: 5, type: 'collectible', emoji: '💎' },
-        { id: 'bday_happy', name: 'Happy B-day 💈', realChance: 4, type: 'collectible', emoji: '💈' },
-        { id: 'cigar', name: 'Snoop Cigar 🚬', realChance: 1, type: 'collectible', emoji: '🚬' }
-    ],
-    elite: [
-        { id: 'stars_200', name: '200 ⭐️', realChance: 75, type: 'stars', value: 200, emoji: '⭐️' },
-        { id: 'stars_275', name: '275 ⭐️', realChance: 5, type: 'stars', value: 275, emoji: '⭐️' },
-        { id: 'champagne', name: '🍾', realChance: 17, type: 'collectible', emoji: '🍾' },
-        { id: 'socks', name: 'Носки 🧦', realChance: 2, type: 'collectible', emoji: '🧦' },
-        { id: 'lightsword', name: 'Light Sword ⚔️', realChance: 1, type: 'collectible', emoji: '⚔️' }
-    ],
-    diamond: [
-        { id: 'stars_8', name: '8 ⭐️', realChance: 70, type: 'stars', value: 8, emoji: '⭐️' },
-        { id: 'bear', name: 'Мишка 🧸', realChance: 15, type: 'item', sellPrice: 20, emoji: '🧸' },
-        { id: 'stars_25', name: '25 ⭐️', realChance: 9, type: 'stars', value: 25, emoji: '⭐️' },
-        { id: 'stars_80', name: '80 ⭐️', realChance: 4, type: 'stars', value: 80, emoji: '⭐️' },
-        { id: 'diamond_pro', name: 'Алмаз PRO 💎', realChance: 0.6, type: 'collectible', emoji: '💎' },
-        { id: 'snoop_pro', name: 'Snoop Dog PRO 🐕', realChance: 0.4, type: 'collectible', emoji: '🐕' }
-    ],
-    winter: [
-        { id: 'stars_20', name: '20 ⭐️', realChance: 60, type: 'stars', value: 20, emoji: '⭐️' },
-        { id: 'stars_35', name: '35 ⭐️', realChance: 35, type: 'stars', value: 35, emoji: '⭐️' },
-        { id: 'stars_80', name: '80 ⭐️', realChance: 3.5, type: 'stars', value: 80, emoji: '⭐️' },
-        { id: 'snake', name: '🎄 Lunar Snake 2025 🐍', realChance: 1, type: 'collectible', emoji: '🐍' },
-        { id: 'scarf', name: '🧣 Зимнее сокровище', realChance: 0.5, type: 'collectible', emoji: '🧣' }
-    ],
-    major: [
-        { id: 'stars_500', name: '500 ⭐️', realChance: 50, type: 'stars', value: 500, emoji: '⭐️' },
-        { id: 'stars_1000', name: '1000 ⭐️', realChance: 25, type: 'stars', value: 1000, emoji: '⭐️' },
-        { id: 'car', name: '🚗 Автомобиль', realChance: 5, type: 'collectible', emoji: '🚗' },
-    ],
-    collector: [
-        { id: 'bear_pro', name: '🧸 PRO', realChance: 55, type: 'collectible', emoji: '🧸' },
-        { id: 'gift_pro', name: '🎁 PRO', realChance: 20, type: 'collectible', emoji: '🎁' },
-        { id: 'ramen_pro', name: '🍜Ramen PRO', realChance: 0.5, type: 'collectible', emoji: '🍜' },
-        { id: 'hat_pro', name: '🎩 Top hat', realChance: 0, type: 'collectible', emoji: '🎩' },
-        { id: 'bird_pro', name: '🦅Rare bird', realChance: 0, type: 'collectible', emoji: '🦅' }
-    ]
+  cardboard: [
+    { id: 's1', name: '0.25 ⭐️', chance: 80, type: 'stars', value: 0.25, emoji: '⭐️' },
+    { id: 's2', name: '0.75 ⭐️', chance: 10, type: 'stars', value: 0.75, emoji: '⭐️' },
+    { id: 's3', name: '1.5 ⭐️', chance: 6, type: 'stars', value: 1.5, emoji: '⭐️' },
+    { id: 's4', name: '5 ⭐️', chance: 2, type: 'stars', value: 5, emoji: '⭐️' },
+    { id: 'i1', name: 'Мишка 🧸', chance: 1.5, type: 'item', sellPrice: 5, emoji: '🧸' },
+    { id: 'c1', name: '💎 PRO', chance: 0.5, type: 'collectible', emoji: '💎' }
+  ],
+  coal: [
+    { id: 'cs1', name: '2.5 ⭐️', chance: 60, type: 'stars', value: 2.5, emoji: '⭐️' },
+    { id: 'cs2', name: '5 ⭐️', chance: 18, type: 'stars', value: 5, emoji: '⭐️' },
+    { id: 'cs3', name: 'Кирка ⛏️', chance: 10, type: 'item', sellPrice: 10, emoji: '⛏️' },
+    { id: 'cs4', name: '15 ⭐️', chance: 6, type: 'stars', value: 15, emoji: '⭐️' },
+    { id: 'cs5', name: 'Материал 🧱', chance: 5, type: 'item', sellPrice: 40, emoji: '🧱' },
+    { id: 'cs6', name: 'Happy PRO 💩', chance: 1, type: 'collectible', emoji: '💩' }
+  ],
+  collector: [
+    { id: 'cp1', name: '🧸 PRO', chance: 55, type: 'collectible', emoji: '🧸' },
+    { id: 'cp2', name: '🎁 PRO', chance: 20, type: 'collectible', emoji: '🎁' },
+    { id: 'cp3', name: '🚀 PRO', chance: 15, type: 'collectible', emoji: '🚀' },
+    { id: 'cp4', name: '🏆 PRO', chance: 5, type: 'collectible', emoji: '🏆' },
+    { id: 'cp5', name: '🍰 Candle', chance: 2, type: 'collectible', emoji: '🍰' },
+    { id: 'cp6', name: '🍜 Ramen', chance: 0.5, type: 'collectible', emoji: '🍜' },
+    { id: 'cp7', name: '🎩 Top hat', chance: 0, type: 'collectible', emoji: '🎩' },
+    { id: 'cp8', name: '🦅 Rare bird', chance: 0, type: 'collectible', emoji: '🦅' }
+  ],
+  diamond: [{id:'d1', name:'10 ⭐️', chance:100, type:'stars', value:10, emoji:'⭐️'}],
+  platinum: [{id:'p1', name:'50 ⭐️', chance:100, type:'stars', value:50, emoji:'⭐️'}],
+  gold: [{id:'g1', name:'100 ⭐️', chance:100, type:'stars', value:100, emoji:'⭐️'}],
+  money: [{id:'m1', name:'200 ⭐️', chance:100, type:'stars', value:200, emoji:'⭐️'}],
+  elite: [{id:'e1', name:'300 ⭐️', chance:100, type:'stars', value:300, emoji:'⭐️'}],
+  winter: [{id:'w1', name:'150 ⭐️', chance:100, type:'stars', value:150, emoji:'⭐️'}],
+  major: [{id:'mj1', name:'1000 ⭐️', chance:100, type:'stars', value:1000, emoji:'⭐️'}]
 };
 
 const INITIAL_CASES = {
-    cardboard: { id: 'cardboard', name: 'Картон', emoji: '📦', price: 3, color: 'from-amber-800 to-amber-900', locked: false, isNew: true, freeCount: 0 },
-    coal: { id: 'coal', name: 'Уголёк', emoji: '🪨', price: 22, originalPrice: 22, discountPrice: 20, color: 'from-gray-600 to-gray-800', locked: false, isNew: false, freeCount: 0 },
-    platinum: { id: 'platinum', name: 'Платина', emoji: '💎', price: 100, color: 'from-gray-300 to-gray-500', locked: false },
-    gold: { id: 'gold', name: 'Золотой', emoji: '👑', price: 250, color: 'from-yellow-400 to-yellow-600', locked: false },
-    money: { id: 'money', name: 'Денежный', emoji: '💵', price: 350, color: 'from-green-400 to-green-600', locked: false },
-    elite: { id: 'elite', name: 'Элита', emoji: '🎖', price: 500, color: 'from-red-400 to-red-600', locked: false, isNew: false, freeCount: 0 },
-    diamond: { id: 'diamond', name: 'Алмаз', emoji: '💎', price: 50, originalPrice: 50, discountPrice: 35, color: 'from-blue-400 to-blue-600', locked: false, isNew: false, freeCount: 0 },
-    winter: { id: 'winter', name: 'Зимний', emoji: '☃️', price: 125, originalPrice: 150, discountPrice: 125, color: 'from-cyan-400 to-blue-500', locked: false, isNew: true, freeCount: 0 },
-    major: { id: 'major', name: 'Мажор', emoji: '🤴', price: 800, color: 'from-purple-500 to-indigo-700', locked: true, isNew: false, freeCount: 0 },
-    collector: { id: 'collector', name: 'Коллекционер', emoji: '🎩', price: 650, color: 'from-rose-600 to-pink-800', locked: true, isNew: true, freeCount: 0 }
+  cardboard: { id: 'cardboard', name: 'Картон', emoji: '📦', price: 3, cls: 'case-cardboard' },
+  coal: { id: 'coal', name: 'Уголёк', emoji: '🪨', price: 20, cls: '' },
+  diamond: { id: 'diamond', name: 'Алмаз', emoji: '💎', price: 35, cls: '' },
+  platinum: { id: 'platinum', name: 'Платина', emoji: '⚪', price: 100, cls: '' },
+  gold: { id: 'gold', name: 'Золотой', emoji: '👑', price: 250, cls: '' },
+  money: { id: 'money', name: 'Денежный', emoji: '💵', price: 350, cls: '' },
+  elite: { id: 'elite', name: 'Элита', emoji: '🎖', price: 500, cls: '', freeSpins: 0 },
+  winter: { id: 'winter', name: 'Зимний', emoji: '☃️', price: 125, cls: '' },
+  major: { id: 'major', name: 'Мажор', emoji: '🤴', price: 800, cls: '' },
+  collector: { id: 'collector', name: 'Коллекционер', emoji: '🎩', price: 650, cls: 'case-collector' }
 };
 
-const ICE_ARENA_PRIZES = [
-    { id: 'bear', name: '🧸 Мишка', chance: 40, type: 'item', sellPrice: 20, emoji: '🧸' },
-    { id: 'fire', name: '🔥 Огонь', chance: 10, type: 'special', emoji: '🔥', message: 'Вы растопили лед! Получаете 40% от ставок' },
-];
-    const TON_RATES = [{ stars: 50, ton: 0.6 }, { stars: 250, ton: 3 }];
-const STARS_PACKAGES = [{ stars: 50, price: 50, name: '50 звезд' }];
-
 function App() {
-    const [currentScreen, setCurrentScreen] = useState('cases');
-    const [balance, setBalance] = useState(0);
-    const [cases, setCases] = useState(INITIAL_CASES);
-    const [inventory, setInventory] = useState([]);
-    const [inventorySlots, setInventorySlots] = useState(5);
-    const [tasks, setTasks] = useState({ subscribe: { completed: false }, deposit: { completed: false }, depositMajor: { completed: false }, invite: { completed: false, count: 0 } });
-    const [user, setUser] = useState(null);
-    const [selectedCase, setSelectedCase] = useState(null);
-    const [isSpinning, setIsSpinning] = useState(false);
-    const [spinResult, setSpinResult] = useState(null);
-    const [showTopUp, setShowTopUp] = useState(false);
-    const [showAdminLogin, setShowAdminLogin] = useState(false);
-    const [isAdmin, setIsAdmin] = useState(false);
-    const [adminLogin, setAdminLogin] = useState('');
-    const [adminPassword, setAdminPassword] = useState('');
-    const [isLoading, setIsLoading] = useState(true);
-    const [currentGame, setCurrentGame] = useState(null);
-    const [iceLobby, setIceLobby] = useState(null);
-    const [myBet, setMyBet] = useState(25);
-    const [hasBet, setHasBet] = useState(false);
-    const [isReady, setIsReady] = useState(false);
-    const [gameStatus, setGameStatus] = useState('waiting');
-    const [ballPos, setBallPos] = useState({ x: 50, y: 50 });
-    const [freeEliteSpin, setFreeEliteSpin] = useState(0);
-    const [rouletteOffset, setRouletteOffset] = useState(0);
-    const [fakeItems, setFakeItems] = useState([]);
-    const [adminAttempts, setAdminAttempts] = useState(0);
+  const [user, setUser] = useState(null);
+  const [screen, setScreen] = useState('cases');
+  const [balance, setBalance] = useState(0);
+  const [inventory, setInventory] = useState([]);
+  const [inventorySlots, setInventorySlots] = useState(5);
+  const [totalDeposits, setTotalDeposits] = useState(0);
+  
+  // Roulette
+  const [activeCase, setActiveCase] = useState(null);
+  const [spinning, setSpinning] = useState(false);
+  const [rouletteItems, setRouletteItems] = useState([]);
+  const [winItem, setWinItem] = useState(null);
+  const trackRef = useRef(null);
 
-    useEffect(() => {
-        const init = async () => {
-            let userId = 'guest_' + Date.now();
-            let userData = { name: 'Гость', id: userId };
-            if (TelegramWebApp?.initDataUnsafe?.user) {
-                const tg = TelegramWebApp.initDataUnsafe.user;
-                userId = tg.id.toString();
-                userData = { name: tg.first_name, avatar: tg.photo_url, id: userId };
-            }
-            setUser(userData);
-            const snap = await db.ref('users/' + userId).once('value');
-            const d = snap.val();
-            if (d) { setBalance(d.balance || 0); setCases(d.cases || INITIAL_CASES); setInventory(d.inventory || []); setTasks(d.tasks || tasks); setInventorySlots(d.inventorySlots || 5); setFreeEliteSpin(d.freeEliteSpin || 0); }
-            else { await db.ref('users/' + userId).set({ balance: 0, cases: INITIAL_CASES, inventory: [], tasks, inventorySlots: 5, freeEliteSpin: 0 }); }
-            setIsLoading(false);
-        };
-        init();
-    }, []);
+  // Ice Arena
+  const [iceLobby, setIceLobby] = useState(null);
+  const [iceData, setIceData] = useState(null);
+  const [myBet, setMyBet] = useState(25);
+  const [timer, setTimer] = useState(0);
+  const [ball, setBall] = useState({x: 50, y: 50});
 
-    useEffect(() => { if (user?.id && !isLoading) db.ref('users/' + user.id).update({ balance, cases, inventory, tasks, inventorySlots, freeEliteSpin }); }, [balance, cases, inventory, tasks, inventorySlots, freeEliteSpin]);
+  // Admin / Promo
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [clicks, setClicks] = useState(0);
+  const [promo, setPromo] = useState('');
 
-    // АВТО-ВОЗВРАТ СТАВКИ ПРИ ВЫХОДЕ ИЗ ЛОББИ
-    useEffect(() => {
-        const handleLeave = async () => {
-            if (currentGame?.type === 'ice' && user && hasBet) {
-                const snap = await db.ref(`iceLobbies/${currentGame.lobbyId}`).once('value');
-                const lobby = snap.val();
-                if (lobby && lobby.players && Object.keys(lobby.players).length === 1 && lobby.players[user.id]) {
-                    await db.ref(`users/${user.id}/balance`).transaction(c => (c || 0) + myBet);
-                    await db.ref(`iceLobbies/${currentGame.lobbyId}/players/${user.id}`).remove();
-                }
-            }
-        };
-        return () => { handleLeave(); };
-    }, [currentGame, hasBet, myBet, user]);
-
-    useEffect(() => {
-        if (currentGame?.type === 'ice') {
-            const ref = db.ref('iceLobbies/' + currentGame.lobbyId);
-            ref.on('value', snap => {
-                const d = snap.val();
-                if (d) {
-                    setIceLobby(d);
-                    setGameStatus(d.status || 'waiting');
-                    if (d.players?.[user.id]) {
-                        setHasBet(true);
-                        setMyBet(d.players[user.id].bet);
-                        setIsReady(!!d.readyPlayers?.[user.id]);
-                    } else { setHasBet(false); setIsReady(false); }
-                }
-            });
-            return () => ref.off();
-        }
-    }, [currentGame, user?.id]);
-
-    const openCase = async (caseId) => {
-        const c = cases[caseId];
-        if (c.locked) return alert('Кейс заблокирован!');
-        const price = c.freeCount > 0 ? 0 : (c.discountPrice || c.price);
-        const freeSpin = caseId === 'elite' && freeEliteSpin > 0;
-        if (price > 0 && balance < price && !freeSpin) return alert('Мало звезд!');
-
-        const balAfter = (freeSpin || price === 0) ? balance : balance - price;
-        setBalance(balAfter);
-
-        if (freeSpin && c.freeCount === 0) setFreeEliteSpin(s => s - 1);
-        else if (c.freeCount > 0) setCases(p => ({ ...p, [caseId]: { ...p[caseId], freeCount: p[caseId].freeCount - 1 } }));
-
-        setIsSpinning(true); setSelectedCase(c); setSpinResult(null);
-        
-        const items = CASE_REWARDS[caseId];
-        const rand = Math.random() * 100; let cum = 0, won = items[0];
-        for (const it of items) { cum += it.realChance; if (rand <= cum) { won = it; break; } }
-        
-        const tape = Array.from({length: 80}, () => items[Math.floor(Math.random() * items.length)]);
-        tape[70] = won; setFakeItems(tape);
-        
-        const itemW = 130; const jitter = Math.random() * 80 - 40;
-        const targetPos = (70 * itemW) + (itemW / 2) - (window.innerWidth / 2) + jitter;
-        
-        setRouletteOffset(0);
-        setTimeout(() => setRouletteOffset(-targetPos), 50);
-        
-        setTimeout(() => {
-            setSpinResult(won); setIsSpinning(false);
-            if (won.type === 'stars') setBalance(b => b + won.value);
-            else setInventory(inv => [...inv, { ...won, uid: Date.now() }]);
-        }, 6500);
-    };
-
-    const placeBet = async () => {
-        if (balance < myBet) return alert('Мало звезд!');
-        if ((iceLobby?.players && Object.keys(iceLobby.players).length < 1) && !hasBet) return;
-        
-        setBalance(b => b - myBet); setHasBet(true);
-        await db.ref(`iceLobbies/${currentGame.lobbyId}/players/${user.id}`).set({ name: user.name, bet: myBet, avatar: user.avatar, color: `hsl(${Math.random() * 360}, 70%, 50%)`, timestamp: Date.now() });
-    };
-
-    const toggleReady = async () => {
-        const ref = db.ref('iceLobbies/' + currentGame.lobbyId);
-        const next = !isReady; setIsReady(next);
-        await ref.child(`readyPlayers/${user.id}`).set(next ? true : null);
-        const snap = await ref.once('value'); const d = snap.val();
-        if (Object.keys(d.players || {}).length >= 2 && Object.keys(d.readyPlayers || {}).length >= 2) {
-            await ref.update({ status: 'betting', timerEnd: Date.now() + 10000 });
-            setTimeout(() => startIceGame(ref), 10000);
-        }
-    };
+  useEffect(() => {
+    let id = localStorage.getItem('sbs_id_v45');
+    if(!id) { id = 'u'+Date.now(); localStorage.setItem('sbs_id_v45', id); }
     
-    const startIceGame = async (ref) => { /* Логика движения шара */ };
+    db.ref('users/' + id).on('value', snap => {
+      const data = snap.val();
+      if(data) {
+        setBalance(data.balance || 0);
+        setInventory(data.inventory || []);
+        setInventorySlots(data.inventorySlots || 5);
+        setTotalDeposits(data.totalDeposits || 0);
+        setUser({id, ...data});
+      } else {
+        db.ref('users/' + id).set({
+          balance: 15, inventory: [], inventorySlots: 5, totalDeposits: 0,
+          cases: { elite: {freeSpins: 0} }, usedPromos: []
+        });
+      }
+    });
+  }, []);
+
+  // --- ЛОГИКА КЕЙСОВ (ФОРМУЛА БАЛАНСА) ---
+  const openCase = (cid) => {
+    const info = INITIAL_CASES[cid];
+    const freeSpins = user.cases?.[cid]?.freeSpins || 0;
+    const price = freeSpins > 0 ? 0 : info.price;
+
+    if(cid === 'collector' && totalDeposits < 350) return alert("Нужен депозит 350⭐️");
+    if(balance < price) return alert("Мало звезд!");
+
+    // 1. СПИСАНИЕ СРАЗУ (БЕЗ ВОЗВРАТА)
+    const balAfterSpend = balance - price;
+    setBalance(balAfterSpend);
+    const updates = { balance: balAfterSpend };
+    if(freeSpins > 0) updates[`cases/${cid}/freeSpins`] = freeSpins - 1;
+    db.ref('users/'+user.id).update(updates);
+
+    // 2. ПОДГОТОВКА РУЛЕТКИ
+    const pool = CASE_REWARDS[cid];
+    const tape = [];
+    for(let i=0; i<80; i++) tape.push(pool[Math.floor(Math.random()*pool.length)]);
     
-    const finishIceGame = async (ref, fx, fy) => {
-        const snap = await ref.once('value'); const d = snap.val();
-        if (!d.players) return;
-        const total = Object.values(d.players).reduce((s, p) => s + p.bet, 0);
-        // ... Логика определения победителя ...
-        const winner = { id: Object.keys(d.players)[0], ...Object.values(d.players)[0] }; // Упрощенно
-        await ref.update({ status: 'finished', winner });
-        if (winner.id === user.id) setBalance(b => b + (total * 0.40));
-    };
+    let r = Math.random()*100, cum = 0, winner = pool[0];
+    for(const it of pool) { cum += it.chance; if(r <= cum) { winner = it; break; } }
+    tape[60] = winner;
 
-    if (isLoading || !user) return <div className="flex items-center justify-center h-screen"><p className="text-xl animate-pulse">Загрузка...</p></div>;
+    setRouletteItems(tape);
+    setActiveCase(cid);
+    setSpinning(true);
+    setWinItem(null);
 
-    return (
-        <div className="min-h-screen pb-24">
-            <header className="p-4 flex justify-between items-center glass sticky top-0 z-50">
-                <h1 onClick={() => setAdminAttempts(a => a + 1)} className="text-xl font-bold cursor-pointer">Step By Step</h1>
-                <div className="bg-yellow-500 px-4 py-1 rounded-full text-black font-bold">{balance.toFixed(2)} ⭐️</div>
-            </header>
-            
-            <main className="p-4 max-w-md mx-auto">
-                {currentScreen === 'cases' && (
-                    <div className="grid grid-cols-2 gap-4">
-                        {Object.values(cases).map(c => (
-                            <div key={c.id} className={`glass p-4 rounded-xl text-center ${c.locked ? 'opacity-50' : 'hover:scale-105 transition'}`}>
-                                {c.locked && <div className="absolute inset-0 bg-black/70 rounded-xl flex items-center justify-center">🔒</div>}
-                                <div className="text-4xl mb-2">{c.emoji}</div>
-                                <h3 className="font-bold">{c.name}</h3>
-                                <p className="text-sm opacity-70">{c.freeCount > 0 ? 'Бесплатно!' : `${c.price} ⭐️`}</p>
-                                <button onClick={() => !c.locked && setSelectedCase(c)} className="w-full mt-2 py-2 bg-indigo-600 rounded-lg font-bold">Открыть</button>
-                            </div>
-                        ))}
-                    </div>
-                )}
-                {currentScreen === 'games' && <div onClick={() => setCurrentGame({type:'ice', lobbyId:1})} className="glass p-6 rounded-xl cursor-pointer text-center"><h3 className="text-2xl font-bold">☃️ Ледяной Каток</h3></div>}
-                {currentScreen === 'tasks' && <div className="glass p-4">...Задания...</div>}
-                {currentScreen === 'profile' && <div className="glass p-4">...Профиль...</div>}
-            </main>
+    // 3. АНИМАЦИЯ
+    setTimeout(() => {
+      if(trackRef.current) {
+        const offset = (60 * 120) - (window.innerWidth / 2) + 60 + (Math.random()*40-20);
+        trackRef.current.style.transition = "transform 6s cubic-bezier(0.1, 0, 0.1, 1)";
+        trackRef.current.style.transform = `translateX(-${offset}px)`;
+      }
+    }, 100);
 
-            {selectedCase && (
-                <div className="fullscreen-modal flex items-center justify-center p-4">
-                    <div className="w-full max-w-lg">
-                        <h2 className="text-3xl font-bold mb-4">{selectedCase.name}</h2>
-                        <div className="roulette-container">
-                            <div className="roulette-pointer" />
-                            <div className="roulette-inner" style={{ transform: `translateX(${rouletteOffset}px)`}}>
-                                {fakeItems.map((item, i) => <div key={i} className="roulette-item"><div className="emoji">{item.emoji}</div></div>)}
-                            </div>
-                        </div>
-                        {spinResult ? (
-                            <div className="text-center mt-4"><p>Выпало: {spinResult.name}</p><button onClick={() => setSelectedCase(null)}>Закрыть</button></div>
-                        ) : (
-                            <button onClick={() => openCase(selectedCase.id)} disabled={isSpinning} className="w-full py-4 bg-indigo-600 rounded-xl">{isSpinning ? 'Крутим...' : 'Открыть'}</button>
-                        )}
-                    </div>
-                </div>
-            )}
+    // 4. НАЧИСЛЕНИЕ (ФОРМУЛА: balAfterSpend + won)
+    setTimeout(() => {
+      setSpinning(false);
+      setWinItem(winner);
+      if(winner.type === 'stars') {
+        db.ref('users/'+user.id+'/balance').set(balAfterSpend + winner.value);
+      } else {
+        const item = {...winner, uid: Date.now()};
+        db.ref('users/'+user.id+'/inventory').set([...inventory, item]);
+      }
+    }, 6500);
+  };
 
-            {currentGame?.type === 'ice' && (
-                <div className="fixed inset-0 bg-blue-900/95 z-50 p-4">
-                    <h2 className="text-xl font-bold mb-4">Ледяной Каток <button onClick={()=>setCurrentGame(null)} className="float-right">✕</button></h2>
-                    <div className="text-center">
-                        {iceLobby && Object.keys(iceLobby.players || {}).length < 2 && !hasBet ? (
-                            <div className="p-6 glass rounded-xl border-yellow-400 border animate-pulse">⏳ Ожидаем второго игрока...</div>
-                        ) : (
-                            <div>
-                                {!hasBet && <button onClick={placeBet} className="w-full py-3 bg-blue-600 rounded-xl">Сделать ставку ({myBet}⭐️)</button>}
-                                {hasBet && <button onClick={toggleReady} className={`w-full py-3 rounded-xl ${isReady ? 'bg-green-600' : 'bg-yellow-500'}`}>{isReady ? '✅ Готов' : 'Приготовиться'}</button>}
-                            </div>
-                        )}
-                    </div>
-                </div>
-            )}
-            
-            <nav className="fixed bottom-0 left-0 right-0 glass p-2 flex justify-around">
-                {['tasks', 'cases', 'games', 'profile'].map(s => <button key={s} onClick={()=>setCurrentScreen(s)} className={`p-2 ${currentScreen===s ? 'text-blue-400':''}`}>{s.charAt(0).toUpperCase()}</button>)}
-            </nav>
+  // --- ЛЕДЯНОЙ КАТОК (НОВАЯ ЛОГИКА) ---
+  const joinIce = (id) => {
+    db.ref('iceLobbies/'+id).once('value', s => {
+      if(s.val()?.status === 'playing') return alert("Игра идет!");
+      setIceLobby(id);
+      db.ref('iceLobbies/'+id).on('value', snap => {
+        const v = snap.val(); if(!v) return;
+        setIceData(v);
+        if(v.ball) setBall(v.ball);
+        if(v.timerEnd) setTimer(Math.max(0, Math.ceil((v.timerEnd - Date.now())/1000)));
+        if(v.status === 'finished' && v.winner === user.id && !v.claimed) {
+          const win = Math.floor(v.pot * 0.4);
+          alert("Победа! +"+win+"⭐️");
+          db.ref('users/'+user.id+'/balance').set(user.balance + win);
+          db.ref('iceLobbies/'+id+'/claimed').set(true);
+        }
+      });
+    });
+  };
+
+  const leaveIce = async () => {
+    if(!iceLobby) return;
+    const me = iceData?.players?.[user.id];
+    if(me && (iceData.status === 'waiting' || iceData.status === 'betting')) {
+      await db.ref('users/'+user.id+'/balance').set(user.balance + me.bet);
+    }
+    await db.ref('iceLobbies/'+iceLobby+'/players/'+user.id).remove();
+    await db.ref('iceLobbies/'+iceLobby+'/ready/'+user.id).remove();
+    const rem = iceData?.players ? Object.keys(iceData.players).length - 1 : 0;
+    if(rem <= 0) await db.ref('iceLobbies/'+iceLobby).set({status:'waiting', players:{}, ready:{}});
+    db.ref('iceLobbies/'+iceLobby).off();
+    setIceLobby(null); setIceData(null);
+  };
+
+  const betIce = () => {
+    if(balance < myBet) return alert("Мало звезд!");
+    db.ref('users/'+user.id+'/balance').set(balance - myBet);
+    db.ref('iceLobbies/'+iceLobby+'/players/'+user.id).set({ name: user.name||'User', bet: myBet });
+  };
+
+  const readyIce = () => {
+    const count = iceData.players ? Object.keys(iceData.players).length : 0;
+    if(count < 2) return alert("Ожидаем соперника...");
+    db.ref('iceLobbies/'+iceLobby+'/ready/'+user.id).set(true);
+    if(count >= 2) {
+      db.ref('iceLobbies/'+iceLobby).update({ status: 'betting', timerEnd: Date.now()+10000 });
+      setTimeout(() => startGameLogic(iceLobby), 10000);
+    }
+  };
+
+  const startGameLogic = (lid) => {
+    db.ref('iceLobbies/'+lid).update({ status: 'playing' });
+    setTimeout(() => {
+      db.ref('iceLobbies/'+lid).once('value', s => {
+        const d = s.val();
+        const winner = Object.keys(d.players)[0];
+        let pot = 0; Object.values(d.players).forEach(p=>pot+=p.bet);
+        db.ref('iceLobbies/'+lid).update({ status: 'finished', winner, pot });
+      });
+    }, 5000);
+  };
+
+  // --- ИНВЕНТАРЬ / АДМИНКА / ПРОМО ---
+  const sell = (i) => {
+    const it = inventory[i];
+    if(it.type==='collectible') return alert("PRO нельзя продать!");
+    const pr = it.sellPrice || 5;
+    if(confirm("Продать за "+pr+"⭐️?")) {
+      const ni = [...inventory]; ni.splice(i,1);
+      db.ref('users/'+user.id).update({ balance: balance + pr, inventory: ni });
+    }
+  };
+
+  const buySlot = () => {
+    if(balance < 50) return alert("Нужно 50⭐️");
+    db.ref('users/'+user.id).update({ balance: balance-50, inventorySlots: inventorySlots+1 });
+  };
+
+  const applyPromo = () => {
+    const c = promo.toUpperCase();
+    if(user.usedPromos?.includes(c)) return alert("Уже был!");
+    if(c === 'DELLKO') db.ref('users/'+user.id+'/cases/money/freeSpins').set((user.cases?.money?.freeSpins||0)+3);
+    else if(c === 'DIAMOND') db.ref('users/'+user.id+'/cases/diamond/freeSpins').set((user.cases?.diamond?.freeSpins||0)+2);
+    else return alert("Минус");
+    db.ref('users/'+user.id+'/usedPromos').set([...(user.usedPromos||[]), c]);
+    setPromo(''); alert("Удача!");
+  };
+
+  if(!user) return <div className="flex items-center justify-center h-screen">Loading...</div>;
+
+  return (
+    <div className="max-w-md mx-auto min-h-screen flex flex-col pb-24">
+      {/* HEADER */}
+      <header className="glass p-4 rounded-b-3xl flex justify-between items-center sticky top-0 z-50">
+        <h1 onClick={()=>{setClicks(c=>c+1); if(clicks>=9) setIsAdmin(true);}} className="font-black text-xl italic tracking-tighter">STEP BY STEP</h1>
+        <div className="bg-yellow-500 text-black px-4 py-1 rounded-full font-bold shadow-lg">{balance.toFixed(2)} ⭐️</div>
+      </header>
+
+      {/* ADMIN */}
+      {isAdmin && (
+        <div className="p-4 bg-black/80 fixed inset-0 z-[200] overflow-y-auto">
+          <button onClick={()=>setIsAdmin(false)} className="bg-red-500 p-2 rounded mb-4">EXIT ADMIN</button>
+          <p>Admin Mode Active. Use Firebase Console for full control.</p>
         </div>
-    );
+      )}
+
+      {/* SCREENS */}
+      <main className="flex-1 p-4 overflow-y-auto">
+        {screen === 'cases' && (
+          <div className="grid grid-cols-2 gap-3">
+            {Object.values(INITIAL_CASES).map(c => {
+              const locked = (c.id === 'collector' && totalDeposits < 350) || (c.id === 'major' && totalDeposits < 100);
+              const free = (user.cases?.[c.id]?.freeSpins || 0) > 0;
+              return (
+                <div key={c.id} onClick={()=>!locked && openCase(c.id)} className={`glass p-4 rounded-2xl flex flex-col items-center justify-center transition active:scale-90 ${c.cls} ${locked?'opacity-40 grayscale':''}`}>
+                  <div className="text-5xl mb-2">{c.emoji}</div>
+                  <div className="font-bold text-xs">{c.name}</div>
+                  <div className="text-[10px] mt-1 bg-black/30 px-2 py-1 rounded">{locked?'🔒 ЗАМОК':(free?'БЕСПЛАТНО':c.price+' ⭐️')}</div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+
+        {screen === 'games' && (
+          !iceLobby ? (
+            <div className="glass p-6 rounded-3xl text-center">
+              <div className="text-7xl mb-4">☃️</div>
+              <h2 className="text-2xl font-bold mb-2 text-cyan-300">Ледяной Каток</h2>
+              <p className="text-xs text-gray-400 mb-6">40% выигрыш. Возврат ставки при выходе.</p>
+              <div className="grid grid-cols-4 gap-2">
+                {[1,2,3,4,5,6,7,8].map(i => <button key={i} onClick={()=>joinIce(i)} className="bg-cyan-900/50 p-2 rounded-xl font-bold">#{i}</button>)}
+              </div>
+            </div>
+          ) : (
+            <div className="glass p-4 rounded-3xl h-full flex flex-col text-center">
+              <button onClick={leaveIce} className="text-red-400 text-xs mb-4">ВЫЙТИ И ВЕРНУТЬ СТАВКУ</button>
+              <div className="ice-circle">
+                {iceData?.players && Object.keys(iceData.players).map((p,i) => <div key={i} className="player-avatar" style={{left:'50%',top:'50%',transform:`rotate(${i*45}deg) translate(130px)`}}>👤</div>)}
+                {iceData?.status === 'playing' && <div className="ice-ball" style={{left:ball.x+'%', top:ball.y+'%'}}></div>}
+              </div>
+              <div className="mt-4 font-black">
+                {iceData?.status === 'waiting' && <span className="text-yellow-400 animate-pulse">Ожидание игроков...</span>}
+                {iceData?.status === 'betting' && <span className="text-green-400 text-xl">СТАРТ ЧЕРЕЗ {timer}с</span>}
+              </div>
+              {!iceData?.players?.[user.id] ? (
+                <button onClick={betIce} className="mt-6 bg-blue-600 py-3 rounded-2xl font-bold">ПОСТАВИТЬ {myBet}⭐️</button>
+              ) : (
+                <button onClick={readyIce} disabled={!iceData.players || Object.keys(iceData.players).length < 2} className="mt-6 bg-green-600 py-3 rounded-2xl font-bold disabled:opacity-50">
+                  {Object.keys(iceData.players).length < 2 ? "Ждем соперника..." : "Я ГОТОВ!"}
+                </button>
+              )}
+            </div>
+          )
+        )}
+
+        {screen === 'profile' && (
+          <div className="space-y-4">
+            <div className="glass p-6 rounded-3xl">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold">Рюкзак</h2>
+                <div className="text-xs">{inventory.length}/{inventorySlots}</div>
+              </div>
+              <div className="grid grid-cols-4 gap-2 mb-4">
+                {inventory.map((it, i) => <div key={i} onClick={()=>sell(i)} className="aspect-square bg-white/5 rounded-xl flex items-center justify-center text-3xl border border-white/5">{it.emoji}</div>)}
+              </div>
+              <button onClick={buySlot} className="w-full py-2 bg-gray-700 rounded-xl text-xs mb-4">КУПИТЬ СЛОТ (50⭐️)</button>
+              <div className="flex gap-2">
+                <input value={promo} onChange={e=>setPromo(e.target.value)} className="bg-black/20 p-2 rounded-xl flex-1 outline-none" placeholder="ПРОМОКОД" />
+                <button onClick={applyPromo} className="bg-indigo-600 px-4 rounded-xl font-bold">OK</button>
+              </div>
+            </div>
+            <button disabled={totalDeposits < 350} className="w-full py-4 bg-purple-600 rounded-2xl font-bold shadow-xl disabled:bg-gray-700">
+              {totalDeposits < 350 ? "🔒 ВЫВОД (Нужно 350⭐️)" : "🏆 ВЫВЕСТИ ПРИЗЫ"}
+            </button>
+          </div>
+        )}
+
+        {screen === 'tasks' && (
+          <div className="space-y-3">
+            <div className="glass p-4 rounded-2xl flex justify-between items-center">
+              <div>
+                <div className="font-bold">Подписка на канал</div>
+                <div className="text-[10px] opacity-50">+1 прокрут Элиты</div>
+              </div>
+              <button onClick={()=>{ window.open("https://t.me/stepbystepdelision"); db.ref('users/'+user.id+'/cases/elite/freeSpins').set((user.cases?.elite?.freeSpins||0)+1); }} className="bg-blue-500 px-4 py-1 rounded-lg font-bold">OK</button>
+            </div>
+          </div>
+        )}
+      </main>
+
+      {/* ROULETTE MODAL */}
+      {activeCase && (
+        <div className="fullscreen-modal">
+          <div className="w-full max-w-md p-4">
+            <h2 className="text-center text-3xl font-black mb-10 text-yellow-400 italic uppercase">{spinning ? "Удачи!" : winItem?.name}</h2>
+            <div className="roulette-window">
+              <div className="roulette-line"></div>
+              <div className="roulette-track" ref={trackRef}>
+                {rouletteItems.map((it, i) => (
+                  <div key={i} className={`roulette-item ${i===60 ? 'border-yellow-400 bg-yellow-400/20' : ''}`}>
+                    <div className="text-4xl mb-1">{it.emoji}</div>
+                    <div className="text-[10px] opacity-50">{it.name}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            {!spinning && winItem && <button onClick={()=>{setActiveCase(null); if(trackRef.current) trackRef.current.style.transform='none';}} className="w-full mt-10 py-4 bg-green-500 rounded-2xl font-bold text-xl shadow-2xl">ЗАБРАТЬ</button>}
+          </div>
+        </div>
+      )}
+
+      {/* NAVIGATION */}
+      <nav className="fixed bottom-0 left-0 right-0 glass p-3 flex justify-around rounded-t-3xl border-t border-white/10 z-[60]">
+        {['tasks','cases','games','profile'].map(s => (
+          <button key={s} onClick={()=>setScreen(s)} className={`nav-btn ${screen===s?'active':''}`}>
+            <span>{s==='tasks'?'📋':s==='cases'?'🎰':s==='games'?'🎮':'👤'}</span>
+            <span>{s}</span>
+          </button>
+        ))}
+      </nav>
+    </div>
+  );
 }
 
-ReactDOM.createRoot(document.getElementById('root')).render(<App />);
-
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);
 </script>
 </body>
 </html>
