@@ -226,6 +226,7 @@ const [rouletteOffset, setRouletteOffset] = useState(0);
 const [fakeItems, setFakeItems] = useState([]);
 const [icePlayerCount, setIcePlayerCount] = useState(0);
 const [rouletteKey, setRouletteKey] = useState(0);
+const [determinedWinner, setDeterminedWinner] = useState(null);
 
 useEffect(() => {
 const initApp = async () => {
@@ -348,13 +349,33 @@ const checkAdminLogin = () => { if (adminLogin === '_*\\^BAGUETTE_642819_6281' &
 const adminGiveReward = async (targetUserId, reward) => {
 const snapshot = await db.ref('users/' + targetUserId).once('value');
 const userData = snapshot.val() || {};
-if (reward.type === 'stars') { const newBalance = (userData.balance || 0) + reward.amount; await db.ref('users/' + targetUserId + '/balance').set(newBalance); if (targetUserId === user.id) setBalance(newBalance); }
-else if (reward.type === 'case') { const current = userData.cases?.[reward.caseType]?.freeCount || 0; await db.ref(`users/${targetUserId}/cases/${reward.caseType}/freeCount`).set(current + reward.count); if (targetUserId === user.id) setCases(prev => ({ ...prev, [reward.caseType]: { ...prev[reward.caseType], freeCount: current + reward.count } })); }
-else if (reward.type === 'item') { const newItem = { ...reward.item, uniqueId: Date.now() }; const currentInventory = userData.inventory || []; await db.ref(`users/${targetUserId}/inventory`).set([...currentInventory, newItem]); if (targetUserId === user.id) setInventory(prev => [...prev, newItem]); }
-else if (reward.type === 'ice_gift') { const newItem = { id: 'ice_gift', name: '🧊 Лёд (подарок)', emoji: '🧊', type: 'ice_gift', sellPrice: 25, uniqueId: Date.now() }; const currentInventory = userData.inventory || []; await db.ref(`users/${targetUserId}/inventory`).set([...currentInventory, newItem]); if (targetUserId === user.id) setInventory(prev => [...prev, newItem]); }
-else if (reward.type === 'promo_dellko') { const currentWonPromos = userData.wonPromos || []; await db.ref(`users/${targetUserId}/wonPromos`).set([...currentWonPromos, 'DELLKO']); if (targetUserId === user.id) setWonPromos(prev => [...prev, 'DELLKO']); }
-else if (reward.type === 'unlock_major') { const updatedCases = { ...userData.cases, major: { ...userData.cases?.major, locked: false } }; await db.ref(`users/${targetUserId}/cases`).update({ major: { ...userData.cases?.major, locked: false } }); if (targetUserId === user.id) setCases(updatedCases); }
-else if (reward.type === 'unlock_collector') { const updatedCases = { ...userData.cases, collector: { ...userData.cases?.collector, locked: false } }; await db.ref(`users/${targetUserId}/cases`).update({ collector: { ...userData.cases?.collector, locked: false } }); if (targetUserId === user.id) setCases(updatedCases); }
+if (reward.type === 'stars') { 
+const newBalance = (userData.balance || 0) + reward.amount; 
+await db.ref('users/' + targetUserId + '/balance').set(newBalance); 
+if (targetUserId === user.id) setBalance(newBalance); 
+}
+else if (reward.type === 'case') { 
+const current = userData.cases?.[reward.caseType]?.freeCount || 0; 
+await db.ref(`users/${targetUserId}/cases/${reward.caseType}/freeCount`).set(current + reward.count); 
+if (targetUserId === user.id) setCases(prev => ({ ...prev, [reward.caseType]: { ...prev[reward.caseType], freeCount: current + reward.count } })); 
+}
+else if (reward.type === 'item') { 
+const newItem = { ...reward.item, uniqueId: Date.now() }; 
+const currentInventory = userData.inventory || []; 
+await db.ref(`users/${targetUserId}/inventory`).set([...currentInventory, newItem]); 
+if (targetUserId === user.id) setInventory(prev => [...prev, newItem]); 
+}
+else if (reward.type === 'ice_gift') { 
+const newItem = { id: 'ice_gift', name: '🧊 Лёд (подарок)', emoji: '🧊', type: 'ice_gift', sellPrice: 25, uniqueId: Date.now() }; 
+const currentInventory = userData.inventory || []; 
+await db.ref(`users/${targetUserId}/inventory`).set([...currentInventory, newItem]); 
+if (targetUserId === user.id) setInventory(prev => [...prev, newItem]); 
+}
+else if (reward.type === 'unlock_collector') { 
+const updatedCases = { ...userData.cases, collector: { ...userData.cases?.collector, locked: false } }; 
+await db.ref(`users/${targetUserId}/cases`).update({ collector: { ...userData.cases?.collector, locked: false } }); 
+if (targetUserId === user.id) setCases(updatedCases); 
+}
 alert('Награда выдана!');
 };
 
@@ -489,6 +510,14 @@ await db.ref('users/' + user.id + '/balance').set(newBalanceAfterPurchase);
 }
 
 // === ИСПРАВЛЕННАЯ АНИМАЦИЯ ===
+const items = CASE_REWARDS[caseType];
+const rand = Math.random() * 100;
+let cum = 0, won = items[0];
+for (const item of items) { cum += item.realChance; if (rand <= cum) { won = item; break; } }
+
+// Сохраняем победителя ДО анимации
+setDeterminedWinner(won);
+
 setIsSpinning(true);
 setSelectedCase({ ...cases[caseType], id: caseType });
 setSpinResult(null);
@@ -496,23 +525,21 @@ setRouletteOffset(0);
 setFakeItems([]);
 setRouletteKey(prev => prev + 1);
 
-const items = CASE_REWARDS[caseType];
-const rand = Math.random() * 100;
-let cum = 0, won = items[0];
-for (const item of items) { cum += item.realChance; if (rand <= cum) { won = item; break; } }
-
+// Создаем ленту: победитель ТОЧНО на позиции 70
 const tape = [];
 for(let i = 0; i < 80; i++) {
 if (i === 70) { tape.push(won); }
 else { tape.push(items[Math.floor(Math.random() * items.length)]); }
 }
 
+// Точный расчет позиции
 const itemWidth = 120;
 const itemMargin = 8;
 const itemFullWidth = itemWidth + (itemMargin * 2);
 const containerCenter = window.innerWidth / 2;
 const targetPos = (70 * itemFullWidth) + (itemFullWidth / 2) - containerCenter;
 
+// Принудительная перерисовка
 setTimeout(() => {
 setFakeItems(tape);
 setTimeout(() => {
@@ -521,15 +548,17 @@ setRouletteOffset(-targetPos);
 }, 100);
 
 setTimeout(async () => {
-setSpinResult(won);
+// Используем СОХРАНЕННОГО победителя
+setSpinResult(determinedWinner || won);
 setIsSpinning(false);
-if (won.type === 'stars') {
-const finalBalance = newBalanceAfterPurchase + won.value;
+if ((determinedWinner || won).type === 'stars') {
+const finalBalance = newBalanceAfterPurchase + (determinedWinner || won).value;
 setBalance(finalBalance);
 await db.ref(`users/${user.id}/balance`).set(finalBalance);
 } else {
-await addToInventory(won);
+await addToInventory(determinedWinner || won);
 }
+setDeterminedWinner(null);
 }, 6600);
 };
 
@@ -669,10 +698,52 @@ return (
 <div className="flex gap-2 mb-6 overflow-x-auto">{['stats', 'users', 'rewards', 'settings'].map(tab => (<button key={tab} onClick={() => setAdminScreen(tab)} className={`px-4 py-2 rounded-lg capitalize ${adminScreen === tab ? 'bg-indigo-600' : 'bg-gray-700'}`}>{tab === 'stats' && '📊'} {tab === 'users' && '👥'} {tab === 'rewards' && '🎀'} {tab === 'settings' && '⚙️'} {tab}</button>))}</div>
 <div className="glass rounded-xl p-6">
 {adminScreen === 'stats' && (<div className="grid grid-cols-2 gap-4"><div className="bg-gray-800 p-4 rounded-lg"><div className="text-gray-400">Всего игроков</div><div className="text-3xl font-bold">{allUsers.length}</div></div><div className="bg-gray-800 p-4 rounded-lg"><div className="text-gray-400">Онлайн</div><div className="text-3xl font-bold text-green-400">{onlineCount}</div></div><div className="bg-gray-800 p-4 rounded-lg"><div className="text-gray-400">Общий баланс</div><div className="text-3xl font-bold">{allUsers.reduce((sum, u) => sum + (u.balance || 0), 0).toFixed(2)} ⭐️</div></div><div className="bg-gray-800 p-4 rounded-lg"><div className="text-gray-400">Подарков</div><div className="text-3xl font-bold">{allUsers.reduce((sum, u) => sum + (u.inventory?.length || 0), 0)}</div></div></div>)}
-{adminScreen === 'users' && selectedUser && (<div className="bg-gray-800 p-4 rounded-lg mb-4"><h3 className="font-bold mb-4 text-xl">{selectedUser.name}</h3><div className="grid grid-cols-2 gap-4 mb-4"><div className="bg-gray-700 p-3 rounded"><div className="text-gray-400 text-sm">Баланс</div><div className="text-2xl font-bold text-yellow-400">{selectedUser.balance || 0}⭐️</div></div><div className="bg-gray-700 p-3 rounded"><div className="text-gray-400 text-sm">Кейсов</div><div className="text-2xl font-bold text-blue-400"> {Object.values(selectedUser.cases || {}).reduce((a,b) => a + (b.freeCount || 0), 0)} </div></div></div><div className="grid grid-cols-4 gap-2"><button onClick={() => adminGiveReward(selectedUser.id, { type: 'stars', amount: 100 })} className="bg-green-600 p-2 rounded">+100⭐️</button><button onClick={() => adminGiveReward(selectedUser.id, { type: 'case', caseType: 'diamond', count: 5 })} className="bg-blue-600 p-2 rounded">+5💎</button><button onClick={() => adminGiveReward(selectedUser.id, { type: 'unlock_collector' })} className="bg-pink-600 p-2 rounded">🔓 Коллекционер</button><button onClick={() => setSelectedUser(null)} className="bg-gray-600 p-2 rounded col-span-4">Назад</button></div></div>)}
-{adminScreen === 'users' && !selectedUser && (<div className="space-y-2 max-h-96 overflow-y-auto">{allUsers.map(u => (<div key={u.id} onClick={() => setSelectedUser(u)} className="bg-gray-800 p-3 rounded-lg cursor-pointer hover:bg-gray-700 flex justify-between items-center"><div><div className="font-bold">{u.name}</div><div className="text-sm text-gray-400">{u.username || u.id.slice(0, 10)}</div></div><div className="text-right"><div className="text-yellow-400">{(u.balance || 0).toFixed(0)}⭐️</div></div></div>))}</div>)}
-{adminScreen === 'rewards' && (<div><h3 className="text-lg mb-4">Выдать себе (админу):</h3><div className="grid grid-cols-3 gap-2"><button onClick={() => adminGiveReward(user.id, { type: 'stars', amount: 10000 })} className="bg-indigo-600 p-3 rounded">+10000⭐️</button><button onClick={() => adminGiveReward(user.id, { type: 'item', item: { name: 'Алмаз PRO 💎', emoji: '💎', type: 'collectible', uniqueId: Date.now() } })} className="bg-pink-600 p-3 rounded">💎 Алмаз PRO</button><button onClick={() => adminGiveReward(user.id, { type: 'unlock_collector' })} className="bg-pink-800 p-3 rounded">🔓 Разблок Коллекционер</button></div></div>)}
-{adminScreen === 'settings' && (<div><h3 className="text-lg mb-4">Очистить только свой аккаунт</h3><button onClick={async () => { if (confirm('Удалить ВСЕ свои данные?')) { await db.ref('users/' + user.id).remove(); localStorage.removeItem('sbs_user_id'); localStorage.removeItem('sbs_user_data'); localStorage.removeItem('sbs_game_backup'); window.location.reload(); } }} className="bg-red-600 px-4 py-2 rounded-lg">🗑 Сбросить мой аккаунт</button><p className="text-sm text-gray-400 mt-2">Другие игроки не пострадают</p></div>)}
+{adminScreen === 'users' && selectedUser && (
+<div className="bg-gray-800 p-4 rounded-lg mb-4">
+<h3 className="font-bold mb-4 text-xl">👤 {selectedUser.name}</h3>
+<div className="grid grid-cols-2 gap-4 mb-4">
+<div className="bg-gray-700 p-3 rounded"><div className="text-gray-400 text-sm">Баланс</div><div className="text-2xl font-bold text-yellow-400">{selectedUser.balance || 0}⭐️</div></div>
+<div className="bg-gray-700 p-3 rounded"><div className="text-gray-400 text-sm">Кейсов</div><div className="text-2xl font-bold text-blue-400">{Object.values(selectedUser.cases || {}).reduce((a,b) => a + (b.freeCount || 0), 0)}</div></div>
+</div>
+<h4 className="font-bold mb-2">Выдать награду:</h4>
+<div className="grid grid-cols-3 gap-2 mb-4">
+<button onClick={() => adminGiveReward(selectedUser.id, { type: 'stars', amount: 100 })} className="bg-green-600 p-2 rounded text-sm">+100⭐️</button>
+<button onClick={() => adminGiveReward(selectedUser.id, { type: 'stars', amount: 500 })} className="bg-green-600 p-2 rounded text-sm">+500⭐️</button>
+<button onClick={() => adminGiveReward(selectedUser.id, { type: 'stars', amount: 1000 })} className="bg-green-600 p-2 rounded text-sm">+1000⭐️</button>
+<button onClick={() => adminGiveReward(selectedUser.id, { type: 'case', caseType: 'diamond', count: 5 })} className="bg-blue-600 p-2 rounded text-sm">+5💎</button>
+<button onClick={() => adminGiveReward(selectedUser.id, { type: 'case', caseType: 'winter', count: 3 })} className="bg-cyan-600 p-2 rounded text-sm">+3☃️</button>
+<button onClick={() => adminGiveReward(selectedUser.id, { type: 'case', caseType: 'elite', count: 2 })} className="bg-red-600 p-2 rounded text-sm">+2🎖</button>
+</div>
+<button onClick={() => setSelectedUser(null)} className="w-full bg-gray-600 p-2 rounded">← Назад</button>
+</div>
+)}
+{adminScreen === 'users' && !selectedUser && (
+<div className="space-y-2 max-h-96 overflow-y-auto">
+<h3 className="font-bold mb-2">Выберите игрока:</h3>
+{allUsers.map(u => (
+<div key={u.id} onClick={() => setSelectedUser(u)} className="bg-gray-800 p-3 rounded-lg cursor-pointer hover:bg-gray-700 flex justify-between items-center">
+<div><div className="font-bold">{u.name}</div><div className="text-sm text-gray-400">{u.username || u.id.slice(0, 10)}</div></div>
+<div className="text-right"><div className="text-yellow-400">{(u.balance || 0).toFixed(0)}⭐️</div></div>
+</div>
+))}
+</div>
+)}
+{adminScreen === 'rewards' && (
+<div>
+<h3 className="text-lg mb-4">Выдать СЕБЕ (админу):</h3>
+<div className="grid grid-cols-3 gap-2">
+<button onClick={() => adminGiveReward(user.id, { type: 'stars', amount: 10000 })} className="bg-indigo-600 p-3 rounded">+10000⭐️</button>
+<button onClick={() => adminGiveReward(user.id, { type: 'case', caseType: 'diamond', count: 10 })} className="bg-blue-600 p-3 rounded">+10💎</button>
+<button onClick={() => adminGiveReward(user.id, { type: 'ice_gift' })} className="bg-cyan-600 p-3 rounded">🧊 Лёд</button>
+<button onClick={() => adminGiveReward(user.id, { type: 'unlock_collector' })} className="bg-pink-800 p-3 rounded">🔓 Коллекционер</button>
+</div>
+</div>
+)}
+{adminScreen === 'settings' && (
+<div><h3 className="text-lg mb-4">Очистить свой аккаунт</h3>
+<button onClick={async () => { if (confirm('Удалить ВСЕ свои данные?')) { await db.ref('users/' + user.id).remove(); localStorage.removeItem('sbs_user_id'); localStorage.removeItem('sbs_user_data'); localStorage.removeItem('sbs_game_backup'); window.location.reload(); } }} className="bg-red-600 px-4 py-2 rounded-lg">🗑 Сбросить мой аккаунт</button>
+</div>
+)}
 </div>
 </div>
 </div>
@@ -686,26 +757,76 @@ return (
 <div className="min-h-screen bg-gradient-to-b from-blue-900 to-indigo-900 p-4">
 <div className="max-w-2xl mx-auto">
 <div className="flex justify-between items-center mb-4"><h1 className="text-2xl font-bold">☃️ Ледяной Каток</h1><button onClick={() => setCurrentGame(null)} className="text-white hover:text-red-400">✕</button></div>
-<div className="text-center mb-4"><div className="text-sm text-cyan-300">Лобби #{currentGame.lobbyId}</div><div className="text-lg font-bold text-white"> {gameStatus === 'waiting' ? '⏳ Ожидание игроков...' : gameStatus === 'betting' ? '⏰ Отсчёт 10 секунд!' : gameStatus === 'playing' ? '🔴 Игра началась!' : '🏆 Игра окончена'} </div>{isSpectator && gameStatus === 'playing' && (<div className="text-yellow-400 text-sm mt-2">Игра началась! Вы можете только наблюдать.</div>)}{gameStatus === 'betting' && timerRemaining > 0 && (<div className="text-3xl font-bold text-yellow-400 animate-pulse mt-2"> ⏰ {timerRemaining} сек </div>)}</div>
-<div className="flex justify-center mb-6"><div className="ice-circle relative">{renderIceArenaField()}{(gameStatus === 'waiting' || gameStatus === 'betting') && (<div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 bg-black rounded-full flex items-center justify-center text-4xl mystery-box border-4 border-cyan-400 shadow-lg shadow-cyan-500/50"> ❓ </div>)}{gameStatus === 'playing' && (<div className="ice-ball" style={{ left: ballPos.x + '%', top: ballPos.y + '%' }} />)}{gameStatus === 'finished' && iceLobby?.finalBall && (<div className="ice-ball" style={{ left: iceLobby.finalBall.x + '%', top: iceLobby.finalBall.y + '%', background: '#ffd700', boxShadow: '0 0 30px #ffd700' }} />)}</div></div>
+<div className="text-center mb-4">
+<div className="text-sm text-cyan-300">Лобби #{currentGame.lobbyId}</div>
+<div className="text-lg font-bold text-white">{gameStatus === 'waiting' ? '⏳ Ожидание игроков...' : gameStatus === 'betting' ? '⏰ Отсчёт 10 секунд!' : gameStatus === 'playing' ? '🔴 Игра началась!' : '🏆 Игра окончена'}</div>
+{isSpectator && gameStatus === 'playing' && (<div className="text-yellow-400 text-sm mt-2">Игра началась! Вы можете только наблюдать.</div>)}
+{gameStatus === 'betting' && timerRemaining > 0 && (<div className="text-3xl font-bold text-yellow-400 animate-pulse mt-2">⏰ {timerRemaining} сек</div>)}
+</div>
+<div className="flex justify-center mb-6">
+<div className="ice-circle relative">
+{renderIceArenaField()}
+{(gameStatus === 'waiting' || gameStatus === 'betting') && (<div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 bg-black rounded-full flex items-center justify-center text-4xl mystery-box border-4 border-cyan-400 shadow-lg shadow-cyan-500/50">❓</div>)}
+{gameStatus === 'playing' && (<div className="ice-ball" style={{ left: ballPos.x + '%', top: ballPos.y + '%' }} />)}
+{gameStatus === 'finished' && iceLobby?.finalBall && (<div className="ice-ball" style={{ left: iceLobby.finalBall.x + '%', top: iceLobby.finalBall.y + '%', background: '#ffd700', boxShadow: '0 0 30px #ffd700' }} />)}
+</div>
+</div>
 {!isSpectator && (gameStatus === 'waiting' || gameStatus === 'betting') && !hasBet ? (
 <div className="glass rounded-xl p-4 mb-4 border border-cyan-500/30">
 {playersCount < 2 ? (
-<div className="text-center text-yellow-400 py-4 font-bold animate-pulse text-lg"> ⏳ Ожидаем еще одного пользователя... (сейчас {playersCount}) </div>
+<div className="text-center text-yellow-400 py-4 font-bold animate-pulse text-lg">⏳ Ожидаем еще одного пользователя... (сейчас {playersCount})</div>
 ) : (
 <>
-<div className="flex gap-2 mb-4"><input type="number" min="25" value={myBet} onChange={(e) => setMyBet(Number(e.target.value))} className="flex-1 bg-gray-800 border border-cyan-600 rounded-lg p-3 text-center text-xl text-white" /><button onClick={() => setMyBet(p => p + 25)} className="bg-cyan-700 px-4 rounded-lg font-bold">+25</button><button onClick={() => setMyBet(p => p + 100)} className="bg-cyan-700 px-4 rounded-lg font-bold">+100</button></div>
-<button onClick={placeBet} disabled={balance < myBet} className="w-full bg-gradient-to-r from-cyan-600 to-blue-600 py-4 rounded-xl font-bold text-xl disabled:opacity-50 shadow-lg"> Сделать ставку ({myBet}⭐️) </button>
+<div className="flex gap-2 mb-4">
+<input type="number" min="25" value={myBet} onChange={(e) => setMyBet(Number(e.target.value))} className="flex-1 bg-gray-800 border border-cyan-600 rounded-lg p-3 text-center text-xl text-white" />
+<button onClick={() => setMyBet(p => p + 25)} className="bg-cyan-700 px-4 rounded-lg font-bold">+25</button>
+<button onClick={() => setMyBet(p => p + 100)} className="bg-cyan-700 px-4 rounded-lg font-bold">+100</button>
+</div>
+<button onClick={placeBet} disabled={balance < myBet} className="w-full bg-gradient-to-r from-cyan-600 to-blue-600 py-4 rounded-xl font-bold text-xl disabled:opacity-50 shadow-lg">Сделать ставку ({myBet}⭐️)</button>
 <p className="text-center text-sm text-cyan-300 mt-2">Минимальная ставка: 25⭐️</p>
 </>
 )}
 </div>
 ) : !isSpectator && hasBet ? (
-<div className="text-center mb-4"><div className="text-green-400 font-bold text-xl mb-2">✓ Ставка принята: {myBet}⭐️</div><button onClick={toggleReady} className={`px-6 py-3 rounded-xl font-bold text-lg ${ isReady ? 'bg-green-600 hover:bg-green-500' : 'bg-yellow-600 hover:bg-yellow-500' } transition`} > {isReady ? '✅ Готов' : 'Приготовиться✅'} </button><p className="text-sm text-gray-400 mt-2">Игроков в лобби: {playersCount}</p></div>
+<div className="text-center mb-4">
+<div className="text-green-400 font-bold text-xl mb-2">✓ Ставка принята: {myBet}⭐️</div>
+<button onClick={toggleReady} className={`px-6 py-3 rounded-xl font-bold text-lg ${isReady ? 'bg-green-600 hover:bg-green-500' : 'bg-yellow-600 hover:bg-yellow-500'} transition`}>{isReady ? '✅ Готов' : 'Приготовиться✅'}</button>
+<p className="text-sm text-gray-400 mt-2">Игроков в лобби: {playersCount}</p>
+</div>
 ) : null}
-{showPrizeChest && iceLobby?.winner?.id === user.id && (<div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"><div className="glass rounded-2xl p-6 max-w-md w-full text-center border border-yellow-500/50"><h2 className="text-3xl font-bold mb-2 text-yellow-400">🏆 Победа!</h2><p className="mb-4 text-gray-300">Откройте сундук</p><div className="text-7xl mb-4 cursor-pointer transition-transform active:scale-95" onClick={openChest}> 🎁 </div><p className="text-sm text-gray-400">+ 40% от общей ставки</p></div></div>)}
+{showPrizeChest && iceLobby?.winner?.id === user.id && (<div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"><div className="glass rounded-2xl p-6 max-w-md w-full text-center border border-yellow-500/50"><h2 className="text-3xl font-bold mb-2 text-yellow-400">🏆 Победа!</h2><p className="mb-4 text-gray-300">Откройте сундук</p><div className="text-7xl mb-4 cursor-pointer transition-transform active:scale-95" onClick={openChest}>🎁</div><p className="text-sm text-gray-400">+ 40% от общей ставки</p></div></div>)}
 {showNewGamePrompt && (<div className="fixed inset-0 bg-black/80 z-40 flex items-center justify-center p-4"><div className="glass rounded-2xl p-6 text-center max-w-sm w-full"><h3 className="text-xl font-bold mb-4">Начать новую игру?</h3><div className="flex gap-4 justify-center"><button onClick={async () => { setShowNewGamePrompt(false); setOpenedChestCount(0); setHasBet(false); setIsReady(false); await db.ref('iceLobbies/' + currentGame.lobbyId).update({ status: 'waiting', players: {}, winner: null, prizes: [], ballPosition: { x: 50, y: 50, vx: 0, vy: 0 }, timerEnd: null, allBetsPlaced: false, prizeClaimed: {}, readyPlayers: {}, countdownStarted: false }); }} className="bg-green-600 px-6 py-3 rounded-lg font-bold text-lg">✅ Да</button><button onClick={() => setCurrentGame(null)} className="bg-red-600 px-6 py-3 rounded-lg font-bold text-lg">❌ Нет</button></div></div></div>)}
-<div className="glass rounded-xl p-4 mb-4"><h3 className="font-bold mb-2 text-cyan-300">Игроки ({playersCount}/15):</h3><div className="space-y-2 max-h-40 overflow-y-auto">{iceLobby?.players && Object.entries(iceLobby.players).map(([id, p]) => (<div key={id} className="flex justify-between items-center bg-gray-800/50 p-2 rounded border border-white/10"><div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full" style={{background: p.color}}></div><span className={id === user.id ? 'font-bold text-cyan-300' : ''}>{p.name} {id === user.id && '(Вы)'}</span>{iceLobby.readyPlayers?.[id] && (<span className="text-green-400 text-xs">✅</span>)}</div><div className="text-right"><span className="font-bold text-yellow-400">{p.bet}⭐️</span></div></div>))}{!iceLobby?.players || Object.keys(iceLobby.players).length === 0 && (<p className="text-gray-400 text-center py-4">Пока никого нет. Будьте первым!</p>)}</div><div className="border-t border-gray-600 mt-2 pt-2 flex justify-between font-bold text-lg"><span className="text-gray-300">Общий банк:</span><span className="text-yellow-400"> {iceLobby?.players ? Object.values(iceLobby.players).reduce((s, p) => s + p.bet, 0) : 0}⭐️ </span></div></div>
+<div className="glass rounded-xl p-4 mb-4">
+<h3 className="font-bold mb-2 text-cyan-300">Игроки ({playersCount}/15):</h3>
+<div className="space-y-2 max-h-40 overflow-y-auto">
+{iceLobby?.players && Object.entries(iceLobby.players).map(([id, p]) => (
+<div key={id} className="flex justify-between items-center bg-gray-800/50 p-2 rounded border border-white/10">
+<div className="flex items-center gap-2">
+<div className="w-3 h-3 rounded-full" style={{background: p.color}}></div>
+<span className={id === user.id ? 'font-bold text-cyan-300' : ''}>{p.name} {id === user.id && '(Вы)'}</span>
+{iceLobby.readyPlayers?.[id] && (<span className="text-green-400 text-xs">✅</span>)}
+</div>
+<div className="text-right"><span className="font-bold text-yellow-400">{p.bet}⭐️</span></div>
+</div>
+))}
+{!iceLobby?.players || Object.keys(iceLobby.players).length === 0 && (<p className="text-gray-400 text-center py-4">Пока никого нет. Будьте первым!</p>)}
+</div>
+<div className="border-t border-gray-600 mt-2 pt-2 flex justify-between font-bold text-lg">
+<span className="text-gray-300">Общий банк:</span>
+<span className="text-yellow-400">{iceLobby?.players ? Object.values(iceLobby.players).reduce((s, p) => s + p.bet, 0) : 0}⭐️</span>
+</div>
+</div>
+
+{/* ВОЗВРАЩЕНО: Отображение возможных наград */}
+<div className="glass rounded-xl p-4">
+<h3 className="font-bold mb-3 text-center text-cyan-300">Возможные награды:</h3>
+<div className="flex flex-wrap justify-center gap-3 text-2xl">
+{['🧸','🧤','❄️','🐕','☃️','🎖','⭐️','🧣'].map((emoji, i) => (
+<span key={i} className="bg-gray-800 p-2 rounded-lg border border-white/10 hover:scale-110 transition">{emoji}</span>
+))}
+</div>
+<div className="text-xs text-center text-gray-500 mt-2">+ скрытые призы!</div>
+</div>
 </div>
 </div>
 );
@@ -713,20 +834,16 @@ return (
 
 return (
 <div className="min-h-screen pb-24">
-<header className="p-4 flex justify-between items-center glass sticky top-0 z-50"><h1 onClick={handleTitleClick} className="text-xl font-bold cursor-pointer select-none hover:text-cyan-300 transition">Step By Step Game</h1><button onClick={() => setShowTopUp(true)} className="bg-gradient-to-r from-yellow-400 to-orange-500 px-4 py-2 rounded-full font-bold text-gray-900 shadow-lg"> {balance.toFixed(2)} ⭐️ </button></header>
+<header className="p-4 flex justify-between items-center glass sticky top-0 z-50"><h1 onClick={handleTitleClick} className="text-xl font-bold cursor-pointer select-none hover:text-cyan-300 transition">Step By Step Game</h1><button onClick={() => setShowTopUp(true)} className="bg-gradient-to-r from-yellow-400 to-orange-500 px-4 py-2 rounded-full font-bold text-gray-900 shadow-lg">{balance.toFixed(2)} ⭐️</button></header>
 {paymentStatus && (<div className={`mx-4 mt-2 p-3 rounded-lg text-center text-sm ${paymentStatus.includes('✅') ? 'bg-green-500/20 border border-green-500' : 'bg-blue-500/20 border border-blue-500'}`}>{checkingPayment && <span className="animate-pulse">Проверка...</span>}{paymentStatus}</div>)}
-{showIceGiftModal && (<div className="fixed inset-0 bg-black/90 z-[60] flex items-center justify-center p-4"><div className="glass rounded-2xl p-6 max-w-sm w-full text-center border border-cyan-500/50"><div className="text-6xl mb-4">🧊</div><h3 className="text-xl font-bold mb-2 text-cyan-300">Ледяной Подарок!</h3><p className="mb-4 text-gray-300">Сохраните этот подарок до оттепели или продайте прямо сейчас!</p><div className="space-y-3"><button onClick={sellIceGift} className="w-full bg-orange-600 hover:bg-orange-500 py-3 rounded-xl font-bold text-lg transition"> 🔥 Продать за 25⭐️ </button><button onClick={keepIceGift} className="w-full bg-cyan-600 hover:bg-cyan-500 py-3 rounded-xl font-bold text-lg transition"> 💎 Оставить себе </button></div></div></div>)}
-{showCollectibleModal && (<div className="fixed inset-0 bg-black/90 z-[60] flex items-center justify-center p-4"><div className="glass rounded-2xl p-6 max-w-sm w-full text-center"><div className="text-6xl mb-4 animate-bounce">{selectedCollectible?.emoji}</div><h3 className="text-xl font-bold mb-2">Коллекционный предмет!</h3><p className="mb-4">Данный подарок является коллекционным! Обратитесь к <a href="https://t.me/stepbystepdelision" target="_blank" className="text-blue-400 underline font-bold hover:text-blue-300">администрации</a> для его получения.</p><button onClick={() => setShowCollectibleModal(false)} className="w-full bg-indigo-600 hover:bg-indigo-500 py-3 rounded-xl font-bold">Понятно</button></div></div>)}
-{showAdminLogin && (<div className="fixed inset-0 bg-black/90 z-[60] flex items-center justify-center p-4"><div className="glass rounded-2xl p-6 max-w-sm w-full"><h2 className="text-xl font-bold text-center mb-4">🔐 Вход в админ-панель</h2><input type="text" placeholder="Логин" value={adminLogin} onChange={(e) => setAdminLogin(e.target.value)} className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 mb-3 text-center" /><input type="password" placeholder="Пароль" value={adminPassword} onChange={(e) => setAdminPassword(e.target.value)} className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 mb-4 text-center" /><button onClick={checkAdminLogin} className="w-full bg-indigo-600 hover:bg-indigo-500 py-3 rounded-xl font-bold mb-2">Войти</button><button onClick={() => setShowAdminLogin(false)} className="w-full bg-gray-700 hover:bg-gray-600 py-2 rounded-xl">Отмена</button></div></div>)}
-{showWithdrawModal && (<div className="fixed inset-0 bg-black/90 z-[60] flex items-center justify-center p-4"><div className="glass rounded-2xl p-6 max-w-sm w-full"><h2 className="text-xl font-bold text-center mb-4">📊 Вывод призов</h2><input type="number" placeholder="Количество звезд" value={withdrawAmount} onChange={(e) => setWithdrawAmount(e.target.value)} className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 mb-4 text-center" /><div className="grid grid-cols-2 gap-3 mb-4"><button onClick={() => confirmWithdraw('stars')} className="bg-yellow-600 hover:bg-yellow-500 py-3 rounded-xl font-bold" > В звездах </button><button onClick={() => confirmWithdraw('gifts')} className="bg-purple-600 hover:bg-purple-500 py-3 rounded-xl font-bold" > В подарках </button></div><button onClick={() => setShowWithdrawModal(false)} className="w-full bg-gray-700 hover:bg-gray-600 py-2 rounded-xl">Отмена</button></div></div>)}
 
 <main className="p-4 max-w-md mx-auto">
 {currentScreen === 'cases' && (
 <div>
 <h2 className="text-2xl font-bold mb-4 text-center">🎰 Кейсы</h2>
-{cases.diamond.freeCount > 0 && (<div className="bg-green-500/20 border border-green-500 rounded-lg p-3 mb-4 text-center animate-pulse"> 🎁 Бесплатных кейсов Алмаз: {cases.diamond.freeCount} </div>)}
-{cases.elite.freeCount > 0 && (<div className="bg-green-500/20 border border-green-500 rounded-lg p-3 mb-4 text-center animate-pulse"> 🎁 Бесплатных кейсов Элита: {cases.elite.freeCount} </div>)}
-{freeEliteSpin > 0 && (<div className="bg-green-500/20 border border-green-500 rounded-lg p-3 mb-4 text-center animate-pulse"> 🎁 Бесплатных прокрутов Элита: {freeEliteSpin} </div>)}
+{cases.diamond.freeCount > 0 && (<div className="bg-green-500/20 border border-green-500 rounded-lg p-3 mb-4 text-center animate-pulse">🎁 Бесплатных кейсов Алмаз: {cases.diamond.freeCount}</div>)}
+{cases.elite.freeCount > 0 && (<div className="bg-green-500/20 border border-green-500 rounded-lg p-3 mb-4 text-center animate-pulse">🎁 Бесплатных кейсов Элита: {cases.elite.freeCount}</div>)}
+{freeEliteSpin > 0 && (<div className="bg-green-500/20 border border-green-500 rounded-lg p-3 mb-4 text-center animate-pulse">🎁 Бесплатных прокрутов Элита: {freeEliteSpin}</div>)}
 <div className="grid grid-cols-2 gap-4">
 {Object.values(cases).filter(c => !c.locked).map(c => (
 <div key={c.id} className={`glass rounded-xl p-4 relative hover:scale-105 transition ${c.id === 'cardboard' ? 'case-cardboard' : c.id === 'collector' ? 'case-collector' : ''}`}>
@@ -734,7 +851,7 @@ return (
 {(c.id === 'diamond' || c.id === 'coal' || c.id === 'winter') && c.freeCount === 0 && c.discountPrice && (<span className="absolute -top-2 -left-2 bg-green-500 text-xs px-2 py-1 rounded-full animate-pulse">Скидка!</span>)}
 <div className={`w-16 h-16 mx-auto rounded-lg ${c.id === 'cardboard' || c.id === 'collector' ? 'bg-white/20' : `bg-gradient-to-br ${c.color}`} flex items-center justify-center text-3xl mb-2 shadow-lg`}>{c.emoji}</div>
 <h3 className="font-bold text-center">{c.name}</h3>
-<p className="text-center text-sm opacity-75"> {c.freeCount > 0 ? <span className="text-green-400 font-bold">Бесплатно!</span> : c.discountPrice && c.discountPrice !== c.price ? <span><span className="line-through">{c.originalPrice || c.price}</span> {c.discountPrice} ⭐️</span> : `${c.price} ⭐️`} </p>
+<p className="text-center text-sm opacity-75">{c.freeCount > 0 ? <span className="text-green-400 font-bold">Бесплатно!</span> : c.discountPrice && c.discountPrice !== c.price ? <span><span className="line-through">{c.originalPrice || c.price}</span> {c.discountPrice} ⭐️</span> : `${c.price} ⭐️`}</p>
 <button onClick={() => setSelectedCase(c)} className="w-full mt-2 py-2 rounded-lg font-bold bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 transition">Открыть</button>
 </div>
 ))}
@@ -775,21 +892,15 @@ return (
 <div className="space-y-4">
 <div className={`glass rounded-xl p-4 ${tasks.subscribe?.completed ? 'bg-green-500/20 border-green-500' : ''}`}>
 <div className="flex justify-between items-start mb-2"><div><h3 className="font-bold">Подпишись на канал</h3><p className="text-sm opacity-75">Награда: 1 кейс «Элита» + 1 прокрут 🎖</p></div>{tasks.subscribe?.completed && <span className="text-green-400 text-2xl">✅</span>}</div>
-<button onClick={() => completeTask('subscribe')} disabled={tasks.subscribe?.completed} className={`w-full py-2 rounded-lg ${tasks.subscribe?.completed ? 'bg-green-600' : 'bg-blue-600 hover:bg-blue-500'} transition`}> {tasks.subscribe?.completed ? 'Выполнено' : 'Подписаться'} </button>
+<button onClick={() => completeTask('subscribe')} disabled={tasks.subscribe?.completed} className={`w-full py-2 rounded-lg ${tasks.subscribe?.completed ? 'bg-green-600' : 'bg-blue-600 hover:bg-blue-500'} transition`}>{tasks.subscribe?.completed ? 'Выполнено' : 'Подписаться'}</button>
 </div>
 <div className={`glass rounded-xl p-4 ${tasks.deposit?.completed ? 'bg-green-500/20 border-green-500' : ''}`}>
 <div className="flex justify-between items-start mb-2"><div><h3 className="font-bold">Пополнить баланс на 100 ⭐️</h3><p className="text-sm opacity-75">Награда: 1 золотой кейс 👑</p></div>{tasks.deposit?.completed && <span className="text-green-400 text-2xl">✅</span>}</div>
-<button onClick={() => completeTask('deposit')} className={`w-full py-2 rounded-lg ${tasks.deposit?.completed ? 'bg-green-600' : 'bg-blue-600 hover:bg-blue-500'} transition`}> {tasks.deposit?.completed ? 'Выполнено' : 'Пополнить'} </button>
+<button onClick={() => completeTask('deposit')} className={`w-full py-2 rounded-lg ${tasks.deposit?.completed ? 'bg-green-600' : 'bg-blue-600 hover:bg-blue-500'} transition`}>{tasks.deposit?.completed ? 'Выполнено' : 'Пополнить'}</button>
 </div>
 <div className={`glass rounded-xl p-4 ${tasks.depositMajor?.completed ? 'bg-green-500/20 border-green-500' : ''}`}>
 <div className="flex justify-between items-start mb-2"><div><h3 className="font-bold">Пополнить баланс на 350 ⭐️</h3><p className="text-sm opacity-75">Награда: Кейс «Коллекционер» + 1 прокрут</p></div>{tasks.depositMajor?.completed && <span className="text-green-400 text-2xl">✅</span>}</div>
-<button onClick={() => completeTask('depositMajor')} className={`w-full py-2 rounded-lg ${tasks.depositMajor?.completed ? 'bg-green-600' : 'bg-blue-600 hover:bg-blue-500'} transition`}> {tasks.depositMajor?.completed ? 'Выполнено' : 'Пополнить'} </button>
-</div>
-<div className={`glass rounded-xl p-4 ${tasks.invite?.completed ? 'bg-green-500/20 border-green-500' : ''}`}>
-<div className="flex justify-between items-start mb-2"><div><h3 className="font-bold">Пригласить трёх друзей</h3><p className="text-sm opacity-75">Награда: 25 ⭐️</p></div>{tasks.invite?.completed && <span className="text-green-400 text-2xl">✅</span>}</div>
-<div className="w-full bg-gray-700 rounded-full h-2 mb-3"><div className="bg-blue-500 h-2 rounded-full transition-all" style={{width: `${Math.min(((tasks.invite?.count || 0) / 3) * 100, 100)}%`}} /></div>
-<p className="text-sm text-gray-400 mb-2 text-center">{tasks.invite?.count || 0}/3 друзей</p>
-<button onClick={() => completeTask('invite')} disabled={tasks.invite?.completed} className={`w-full py-2 rounded-lg ${tasks.invite?.completed ? 'bg-green-600' : 'bg-blue-600 hover:bg-blue-500'} transition`}> {tasks.invite?.completed ? 'Выполнено' : 'Пригласить'} </button>
+<button onClick={() => completeTask('depositMajor')} className={`w-full py-2 rounded-lg ${tasks.depositMajor?.completed ? 'bg-green-600' : 'bg-blue-600 hover:bg-blue-500'} transition`}>{tasks.depositMajor?.completed ? 'Выполнено' : 'Пополнить'}</button>
 </div>
 </div>
 </div>
@@ -807,9 +918,9 @@ return (
 {user?.username && <p className="text-gray-400">{user.username}</p>}
 </div>
 <div className="flex gap-2 mb-4"><button onClick={() => setShowTopUp(true)} className="flex-1 bg-gradient-to-r from-yellow-400 to-orange-500 text-gray-900 font-bold py-3 rounded-xl shadow-lg hover:shadow-xl transition">💎 Пополнить TON</button></div>
-<div className="mb-4"><button onClick={() => setShowWithdrawModal(true)} disabled={!tasks.depositMajor?.completed} className="w-full bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-bold py-3 rounded-xl shadow-lg hover:shadow-xl transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed" >{tasks.depositMajor?.completed ? '🏆 Вывести призы 🏆' : '🔒 Вывести призы (нужно 350⭐️)'}</button></div>
+<div className="mb-4"><button onClick={() => setShowWithdrawModal(true)} disabled={!tasks.depositMajor?.completed} className="w-full bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-bold py-3 rounded-xl shadow-lg hover:shadow-xl transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">{tasks.depositMajor?.completed ? '🏆 Вывести призы 🏆' : '🔒 Вывести призы (нужно 350⭐️)'}</button></div>
 <div className="glass rounded-xl p-4 mb-4"><h3 className="font-bold mb-2">🎁 Промокод</h3><div className="flex gap-2"><input type="text" placeholder="ВВЕДИТЕ ПРОМОКОД" value={promoCode} onChange={(e) => setPromoCode(e.target.value)} className="flex-1 bg-gray-700/50 border border-gray-600 rounded-lg px-3 py-2 text-center uppercase" /><button onClick={checkPromo} className="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-lg font-bold transition">OK</button></div>{promoError && <p className="text-red-400 text-sm mt-2 text-center">{promoError}</p>}{promoSuccess && <p className="text-green-400 text-sm mt-2 text-center">{promoSuccess}</p>}</div>
-<div className="glass rounded-xl p-4"><div className="flex justify-between items-center mb-3"><h3 className="font-bold">🎒 Инвентарь</h3><span className="text-sm text-gray-400">{inventory.length}/{inventorySlots}</span></div><div className="grid grid-cols-5 gap-2 mb-4">{[...Array(inventorySlots)].map((_, i) => (<div key={i} className="aspect-square bg-gray-700/50 rounded-lg flex items-center justify-center text-2xl relative hover:bg-gray-600/50 transition cursor-pointer">{inventory[i] ? (<span onClick={() => sellItem(inventory[i])} className="hover:scale-110 transition" title={inventory[i].type === 'collectible' ? 'Коллекционный' : inventory[i].type === 'ice_gift' ? 'Ледяной подарок' : 'Продать'}> {inventory[i].emoji} </span>) : <span className="text-gray-600 text-xs">Пусто</span>}</div>))}</div><button onClick={unlockSlot} disabled={balance < 50} className="w-full bg-gray-700 hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed py-2 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition"> <span>🔓</span> Разблокировать слот (50⭐️) </button></div>
+<div className="glass rounded-xl p-4"><div className="flex justify-between items-center mb-3"><h3 className="font-bold">🎒 Инвентарь</h3><span className="text-sm text-gray-400">{inventory.length}/{inventorySlots}</span></div><div className="grid grid-cols-5 gap-2 mb-4">{[...Array(inventorySlots)].map((_, i) => (<div key={i} className="aspect-square bg-gray-700/50 rounded-lg flex items-center justify-center text-2xl relative hover:bg-gray-600/50 transition cursor-pointer">{inventory[i] ? (<span onClick={() => sellItem(inventory[i])} className="hover:scale-110 transition">{inventory[i].emoji}</span>) : <span className="text-gray-600 text-xs">Пусто</span>}</div>))}</div><button onClick={unlockSlot} disabled={balance < 50} className="w-full bg-gray-700 hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed py-2 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition"><span>🔓</span> Разблокировать слот (50⭐️)</button></div>
 </div>
 )}
 </main>
@@ -821,7 +932,6 @@ return (
 <h3 className="text-3xl font-bold">{selectedCase.emoji} {selectedCase.name}</h3>
 <button onClick={() => {setSelectedCase(null); setSpinResult(null); setFakeItems([]);}} className="text-3xl hover:text-red-400 transition">&times;</button>
 </div>
-
 <div key={rouletteKey} className="roulette-container mb-8">
 <div className="roulette-pointer"></div>
 <div className="roulette-inner" style={{ transform: `translateX(${rouletteOffset}px)` }}>
@@ -834,14 +944,11 @@ fakeItems.map((item, i) => (
 ))
 ) : (
 [...Array(80)].map((_, i) => (
-<div key={i} className="roulette-item">
-<div className="emoji">❓</div>
-</div>
+<div key={i} className="roulette-item"><div className="emoji">❓</div></div>
 ))
 )}
 </div>
 </div>
-
 <div className="glass rounded-xl p-4 mb-6 max-h-48 overflow-y-auto">
 <p className="font-bold mb-2 text-center text-lg">Возможные награды:</p>
 <div className="space-y-1 text-sm">
@@ -853,7 +960,6 @@ fakeItems.map((item, i) => (
 ))}
 </div>
 </div>
-
 {spinResult ? (
 <div className="text-center">
 <p className="text-2xl font-bold mb-2">Выпало: {spinResult.name}!</p>
@@ -862,9 +968,7 @@ fakeItems.map((item, i) => (
 <button onClick={() => {setSelectedCase(null); setSpinResult(null); setFakeItems([]);}} className="w-full bg-gray-600 hover:bg-gray-500 py-3 rounded-xl font-bold transition">Вернуться к кейсам</button>
 </div>
 ) : (
-<button onClick={() => openCase(selectedCase.id)} disabled={isSpinning} className="w-full bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 py-4 rounded-xl font-bold text-xl disabled:opacity-50 shadow-lg transition">
-{isSpinning ? 'Крутим...' : `Открыть за ${getCasePrice(selectedCase.id) === 0 ? 'Бесплатно' : getCasePrice(selectedCase.id) + ' ⭐️'}`}
-</button>
+<button onClick={() => openCase(selectedCase.id)} disabled={isSpinning} className="w-full bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 py-4 rounded-xl font-bold text-xl disabled:opacity-50 shadow-lg transition">{isSpinning ? 'Крутим...' : `Открыть за ${getCasePrice(selectedCase.id) === 0 ? 'Бесплатно' : getCasePrice(selectedCase.id) + ' ⭐️'}`}</button>
 )}
 </div>
 </div>
