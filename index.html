@@ -171,6 +171,15 @@ const CASE_REWARDS = {
     { id: 'ramen_pro', name: '🍜 Ramen PRO', displayChance: '1.5%', realChance: 0.5, type: 'collectible', emoji: '🍜' },
     { id: 'hat_pro', name: '🎩 Top hat', displayChance: '1%', realChance: 0, type: 'collectible', emoji: '🎩' },
     { id: 'bird_pro', name: '🦅 Rare bird', displayChance: '0.5%', realChance: 0, type: 'collectible', emoji: '🦅' }
+  ],
+  man: [
+    { id: 'ball_gold', name: 'Золотой мяч ⚽️', displayChance: '30%', realChance: 30, type: 'man_item', key: 'gold_ball', emoji: '⚽️', sellPrice: 5 },
+    { id: 'ball_volley', name: 'Мяч Максима Михайлова 🏐', displayChance: '30%', realChance: 30, type: 'man_item', key: 'mikhaylov_ball', emoji: '🏐', sellPrice: 7 },
+    { id: 'gloves_tyson', name: 'Перчатки Майка Тайсона 🥊', displayChance: '20%', realChance: 20, type: 'man_item', key: 'tyson_gloves', emoji: '🥊', sellPrice: 15 },
+    { id: 'steak', name: 'Стейк 🥩', displayChance: '10%', realChance: 10, type: 'man_item', key: 'steak', emoji: '🥩', sellPrice: 20 },
+    { id: 'elite_spin', name: '1 бесплатный кейс «Элита🎖️»', displayChance: '5%', realChance: 5, type: 'man_bonus_elite', emoji: '🎖️' },
+    { id: 'simba', name: 'Симба 🦁', displayChance: '4%', realChance: 4, type: 'man_item', key: 'simba', emoji: '🦁', sellPrice: 50 },
+    { id: 'wolf_wallstreet', name: 'Волк с Уолл-стрит 🐺', displayChance: '1%', realChance: 1, type: 'man_item', key: 'wolf_wallstreet', emoji: '🐺' }
   ]
 };
 
@@ -184,7 +193,8 @@ const INITIAL_CASES = {
   diamond: { id: 'diamond', name: 'Алмаз', emoji: '💎', price: 50, originalPrice: 50, discountPrice: 35, color: 'from-blue-400 to-blue-600', locked: false, isNew: false, freeCount: 0 },
   winter: { id: 'winter', name: 'Зимний', emoji: '☃️', price: 125, originalPrice: 150, discountPrice: 125, color: 'from-cyan-400 to-blue-500', locked: false, isNew: true, freeCount: 0 },
   major: { id: 'major', name: 'Мажор', emoji: '🤴', price: 800, color: 'from-purple-500 to-indigo-700', locked: true, isNew: false, freeCount: 0 },
-  collector: { id: 'collector', name: 'Коллекционер', emoji: '🎩', price: 650, color: 'from-rose-600 to-pink-800', locked: true, isNew: true, freeCount: 0 }
+  collector: { id: 'collector', name: 'Коллекционер', emoji: '🎩', price: 650, color: 'from-rose-600 to-pink-800', locked: true, isNew: true, freeCount: 0 },
+  man: { id: 'man', name: 'Мужык', emoji: '💪', price: 100, color: 'from-slate-700 to-slate-900', locked: false, isNew: true, freeCount: 0 }
 };
 
 const ICE_ARENA_PRIZES = [
@@ -257,6 +267,8 @@ function App() {
   const [selectedCollectible, setSelectedCollectible] = useState(null);
   const [showIceGiftModal, setShowIceGiftModal] = useState(false);
   const [selectedIceGift, setSelectedIceGift] = useState(null);
+  const [showManItemModal, setShowManItemModal] = useState(false);
+  const [selectedManItem, setSelectedManItem] = useState(null);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   const [withdrawAmount, setWithdrawAmount] = useState('');
   const [showAdminLogin, setShowAdminLogin] = useState(false);
@@ -1055,6 +1067,7 @@ function App() {
 
   const sellItem = async (item) => {
     if (item.type === 'ice_gift') { setSelectedIceGift(item); setShowIceGiftModal(true); return; }
+    if (item.type === 'man_item' || item.type === 'man_bonus_elite') { setSelectedManItem(item); setShowManItemModal(true); return; }
     if (item.type === 'collectible') { setSelectedCollectible(item); setShowCollectibleModal(true); return; }
     if (confirm(`Продать ${item.name} за ${item.sellPrice}⭐️?`)) {
       const nb = balance + item.sellPrice;
@@ -1099,6 +1112,12 @@ function App() {
     } else if (code === 'DIAMOND') {
       const nc = { ...cases, diamond: { ...cases.diamond, freeCount: (cases.diamond.freeCount || 0) + 2 } };
       setCases(nc); setPromoSuccess('+2 кейса Алмаз!');
+      const np = [...usedPromos, code]; setUsedPromos(np); setPromoCode('');
+      await db.ref(`users/${user.id}/usedPromos`).set(np);
+    } else if (code === 'DEFENDER') {
+      const nc = { ...cases, man: { ...cases.man, freeCount: (cases.man.freeCount || 0) + 5 } };
+      setCases(nc);
+      setPromoSuccess('+5 кейсов «Мужык 💪»!');
       const np = [...usedPromos, code]; setUsedPromos(np); setPromoCode('');
       await db.ref(`users/${user.id}/usedPromos`).set(np);
     } else { setPromoError('Неверный промокод'); }
@@ -1586,6 +1605,73 @@ function App() {
             <div className="space-y-3">
               <button onClick={sellIceGift} className="w-full bg-orange-600 hover:bg-orange-500 py-3 rounded-xl font-bold transition">🔥 Продать за 25⭐️</button>
               <button onClick={() => { setShowIceGiftModal(false); setSelectedIceGift(null); }} className="w-full bg-cyan-600 hover:bg-cyan-500 py-3 rounded-xl font-bold transition">💎 Оставить</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showManItemModal && selectedManItem && (
+        <div className="fixed inset-0 bg-black/90 z-[60] flex items-center justify-center p-4">
+          <div className="glass rounded-2xl p-6 max-w-sm w-full text-center border border-yellow-500/50">
+            <div className="text-6xl mb-4">{selectedManItem.emoji}</div>
+            <h3 className="text-xl font-bold mb-3 text-yellow-300">Мужык 💪</h3>
+            {selectedManItem.key === 'gold_ball' && (
+              <p className="mb-4 text-sm text-gray-200">Продайте Золотой Мяч за 5⭐️ или сохраните его на будущее</p>
+            )}
+            {selectedManItem.key === 'mikhaylov_ball' && (
+              <p className="mb-4 text-sm text-gray-200">Продайте мяч Максима Михайлова за 7⭐️ или сохраните его на будущее!</p>
+            )}
+            {selectedManItem.key === 'tyson_gloves' && (
+              <p className="mb-4 text-sm text-gray-200">Продайте Перчатки Майка Тайсона за 15⭐️ или сохраните их на будущее!</p>
+            )}
+            {selectedManItem.key === 'steak' && (
+              <p className="mb-4 text-sm text-gray-200">Продайте Стейк за 20⭐️ или сохраните его на будущее!</p>
+            )}
+            {selectedManItem.key === 'simba' && (
+              <p className="mb-4 text-sm text-gray-200">Отпустите Симбу сейчас за 50⭐️ или подождите, пока он вырастет</p>
+            )}
+            {selectedManItem.key === 'wolf_wallstreet' && (
+              <p className="mb-4 text-sm text-gray-200">Обменяйте Волка с Уолл-стрит на кейс «Коллекционер» сейчас или оставьте его у себя!</p>
+            )}
+            <div className="space-y-3">
+              {selectedManItem.type === 'man_item' && (
+                <>
+                  <button
+                    onClick={async () => {
+                      const nb = balance + (selectedManItem.sellPrice || 0);
+                      const ni = inventory.filter(i => i.uniqueId !== selectedManItem.uniqueId);
+                      setBalance(nb); setInventory(ni);
+                      await db.ref(`users/${user.id}`).update({ balance: nb, inventory: ni });
+                      setShowManItemModal(false); setSelectedManItem(null);
+                    }}
+                    className="w-full bg-orange-600 hover:bg-orange-500 py-3 rounded-xl font-bold transition"
+                  >
+                    Продать за {selectedManItem.sellPrice || 0}⭐️
+                  </button>
+                  <button
+                    onClick={() => { setShowManItemModal(false); setSelectedManItem(null); }}
+                    className="w-full bg-gray-600 hover:bg-gray-500 py-3 rounded-xl font-bold transition"
+                  >
+                    Оставить
+                  </button>
+                </>
+              )}
+              {selectedManItem.key === 'wolf_wallstreet' && (
+                <button
+                  onClick={async () => {
+                    // Обмен на кейс «Коллекционер»
+                    const curFree = cases.collector?.freeCount || 0;
+                    const nc = { ...cases, collector: { ...cases.collector, locked: false, freeCount: curFree + 1 } };
+                    const ni = inventory.filter(i => i.uniqueId !== selectedManItem.uniqueId);
+                    setCases(nc); setInventory(ni);
+                    await db.ref(`users/${user.id}`).update({ cases: nc, inventory: ni });
+                    setShowManItemModal(false); setSelectedManItem(null);
+                  }}
+                  className="w-full bg-green-600 hover:bg-green-500 py-3 rounded-xl font-bold transition"
+                >
+                  Обменять на кейс «Коллекционер»
+                </button>
+              )}
             </div>
           </div>
         </div>
