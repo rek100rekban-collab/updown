@@ -219,8 +219,7 @@
             '#FDCB6E','#81ECEC','#FF7675','#DFE6E9','#B2BEC3'
         ];
         const DAILY_CASE_COOLDOWN_MS = 23 * 60 * 60 * 1000;
-        const SPECIAL_CASE_IDS = ['winter', 'man', 'collector', 'daily'];
-        const SPECIAL_CASE_ORDER = ['daily', 'winter', 'man', 'collector'];
+        const SPECIAL_CASE_IDS = ['daily', 'winter', 'man', 'collector'];
         const DAILY_BOX_CASE_POOL = ['cardboard', 'coal', 'platinum', 'diamond', 'money', 'gold', 'elite', 'collector'];
         
         function getRandomColor() {
@@ -365,15 +364,8 @@
             daily: { id: 'daily', name: 'Ежедневный', emoji: '🗓️', price: 0, color: 'from-emerald-500 to-cyan-600', locked: false, isNew: true, freeCount: 0 }
         };
         
-        const starCaseKey = Object.keys(INITIAL_CASES).find(
-            key => (INITIAL_CASES[key]?.name || '').toLowerCase().includes('звезд')
-        );
-        if (starCaseKey) {
-            INITIAL_CASES[starCaseKey] = {
-                ...INITIAL_CASES[starCaseKey],
-                price: 35,
-                discountPrice: null
-            };
+        if (INITIAL_CASES.star) {
+            INITIAL_CASES.star = { ...INITIAL_CASES.star, price: 35, discountPrice: null, originalPrice: null };
         }
 
         const ICE_ARENA_PRIZES = [
@@ -1258,7 +1250,20 @@
             return c.price;
         };
             
-            const openCase = async (caseType) => {
+        const getOrderedOpenCases = () => {
+            const openCases = Object.values(cases).filter(c => !c.locked);
+            const special = SPECIAL_CASE_IDS
+                .map(id => openCases.find(c => c.id === id))
+                .filter(Boolean);
+            const regular = openCases.filter(c => !SPECIAL_CASE_IDS.includes(c.id));
+            return [...special, ...regular];
+        };
+
+        const getSpecialOpenCasesCount = () => {
+            return Object.values(cases).filter(c => !c.locked && SPECIAL_CASE_IDS.includes(c.id)).length;
+        };
+
+        const openCase = async (caseType) => {
                 if (caseType === 'collector' && cases.collector?.locked) {
                     alert('Кейс «Коллекционер» заблокирован!');
                     return;
@@ -1894,53 +1899,6 @@
                                         </>
                                     )}
                                 </div>
-
-                                <div className="mt-6 mb-3 text-center">
-                                    <h3 className="text-xl font-black tracking-wide text-cyan-100">🔮Особые🔮</h3>
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-4">
-                                    {SPECIAL_CASE_ORDER.map(id => cases[id]).filter(Boolean).filter(c => !c.locked).map(c => (
-                                        <div key={c.id} className={`glass rounded-xl p-4 relative hover:scale-105 transition ${c.id === 'cardboard' ? 'case-cardboard' : c.id === 'collector' ? 'case-collector' : ''}`}>
-                                            {c.isNew && <span className="absolute -top-2 -right-2 bg-red-500 text-xs px-2 py-1 rounded-full animate-pulse">Новое!</span>}
-                                            {(c.id === 'diamond' || c.id === 'coal' || c.id === 'winter' || c.id === 'gold' || c.id === 'platinum') && !c.freeCount && c.discountPrice && c.discountPrice !== c.price && (
-                                                <span className="absolute -top-2 -left-2 bg-green-500 text-xs px-2 py-1 rounded-full animate-pulse">Скидка!</span>
-                                            )}
-                                            <div className={`w-16 h-16 mx-auto rounded-lg ${c.id === 'cardboard' || c.id === 'collector' ? 'bg-white/20' : `bg-gradient-to-br ${c.color}`} flex items-center justify-center text-3xl mb-2 shadow-lg`}>{c.emoji}</div>
-                                            <h3 className="font-bold text-center text-sm">{c.name}</h3>
-                                            <p className="text-center text-xs opacity-75 mb-2">
-                                                {c.id === 'daily' && !isDailyCaseAvailable() ? (
-                                                    <span className="text-cyan-300 font-bold">⏳ {formatRemainingTime(getDailyCaseRemainingMs())}</span>
-                                                ) : c.freeCount > 0 ? (
-                                                    <span className="text-green-400 font-bold">Бесплатно!</span>
-                                                ) : c.discountPrice && c.discountPrice !== c.price ? (
-                                                    <span>
-                                                        <span className="old-price">{c.price}⭐️</span>
-                                                        <span className="new-price">{c.discountPrice}⭐️</span>
-                                                    </span>
-                                                ) : (
-                                                    `${c.price}⭐️`
-                                                )}
-                                            </p>
-                                            <button onClick={() => setSelectedCase(c)} className="w-full py-2 rounded-lg font-bold text-sm bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 transition">Открыть</button>
-                                        </div>
-                                    ))}
-                                    {SPECIAL_CASE_ORDER.map(id => cases[id]).filter(Boolean).filter(c => c.locked).map(c => (
-                                        <div key={c.id} className="glass rounded-xl p-4 relative opacity-50">
-                                            <div className="absolute inset-0 bg-black/70 rounded-xl flex items-center justify-center"><span className="text-2xl">🔒</span></div>
-                                            <div className={`w-16 h-16 mx-auto rounded-lg bg-gradient-to-br ${c.color} flex items-center justify-center text-3xl mb-2`}>{c.emoji}</div>
-                                            <h3 className="font-bold text-center text-sm">{c.name}</h3>
-                                            <p className="text-center text-xs mb-2">
-                                                {c.id === 'daily' ? (
-                                                    <span className="text-cyan-300 font-bold">⏳ {formatRemainingTime(getDailyCaseRemainingMs())}</span>
-                                                ) : (
-                                                    `${c.price}⭐️`
-                                                )}
-                                            </p>
-                                            <button className="w-full py-2 rounded-lg font-bold text-sm bg-gray-600 cursor-not-allowed">Недоступно</button>
-                                        </div>
-                                    ))}
-                                </div>
                             </div>
                         )}
                     </div>
@@ -2197,7 +2155,7 @@
                                 )}
                                 
                                 <div className="grid grid-cols-2 gap-4">
-                                    {Object.values(cases).filter(c => !c.locked && !SPECIAL_CASE_IDS.includes(c.id)).map(c => (
+                                    {getOrderedOpenCases().map((c, idx) => (
                                         <div key={c.id} className={`glass rounded-xl p-4 relative hover:scale-105 transition ${
                                             c.id === 'cardboard' ? 'case-cardboard' :
                                             c.id === 'collector' ? 'case-collector' : ''
@@ -2232,7 +2190,7 @@
                                             </button>
                                         </div>
                                     ))}
-                                    {Object.values(cases).filter(c => c.locked && !SPECIAL_CASE_IDS.includes(c.id)).map(c => (
+                                    {Object.values(cases).filter(c => c.locked).map(c => (
                                         <div key={c.id} className="glass rounded-xl p-4 relative opacity-50">
                                             <div className="absolute inset-0 bg-black/70 rounded-xl flex items-center justify-center">
                                                 <span className="text-2xl">🔒</span>
