@@ -385,7 +385,7 @@
             gold:      { id: 'gold',      name: 'Золотой',     emoji: '👑', price: 250, originalPrice: 250, discountPrice: 180, color: 'from-yellow-400 to-yellow-600',   locked: false, isNew: false, freeCount: 0 },
             money:     { id: 'money',     name: 'Денежный',    emoji: '💵', price: 350, color: 'from-green-400 to-green-600',    locked: false, isNew: false, freeCount: 0 },
             elite:     { id: 'elite',     name: 'Элита',       emoji: '🎖', price: 500, color: 'from-red-400 to-red-600',        locked: false, isNew: false, freeCount: 0 },
-            star:      { id: 'star',      name: 'Звездный',    emoji: '⭐️', price: 35,  color: 'from-indigo-400 to-violet-600',  locked: false, isNew: true,  freeCount: 0 },
+            star:      { id: 'star',      name: 'Звездный',    emoji: '⭐️', price: 30,  color: 'from-indigo-400 to-violet-600',  locked: false, isNew: true,  freeCount: 0 },
             diamond:   { id: 'diamond',   name: 'Алмаз',       emoji: '💎', price: 50,  originalPrice: 50, discountPrice: 35,  color: 'from-blue-400 to-blue-600',       locked: false, isNew: false, freeCount: 0 },
             major:     { id: 'major',     name: 'Мажор',       emoji: '🤴', price: 800, color: 'from-purple-500 to-indigo-700',  locked: true,  isNew: false, freeCount: 0 }
         };
@@ -690,14 +690,16 @@
             useEffect(() => {
                 if (!user?.id || isLoading) return;
                 const iv = setInterval(() => {
+                    const dailyRemainMs = getDailyRemainMs();
                     db.ref('users/' + user.id).update({
                         balance, cases, inventory, tasks, inventorySlots,
                         usedPromos, wonPromos, lastActive: Date.now(),
-                        totalDeposits, freeEliteSpin, dailyCaseLastOpenedAt
+                        totalDeposits, freeEliteSpin, dailyCaseLastOpenedAt,
+                        dailyCaseRemainMs: dailyRemainMs
                     });
                 }, 5000);
                 return () => clearInterval(iv);
-            }, [balance, cases, inventory, tasks, inventorySlots, usedPromos, wonPromos, user?.id, isLoading, totalDeposits, freeEliteSpin, dailyCaseLastOpenedAt]);
+            }, [balance, cases, inventory, tasks, inventorySlots, usedPromos, wonPromos, user?.id, isLoading, totalDeposits, freeEliteSpin, dailyCaseLastOpenedAt, nowTs]);
 
             // ─── Ice lobby listener ───
             useEffect(() => {
@@ -1263,6 +1265,9 @@
                     const nextInv = [...(ud.inventory || []), newItem];
                     await db.ref(`users/${tid}/inventory`).set(nextInv);
                     if (tid === user.id) setInventory(nextInv);
+                } else if (reward.type === 'reset_daily_timer') {
+                    await db.ref(`users/${tid}/dailyCaseLastOpenedAt`).set(0);
+                    if (tid === user.id) setDailyCaseLastOpenedAt(0);
                 }
                 alert('Награда выдана!');
             };
@@ -1508,6 +1513,7 @@
                                             <button onClick={() => adminGiveReward(user.id, { type: 'case', caseType: 'diamond', count: 10 })} className="bg-blue-600 p-3 rounded text-sm">+10💎</button>
                                             <button onClick={() => adminGiveReward(user.id, { type: 'unlock_collector' })} className="bg-pink-800 p-3 rounded text-sm">🔓 Коллекц.</button>
                                             <button onClick={() => adminGiveReward(user.id, { type: 'daily_box' })} className="bg-cyan-700 p-3 rounded text-sm">+📦 Ящик</button>
+                                            <button onClick={() => adminGiveReward(user.id, { type: 'reset_daily_timer' })} className="bg-emerald-600 p-3 rounded text-sm">🗓️ Ежедневный</button>
                                         </div>
                                     </div>
                                 )}
@@ -1820,7 +1826,14 @@
                                 </div>
                                 <div className="roulette-container mb-5">
                                     <div className="roulette-pointer" />
-                                    <div key={rouletteKey} className="roulette-inner" style={{ transform: `translateX(${rouletteOffset}px)` }}>
+                                    <div
+                                        key={rouletteKey}
+                                        className="roulette-inner"
+                                        style={{
+                                            transform: `translateX(${rouletteOffset}px)`,
+                                            transition: isSpinning ? 'transform 6.5s cubic-bezier(0.1, 0, 0.1, 1)' : 'none'
+                                        }}
+                                    >
                                         {fakeItems.length > 0 ? (
                                             fakeItems.map((item, i) => (
                                                 <div key={i} className="roulette-item">
