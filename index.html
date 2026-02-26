@@ -113,12 +113,18 @@
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
-        .line-through {
+        .old-price {
             text-decoration: line-through;
-            opacity: 0.9;
-            color: #d1d5db;
-            margin-right: 6px;
+            text-decoration-color: #ef4444;
             text-decoration-thickness: 2px;
+            color: #9ca3af;
+            margin-right: 6px;
+            font-size: 12px;
+        }
+        .new-price {
+            color: #ffffff;
+            font-weight: bold;
+            font-size: 14px;
         }
         .fullscreen-modal {
             position: fixed;
@@ -2045,13 +2051,16 @@
                                                 {c.emoji}
                                             </div>
                                             <h3 className="font-bold text-center text-sm">{c.name}</h3>
-                                            <p className="text-center text-xs opacity-75 mb-2">
+                                            <p className="text-center mb-2">
                                                 {c.freeCount > 0 ? (
-                                                    <span className="text-green-400 font-bold">Бесплатно!</span>
+                                                    <span className="text-green-400 font-bold text-sm">Бесплатно!</span>
                                                 ) : c.discountPrice && c.discountPrice !== c.price ? (
-                                                            <span><span className="line-through">{c.originalPrice || c.price}⭐️</span><span className="font-bold text-green-300">{c.discountPrice}⭐️</span></span>
+                                                    <span className="flex items-center justify-center gap-1">
+                                                        <span className="old-price">{c.originalPrice || c.price}⭐️</span>
+                                                        <span className="new-price">{c.discountPrice}⭐️</span>
+                                                    </span>
                                                 ) : (
-                                                    `${c.price}⭐️`
+                                                    <span className="text-gray-300 text-sm">{c.price}⭐️</span>
                                                 )}
                                             </p>
                                             <button onClick={() => setSelectedCase(c)} className="w-full py-2 rounded-lg font-bold text-sm bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 transition">
