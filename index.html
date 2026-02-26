@@ -113,7 +113,13 @@
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
-        .line-through { text-decoration: line-through; opacity: 0.7; }
+        .line-through {
+            text-decoration: line-through;
+            opacity: 0.9;
+            color: #d1d5db;
+            margin-right: 6px;
+            text-decoration-thickness: 2px;
+        }
         .fullscreen-modal {
             position: fixed;
             inset: 0;
@@ -305,12 +311,12 @@
         const INITIAL_CASES = {
             cardboard: { id: 'cardboard', name: 'Картон', emoji: '📦', price: 3, color: 'from-amber-800 to-amber-900', locked: false, isNew: true, freeCount: 0 },
             coal: { id: 'coal', name: 'Уголёк', emoji: '🪨', price: 22, color: 'from-gray-600 to-gray-800', locked: false, isNew: false, freeCount: 0 },
-            platinum: { id: 'platinum', name: 'Платина', emoji: '💎', price: 85, originalPrice: 100, discountPrice: 85, color: 'from-gray-300 to-gray-500', locked: false, isNew: false, freeCount: 0 },
-            gold: { id: 'gold', name: 'Золотой', emoji: '👑', price: 180, originalPrice: 250, discountPrice: 180, color: 'from-yellow-400 to-yellow-600', locked: false, isNew: false, freeCount: 0 },
+            platinum: { id: 'platinum', name: 'Платина', emoji: '💎', price: 100, originalPrice: 100, discountPrice: 85, color: 'from-gray-300 to-gray-500', locked: false, isNew: false, freeCount: 0 },
+            gold: { id: 'gold', name: 'Золотой', emoji: '👑', price: 250, originalPrice: 250, discountPrice: 180, color: 'from-yellow-400 to-yellow-600', locked: false, isNew: false, freeCount: 0 },
             money: { id: 'money', name: 'Денежный', emoji: '💵', price: 350, color: 'from-green-400 to-green-600', locked: false },
             elite: { id: 'elite', name: 'Элита', emoji: '🎖', price: 500, color: 'from-red-400 to-red-600', locked: false, isNew: false, freeCount: 0 },
             diamond: { id: 'diamond', name: 'Алмаз', emoji: '💎', price: 50, originalPrice: 50, discountPrice: 35, color: 'from-blue-400 to-blue-600', locked: false, isNew: false, freeCount: 0 },
-            winter: { id: 'winter', name: 'Зимний', emoji: '☃️', price: 99, originalPrice: 125, discountPrice: 99, color: 'from-cyan-400 to-blue-500', locked: false, isNew: true, freeCount: 0 },
+            winter: { id: 'winter', name: 'Зимний', emoji: '☃️', price: 125, originalPrice: 125, discountPrice: 99, color: 'from-cyan-400 to-blue-500', locked: false, isNew: true, freeCount: 0 },
             major: { id: 'major', name: 'Мажор', emoji: '🤴', price: 800, color: 'from-purple-500 to-indigo-700', locked: true, isNew: false, freeCount: 0 },
             collector: { id: 'collector', name: 'Коллекционер', emoji: '🎩', price: 650, color: 'from-rose-600 to-pink-800', locked: true, isNew: true, freeCount: 0 },
             man: { id: 'man', name: 'Мужык', emoji: '💪', price: 100, color: 'from-slate-700 to-slate-900', locked: false, isNew: true, freeCount: 0 }
@@ -1164,13 +1170,14 @@
                 });
             };
             
-            const getCasePrice = (ct) => {
-                const c = cases[ct];
-                if (!c) return 0;
-                if (c.freeCount > 0) return 0;
-                if (c.discountPrice && c.discountPrice !== c.price) return c.discountPrice;
-                return c.price;
-            };
+        const getCasePrice = (ct) => {
+            const c = cases[ct];
+            if (!c) return 0;
+            if (c.freeCount > 0) return 0;
+            if (c.discountPrice && c.originalPrice && c.discountPrice < c.originalPrice) return c.discountPrice;
+            if (c.discountPrice && c.discountPrice !== c.price) return c.discountPrice;
+            return c.price;
+        };
             
             const openCase = async (caseType) => {
                 if (caseType === 'collector' && cases.collector?.locked) {
@@ -2028,8 +2035,8 @@
                                             {c.isNew && (
                                                 <span className="absolute -top-2 -right-2 bg-red-500 text-xs px-2 py-1 rounded-full animate-pulse">Новое!</span>
                                             )}
-                                            {c.discountPrice && c.discountPrice !== c.price && !c.freeCount && (
-                                                <span className="absolute -top-2 -left-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full animate-pulse shadow-lg" style={{zIndex:10}}>Скидка!</span>
+                                                {!c.freeCount && c.discountPrice && c.originalPrice && c.discountPrice < c.originalPrice && (
+                                                <span className="absolute -top-2 -left-2 bg-green-500 text-xs px-2 py-1 rounded-full animate-pulse">Скидка!</span>
                                             )}
                                             <div className={`w-16 h-16 mx-auto rounded-lg ${
                                                 c.id === 'cardboard' || c.id === 'collector' ? 'bg-white/20' :
@@ -2038,16 +2045,13 @@
                                                 {c.emoji}
                                             </div>
                                             <h3 className="font-bold text-center text-sm">{c.name}</h3>
-                                            <p className="text-center text-xs mb-2">
+                                            <p className="text-center text-xs opacity-75 mb-2">
                                                 {c.freeCount > 0 ? (
                                                     <span className="text-green-400 font-bold">Бесплатно!</span>
                                                 ) : c.discountPrice && c.discountPrice !== c.price ? (
-                                                    <span className="flex items-center justify-center gap-1 flex-wrap">
-                                                        <span style={{textDecoration:'line-through', opacity:0.7, color:'#d1d5db', fontWeight:'normal'}}>{c.originalPrice}⭐️</span>
-                                                        <span style={{color:'#4ade80', fontWeight:'bold', fontSize:'13px'}}>{c.discountPrice}⭐️</span>
-                                                    </span>
+                                                            <span><span className="line-through">{c.originalPrice || c.price}⭐️</span><span className="font-bold text-green-300">{c.discountPrice}⭐️</span></span>
                                                 ) : (
-                                                    <span className="opacity-75">{c.price}⭐️</span>
+                                                    `${c.price}⭐️`
                                                 )}
                                             </p>
                                             <button onClick={() => setSelectedCase(c)} className="w-full py-2 rounded-lg font-bold text-sm bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 transition">
