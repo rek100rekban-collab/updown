@@ -216,6 +216,7 @@
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script type="text/babel">
         const { useState, useEffect, useRef, useCallback } = React;
+
         const firebaseConfig = {
             apiKey: "AIzaSyDZPRiByz69HQa8b7GFMCJeqq56J3Y-bOY",
             authDomain: "step-by-step-279df.firebaseapp.com",
@@ -225,24 +226,32 @@
             messagingSenderId: "302641152597",
             appId: "1:302641152597:web:6479b9ae03104666cd8adc"
         };
+
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
+
         const TelegramWebApp = window.Telegram?.WebApp;
         const ADMIN_WALLET = 'UQAWqaIPFSg81l9MlgAx0HBE9o3gpJMhk1dnyryKJXhWNHIc';
         const BOT_TOKEN = '8325421899:AAG9t3yS4WWiwasRoHb-nbr3a94S9tQfHys';
+
         const PLAYER_COLORS = [
             '#FF6B6B','#FF9F43','#FFEAA7','#55EFC4','#74B9FF',
             '#A29BFE','#FD79A8','#E17055','#00CEC9','#6C5CE7',
             '#FDCB6E','#81ECEC','#FF7675','#DFE6E9','#B2BEC3'
         ];
+
         const DAILY_CASE_COOLDOWN_MS = 23 * 60 * 60 * 1000;
+
         // Кейсы в категории «Особые» — порядок фиксирован, daily всегда первый
         const SPECIAL_CASE_IDS = ['daily', 'winter', 'man', 'collector'];
+
         // Пул кейсов для 📦 (случайный кейс)
         const DAILY_BOX_CASE_POOL = ['cardboard', 'coal', 'platinum', 'diamond', 'money', 'gold', 'elite', 'collector'];
+
         function getRandomColor() {
             return PLAYER_COLORS[Math.floor(Math.random() * PLAYER_COLORS.length)];
         }
+
         const CASE_REWARDS = {
             cardboard: [
                 { id: 'stars_0_25', name: '0.25 ⭐️', displayChance: '80%', realChance: 80, type: 'stars', value: 0.25, emoji: '⭐️' },
@@ -364,6 +373,7 @@
                 { id: 'daily_box', name: 'Случайный кейс 📦', displayChance: '1%', realChance: 1, type: 'daily_box_token', emoji: '📦' }
             ]
         };
+
         const INITIAL_CASES = {
             daily:     { id: 'daily',     name: 'Ежедневный', emoji: '🗓️', price: 0,   color: 'from-emerald-500 to-cyan-600',   locked: false, isNew: true,  freeCount: 0, isSpecial: true },
             winter:    { id: 'winter',    name: 'Зимний',      emoji: '☃️', price: 125, originalPrice: 125, discountPrice: 99, color: 'from-cyan-400 to-blue-500',      locked: false, isNew: true,  freeCount: 0, isSpecial: true },
@@ -375,10 +385,11 @@
             gold:      { id: 'gold',      name: 'Золотой',     emoji: '👑', price: 250, originalPrice: 250, discountPrice: 180, color: 'from-yellow-400 to-yellow-600',   locked: false, isNew: false, freeCount: 0 },
             money:     { id: 'money',     name: 'Денежный',    emoji: '💵', price: 350, color: 'from-green-400 to-green-600',    locked: false, isNew: false, freeCount: 0 },
             elite:     { id: 'elite',     name: 'Элита',       emoji: '🎖', price: 500, color: 'from-red-400 to-red-600',        locked: false, isNew: false, freeCount: 0 },
-            star:      { id: 'star',      name: 'Звездный',    emoji: '⭐️', price: 35,  color: 'from-indigo-400 to-violet-600',  locked: false, isNew: true,  freeCount: 0 },
+            star:      { id: 'star',      name: 'Звездный',    emoji: '⭐️', price: 30,  color: 'from-indigo-400 to-violet-600',  locked: false, isNew: true,  freeCount: 0 },
             diamond:   { id: 'diamond',   name: 'Алмаз',       emoji: '💎', price: 50,  originalPrice: 50, discountPrice: 35,  color: 'from-blue-400 to-blue-600',       locked: false, isNew: false, freeCount: 0 },
             major:     { id: 'major',     name: 'Мажор',       emoji: '🤴', price: 800, color: 'from-purple-500 to-indigo-700',  locked: true,  isNew: false, freeCount: 0 }
         };
+
         const ICE_ARENA_PRIZES = [
             { id: 'bear',       name: '🧸 Мишка',           chance: 40,  type: 'item',      sellPrice: 20,  emoji: '🧸' },
             { id: 'gloves',     name: '🧤 Варежки',          chance: 30,  type: 'item',      sellPrice: 50,  emoji: '🧤' },
@@ -391,6 +402,7 @@
             { id: 'scarf',      name: '🧣 Зимнее сокровище', chance: 0.5, type: 'collectible', emoji: '🧣' },
             { id: 'dellko',     name: '🔑 Promocode DELLKO', chance: 0.5, type: 'promo',     code: 'DELLKO', emoji: '🔑' }
         ];
+
         const TON_RATES = [
             { stars: 50, ton: 0.6 }, { stars: 250, ton: 3 },
             { stars: 500, ton: 6 },  { stars: 1000, ton: 12 }
@@ -400,12 +412,14 @@
             { stars: 250, price: 250 }, { stars: 500, price: 500 },
             { stars: 1000, price: 1000 }
         ];
+
         const DEFAULT_LOBBY = {
             status: 'waiting', players: {}, presence: {}, readyPlayers: {},
             winner: null, prizes: [], wonStars: 0,
             ballPosition: { x: 50, y: 50, vx: 0, vy: 0 },
             countdownEnd: null, prizeClaimed: {}, finalBall: null, gameStartedAt: null
         };
+
         // ─── HELPERS ───────────────────────────────────────────────────────────────
         function getCasePriceHelper(c) {
             if (!c) return 0;
@@ -413,6 +427,7 @@
             if (c.discountPrice && c.originalPrice && c.discountPrice < c.originalPrice) return c.discountPrice;
             return c.price;
         }
+
         function formatTimer(ms) {
             const s = Math.ceil(ms / 1000);
             const h = Math.floor(s / 3600);
@@ -420,14 +435,17 @@
             const sec = s % 60;
             return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
         }
+
         // ─── CASE CARD COMPONENT ───────────────────────────────────────────────────
         function CaseCard({ c, onOpen, nowTs, dailyCaseLastOpenedAt }) {
             const remainMs = c.id === 'daily'
                 ? Math.max(0, DAILY_CASE_COOLDOWN_MS - (nowTs - (dailyCaseLastOpenedAt || 0)))
                 : 0;
             const dailyAvailable = c.id !== 'daily' || remainMs === 0;
+
             const hasDiscount = c.discountPrice && c.originalPrice && c.discountPrice < c.originalPrice;
             const price = getCasePriceHelper(c);
+
             const renderPrice = () => {
                 if (c.id === 'daily') {
                     if (remainMs > 0) {
@@ -448,6 +466,7 @@
                 }
                 return <span className="text-white text-xs">{c.price}⭐️</span>;
             };
+
             if (c.locked) {
                 return (
                     <div className={`glass rounded-xl p-4 relative opacity-50 ${c.id === 'collector' ? 'case-collector' : ''}`}>
@@ -461,6 +480,7 @@
                     </div>
                 );
             }
+
             return (
                 <div className={`rounded-xl p-4 relative hover:scale-105 transition ${
                     c.id === 'cardboard' ? 'case-cardboard glass' :
@@ -495,6 +515,7 @@
                 </div>
             );
         }
+
         // ─── APP ───────────────────────────────────────────────────────────────────
         function App() {
             const [currentScreen, setCurrentScreen] = useState('cases');
@@ -510,6 +531,7 @@
             });
             const [user, setUser] = useState(null);
             const [isLoading, setIsLoading] = useState(true);
+
             // Roulette
             const [selectedCase, setSelectedCase] = useState(null);
             const [isSpinning, setIsSpinning] = useState(false);
@@ -518,6 +540,7 @@
             const [fakeItems, setFakeItems] = useState([]);
             const [rouletteKey, setRouletteKey] = useState(0);
             const rouletteContainerRef = useRef(null);
+
             // UI
             const [showTopUp, setShowTopUp] = useState(false);
             const [promoCode, setPromoCode] = useState('');
@@ -547,6 +570,7 @@
             const [freeEliteSpin, setFreeEliteSpin] = useState(0);
             const [dailyCaseLastOpenedAt, setDailyCaseLastOpenedAt] = useState(0);
             const [nowTs, setNowTs] = useState(Date.now());
+
             // Ice arena
             const [currentGame, setCurrentGame] = useState(null);
             const [iceLobby, setIceLobby] = useState(null);
@@ -566,19 +590,23 @@
             const [victoryPrize, setVictoryPrize] = useState(null);
             const [boxOpened, setBoxOpened] = useState(false);
             const [prizeClaimedLocal, setPrizeClaimedLocal] = useState(false);
+
             // ─── tick ───
             useEffect(() => {
                 const iv = setInterval(() => setNowTs(Date.now()), 1000);
                 return () => clearInterval(iv);
             }, []);
+
             const getDailyRemainMs = (last = dailyCaseLastOpenedAt) =>
                 Math.max(0, DAILY_CASE_COOLDOWN_MS - (nowTs - (last || 0)));
             const isDailyAvailable = () => getDailyRemainMs() === 0;
+
             // ─── INIT ───
             useEffect(() => {
                 const initApp = async () => {
                     let userId = null;
                     let userData = { name: 'Гость', username: null, avatar: null };
+
                     if (TelegramWebApp) {
                         TelegramWebApp.ready();
                         TelegramWebApp.expand();
@@ -598,6 +626,7 @@
                     } else {
                         localStorage.setItem('sbs_user_id', userId);
                     }
+
                     try {
                         const snap = await db.ref('users/' + userId).once('value');
                         const data = snap.val();
@@ -644,6 +673,7 @@
                 };
                 initApp();
             }, []);
+
             // ─── Online presence ───
             useEffect(() => {
                 if (!user?.id) return;
@@ -655,18 +685,22 @@
                 });
                 return () => ref.remove();
             }, [user?.id]);
+
             // ─── Auto-save ───
             useEffect(() => {
                 if (!user?.id || isLoading) return;
                 const iv = setInterval(() => {
+                    const dailyRemainMs = getDailyRemainMs();
                     db.ref('users/' + user.id).update({
                         balance, cases, inventory, tasks, inventorySlots,
                         usedPromos, wonPromos, lastActive: Date.now(),
-                        totalDeposits, freeEliteSpin, dailyCaseLastOpenedAt
+                        totalDeposits, freeEliteSpin, dailyCaseLastOpenedAt,
+                        dailyCaseRemainMs: dailyRemainMs
                     });
                 }, 5000);
                 return () => clearInterval(iv);
-            }, [balance, cases, inventory, tasks, inventorySlots, usedPromos, wonPromos, user?.id, isLoading, totalDeposits, freeEliteSpin, dailyCaseLastOpenedAt]);
+            }, [balance, cases, inventory, tasks, inventorySlots, usedPromos, wonPromos, user?.id, isLoading, totalDeposits, freeEliteSpin, dailyCaseLastOpenedAt, nowTs]);
+
             // ─── Ice lobby listener ───
             useEffect(() => {
                 if (!currentGame?.lobbyId || !user?.id) return;
@@ -702,11 +736,13 @@
                 });
                 return () => { lobbyRef.off(); if (user?.id) db.ref('iceLobbies/' + lobbyId + '/presence/' + user.id).remove(); };
             }, [currentGame?.lobbyId, user?.id]);
+
             useEffect(() => {
                 if (gameStatus !== 'countdown') { setTimerRemaining(0); return; }
                 const iv = setInterval(() => setTimerRemaining(p => p <= 1 ? (clearInterval(iv), 0) : p - 1), 1000);
                 return () => clearInterval(iv);
             }, [gameStatus]);
+
             // ─── Ice lobby functions ───
             const joinIceLobby = async (lobbyId) => {
                 if (!user?.id) return;
@@ -735,6 +771,7 @@
                     await lobbyRef.update({ status: 'open' });
                 }
             };
+
             const leaveIceLobby = async () => {
                 if (!currentGame?.lobbyId || !user?.id) { setCurrentGame(null); return; }
                 const lobbyId = currentGame.lobbyId;
@@ -760,6 +797,7 @@
                 setCurrentGame(null); setHasBet(false); setIsReady(false);
                 setShowVictoryBox(false); setPrizeClaimedLocal(false);
             };
+
             const placeBet = async () => {
                 if (gameStatus !== 'open') { alert('Ставки сейчас недоступны!'); return; }
                 if (myBetInput < 25) { alert('Минимальная ставка 25⭐️!'); return; }
@@ -775,6 +813,7 @@
                 await lobbyRef.child('players/' + user.id).set({ name: user.name, avatar: user.avatar || null, bet: myBetInput, color, timestamp: Date.now() });
                 setMyBet(myBetInput); setHasBet(true);
             };
+
             const changeBet = async () => {
                 if (gameStatus !== 'open') { alert('Сейчас нельзя менять ставку!'); return; }
                 if (myBetInput < 25) { alert('Минимальная ставка 25⭐️!'); return; }
@@ -793,6 +832,7 @@
                 await lobbyRef.child('readyPlayers/' + user.id).remove();
                 setIsReady(false);
             };
+
             const toggleReady = async () => {
                 if (!hasBet) { alert('Сначала сделайте ставку!'); return; }
                 if (gameStatus !== 'open') return;
@@ -813,6 +853,7 @@
                     setTimeout(() => triggerGameStart(lobbyRef, currentGame.lobbyId), 10000);
                 }
             };
+
             useEffect(() => {
                 if (gameStatus !== 'countdown' || !currentGame?.lobbyId) return;
                 const presRef = db.ref('iceLobbies/' + currentGame.lobbyId + '/presence');
@@ -827,6 +868,7 @@
                 });
                 return () => presRef.off('child_added');
             }, [gameStatus, currentGame?.lobbyId]);
+
             const triggerGameStart = async (lobbyRef, lobbyId) => {
                 const snap = await lobbyRef.once('value');
                 const data = snap.val();
@@ -842,6 +884,7 @@
                 }
                 await startIceGame(lobbyRef);
             };
+
             const startIceGame = async (lobbyRef) => {
                 await lobbyRef.update({ status: 'playing', gameStartedAt: Date.now() });
                 let x = 50, y = 50;
@@ -869,6 +912,7 @@
                     if (Math.sqrt(vx*vx + vy*vy) < 0.08) { clearInterval(iv); await finishIceGame(lobbyRef, x, y); }
                 }, 25);
             };
+
             const finishIceGame = async (lobbyRef, finalX, finalY) => {
                 const snap = await lobbyRef.once('value');
                 const data = snap.val();
@@ -903,6 +947,7 @@
                     await db.ref('users/' + user.id + '/balance').set(newBal);
                 }
             };
+
             const openVictoryBox = async () => {
                 if (boxOpened || !victoryPrize) return;
                 setBoxOpened(true); setPrizeClaimedLocal(true);
@@ -913,6 +958,7 @@
                 else if (prize.type === 'case_free') { const nc = { ...cases, [prize.caseType]: { ...cases[prize.caseType], freeCount: (cases[prize.caseType].freeCount || 0) + 1 } }; setCases(nc); }
                 else if (prize.type === 'promo') alert('Получен промокод: ' + prize.code);
             };
+
             const exitLobbyAfterGame = async () => {
                 if (!currentGame?.lobbyId) { setCurrentGame(null); return; }
                 await db.ref('iceLobbies/' + currentGame.lobbyId).set(DEFAULT_LOBBY);
@@ -920,12 +966,14 @@
                 setShowVictoryBox(false); setBoxOpened(false); setPrizeClaimedLocal(false);
                 setMyColor(''); setMyBet(25); setMyBetInput(25);
             };
+
             const exitLobbyNonWinner = async () => {
                 if (!currentGame?.lobbyId) { setCurrentGame(null); return; }
                 await db.ref('iceLobbies/' + currentGame.lobbyId + '/presence/' + user.id).remove();
                 setCurrentGame(null); setHasBet(false); setIsReady(false);
                 setMyColor(''); setMyBet(25); setMyBetInput(25);
             };
+
             const renderIceField = () => {
                 if (!iceLobby?.players) return null;
                 const players = Object.entries(iceLobby.players);
@@ -955,17 +1003,23 @@
                     );
                 });
             };
+
             // ─── CASE LOGIC ───
             const getCasePrice = (ct) => getCasePriceHelper(cases[ct]);
+
             const openCase = async (caseOrId) => {
                 const caseType = typeof caseOrId === 'string' ? caseOrId : caseOrId.id;
+
                 if (caseType === 'collector' && cases.collector?.locked) { alert('Кейс «Коллекционер» заблокирован!'); return; }
                 if (caseType === 'daily' && !isDailyAvailable()) { alert('Ежедневный кейс ещё не готов!'); return; }
+
                 const price = getCasePrice(caseType);
                 const isFree = cases[caseType]?.freeCount > 0;
                 const isElite = caseType === 'elite';
                 const hasFreeElite = isElite && freeEliteSpin > 0;
+
                 if (!hasFreeElite && !isFree && caseType !== 'daily' && price > 0 && balance < price) { alert('Недостаточно звёзд!'); return; }
+
                 let newBal = balance;
                 if (caseType === 'daily') {
                     // free daily
@@ -980,15 +1034,19 @@
                     newBal = balance - price; setBalance(newBal);
                     await db.ref('users/' + user.id + '/balance').set(newBal);
                 }
+
                 setIsSpinning(false); setSpinResult(null); setFakeItems([]); setRouletteOffset(0);
                 setSelectedCase({ ...cases[caseType], id: caseType });
                 setRouletteKey(prev => prev + 1);
+
                 const items = CASE_REWARDS[caseType];
                 const rand = Math.random() * 100;
                 let cum = 0, won = items[0];
                 for (const item of items) { cum += item.realChance; if (rand <= cum) { won = item; break; } }
+
                 const tape = [];
                 for (let i = 0; i < 80; i++) tape.push(i === 70 ? won : items[Math.floor(Math.random() * items.length)]);
+
                 setIsSpinning(true);
                 setTimeout(() => {
                     setFakeItems(tape); setRouletteOffset(0);
@@ -997,6 +1055,7 @@
                         setRouletteOffset(-(70 * 136 + 68 - cw / 2));
                     }, 50);
                 }, 50);
+
                 setTimeout(async () => {
                     setSpinResult(won); setIsSpinning(false);
                     if (caseType === 'daily') {
@@ -1015,12 +1074,14 @@
                     }
                 }, 6600);
             };
+
             const addToInventory = async (item) => {
                 if (inventory.length >= inventorySlots) { alert('Инвентарь полон!'); return; }
                 const ni = [...inventory, { ...item, uniqueId: Date.now(), collected: Date.now() }];
                 setInventory(ni);
                 await db.ref(`users/${user.id}/inventory`).set(ni);
             };
+
             const sellItem = async (item) => {
                 if (item.type === 'ice_gift') { setSelectedIceGift(item); setShowIceGiftModal(true); return; }
                 if (item.type === 'daily_box_token') {
@@ -1047,6 +1108,7 @@
                     await db.ref(`users/${user.id}`).update({ balance: nb, inventory: ni });
                 }
             };
+
             const sellIceGift = async () => {
                 if (!selectedIceGift) return;
                 const nb = balance + 25;
@@ -1056,6 +1118,7 @@
                 setShowIceGiftModal(false); setSelectedIceGift(null);
                 alert('Продано за 25⭐️!');
             };
+
             const unlockSlot = async () => {
                 if (balance < 50) { alert('Недостаточно звёзд!'); return; }
                 if (confirm('Разблокировать слот за 50⭐️?')) {
@@ -1064,14 +1127,16 @@
                     await db.ref(`users/${user.id}`).update({ balance: nb, inventorySlots: ns });
                 }
             };
+
             const checkPromo = async () => {
                 const code = promoCode.toUpperCase().trim();
                 setPromoError(''); setPromoSuccess('');
                 if (!code) return;
                 if (usedPromos.includes(code)) { setPromoError('Уже использован!'); return; }
                 const np = [...usedPromos, code];
+
                 if (code === 'DELLKO') {
-                    if (!wonPromos.includes('DELLKO')) { setPromoError('Только если выиграли в Ледян��м Катке!'); return; }
+                    if (!wonPromos.includes('DELLKO')) { setPromoError('Только если выиграли в Ледяном Катке!'); return; }
                     const nc = { ...cases, money: { ...cases.money, freeCount: (cases.money.freeCount || 0) + 3 } };
                     setCases(nc); await addToInventory({ name: '🧊 Лёд (1/3)', emoji: '🧊', type: 'ice', part: 1 });
                     setPromoSuccess('+3 денежных кейса + 🧊!'); setUsedPromos(np); setPromoCode('');
@@ -1096,6 +1161,7 @@
                     setPromoError('Неверный промокод');
                 }
             };
+
             const topUpBalance = async (stars, ton) => {
                 const pid = 'PAY_' + Date.now();
                 const memo = `SBS_${user.id}_${stars}_${pid}`;
@@ -1104,6 +1170,7 @@
                 setPaymentStatus(`Отправьте ${ton} TON с комментарием: ${memo}`);
                 setShowTopUp(false);
             };
+
             const buyStars = async (pkg) => {
                 try {
                     const r = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/createInvoiceLink`, {
@@ -1126,6 +1193,7 @@
                     }
                 } catch (e) { alert('Ошибка платежа.'); }
             };
+
             const checkDepositTasks = async (nd) => {
                 if (!tasks.deposit?.completed && nd >= 100) {
                     const nt = { ...tasks, deposit: { completed: true } };
@@ -1140,6 +1208,7 @@
                     await db.ref(`users/${user.id}`).update({ tasks: nt, cases: nc });
                 }
             };
+
             const completeTask = async (taskId) => {
                 if (taskId === 'subscribe') {
                     window.open('https://t.me/stepbystepdelision', '_blank');
@@ -1159,20 +1228,24 @@
                     setShowTopUp(true);
                 }
             };
+
             const confirmWithdraw = () => {
                 alert('Для получения награды обратитесь к администрации! https://t.me/stepbystepdelision');
                 setShowWithdrawModal(false); setWithdrawAmount('');
             };
+
             const handleTitleClick = () => {
                 const n = adminAttempts + 1; setAdminAttempts(n);
                 if (n >= 11) { setShowAdminLogin(true); setAdminAttempts(0); }
             };
+
             const checkAdminLogin = () => {
                 if (adminLogin === '_*\\^BAGUETTE_642819_6281' && adminPassword === '3628874910ZTWMI_') {
                     setIsAdmin(true); setShowAdminLogin(false);
                     db.ref('users').once('value').then(snap => { const u = []; snap.forEach(c => u.push({ id: c.key, ...c.val() })); setAllUsers(u); });
                 } else alert('Неверный логин или пароль!');
             };
+
             const adminGiveReward = async (tid, reward) => {
                 const snap = await db.ref('users/' + tid).once('value');
                 const ud = snap.val() || {};
@@ -1192,9 +1265,13 @@
                     const nextInv = [...(ud.inventory || []), newItem];
                     await db.ref(`users/${tid}/inventory`).set(nextInv);
                     if (tid === user.id) setInventory(nextInv);
+                } else if (reward.type === 'reset_daily_timer') {
+                    await db.ref(`users/${tid}/dailyCaseLastOpenedAt`).set(0);
+                    if (tid === user.id) setDailyCaseLastOpenedAt(0);
                 }
                 alert('Награда выдана!');
             };
+
             // ═══════════════════════════════════════════════════════════════════════
             // ICE LOBBY SCREEN
             // ═══════════════════════════════════════════════════════════════════════
@@ -1218,6 +1295,7 @@
                         default: return '';
                     }
                 };
+
                 return (
                     <div className="min-h-screen bg-gradient-to-b from-blue-950 via-indigo-950 to-blue-900 pb-4">
                         <div className="max-w-lg mx-auto p-3">
@@ -1373,6 +1451,7 @@
                     </div>
                 );
             }
+
             // ═══════════════════════════════════════════════════════════════════════
             // ADMIN PANEL
             // ═══════════════════════════════════════════════════════════════════════
@@ -1434,6 +1513,7 @@
                                             <button onClick={() => adminGiveReward(user.id, { type: 'case', caseType: 'diamond', count: 10 })} className="bg-blue-600 p-3 rounded text-sm">+10💎</button>
                                             <button onClick={() => adminGiveReward(user.id, { type: 'unlock_collector' })} className="bg-pink-800 p-3 rounded text-sm">🔓 Коллекц.</button>
                                             <button onClick={() => adminGiveReward(user.id, { type: 'daily_box' })} className="bg-cyan-700 p-3 rounded text-sm">+📦 Ящик</button>
+                                            <button onClick={() => adminGiveReward(user.id, { type: 'reset_daily_timer' })} className="bg-emerald-600 p-3 rounded text-sm">🗓️ Ежедневный</button>
                                         </div>
                                     </div>
                                 )}
@@ -1454,14 +1534,17 @@
                     </div>
                 );
             }
+
             // ═══════════════════════════════════════════════════════════════════════
             // MAIN APP
             // ═══════════════════════════════════════════════════════════════════════
+
             // Prepare case lists
             const specialCases = SPECIAL_CASE_IDS.map(id => cases[id]).filter(Boolean);
             const regularCases = Object.values(cases).filter(c => !SPECIAL_CASE_IDS.includes(c.id));
             const regularUnlocked = regularCases.filter(c => !c.locked);
             const regularLocked = regularCases.filter(c => c.locked);
+
             return (
                 <div className="min-h-screen pb-24">
                     <header className="p-4 flex justify-between items-center glass sticky top-0 z-50">
@@ -1472,9 +1555,11 @@
                             {balance.toFixed(2)} ⭐️
                         </button>
                     </header>
+
                     {paymentStatus && (
                         <div className="mx-4 mt-2 p-3 rounded-lg text-center text-xs bg-blue-500/20 border border-blue-500">{paymentStatus}</div>
                     )}
+
                     {/* ── MODALS ── */}
                     {showCollectibleModal && (
                         <div className="fixed inset-0 bg-black/90 z-[60] flex items-center justify-center p-4">
@@ -1560,12 +1645,15 @@
                             </div>
                         </div>
                     )}
+
                     {/* ── MAIN SCREENS ── */}
                     <main className="p-4 max-w-md mx-auto">
+
                         {/* ══ CASES SCREEN ══ */}
                         {currentScreen === 'cases' && (
                             <div>
                                 <h2 className="text-2xl font-bold mb-4 text-center">🎰 Кейсы</h2>
+
                                 {cases.diamond?.freeCount > 0 && (
                                     <div className="bg-green-500/20 border border-green-500 rounded-lg p-3 mb-3 text-center text-sm animate-pulse">🎁 Бесплатных кейсов Алмаз: {cases.diamond.freeCount}</div>
                                 )}
@@ -1575,6 +1663,7 @@
                                 {freeEliteSpin > 0 && (
                                     <div className="bg-green-500/20 border border-green-500 rounded-lg p-3 mb-3 text-center text-sm animate-pulse">🎁 Бесплатных прокрутов Элита: {freeEliteSpin}</div>
                                 )}
+
                                 {/* ── ОСОБЫЕ КЕЙСЫ (первыми всегда) ── */}
                                 <div className="special-header special-section-glow mb-3">
                                     <span className="text-lg font-black tracking-widest text-purple-200">🔮 Особые 🔮</span>
@@ -1590,8 +1679,10 @@
                                         />
                                     ))}
                                 </div>
+
                                 {/* ── РАЗДЕЛИТЕЛЬ ── */}
                                 <div className="divider-line" />
+
                                 {/* ── ОБЫЧНЫЕ КЕЙСЫ ── */}
                                 <div className="grid grid-cols-2 gap-4">
                                     {regularUnlocked.map(c => (
@@ -1615,6 +1706,7 @@
                                 </div>
                             </div>
                         )}
+
                         {/* ══ GAMES SCREEN ══ */}
                         {currentScreen === 'games' && (
                             <div>
@@ -1636,6 +1728,7 @@
                                 </div>
                             </div>
                         )}
+
                         {/* ══ TASKS SCREEN ══ */}
                         {currentScreen === 'tasks' && (
                             <div>
@@ -1666,6 +1759,7 @@
                                 </div>
                             </div>
                         )}
+
                         {/* ══ PROFILE SCREEN ══ */}
                         {currentScreen === 'profile' && (
                             <div>
@@ -1721,6 +1815,7 @@
                             </div>
                         )}
                     </main>
+
                     {/* ── CASE OPEN MODAL ── */}
                     {selectedCase && (
                         <div className="fullscreen-modal flex items-start justify-center p-4 pt-8">
@@ -1778,6 +1873,7 @@
                             </div>
                         </div>
                     )}
+
                     {/* ── TOP UP MODAL ── */}
                     {showTopUp && (
                         <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
@@ -1807,6 +1903,7 @@
                             </div>
                         </div>
                     )}
+
                     {/* ── BOTTOM NAV ── */}
                     <nav className="fixed bottom-0 left-0 right-0 glass border-t border-white/10 p-2">
                         <div className="max-w-md mx-auto flex justify-around">
@@ -1826,6 +1923,7 @@
                 </div>
             );
         }
+
         ReactDOM.createRoot(document.getElementById('root')).render(<App />);
     </script>
 </body>
