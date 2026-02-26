@@ -305,12 +305,12 @@
         const INITIAL_CASES = {
             cardboard: { id: 'cardboard', name: 'Картон', emoji: '📦', price: 3, color: 'from-amber-800 to-amber-900', locked: false, isNew: true, freeCount: 0 },
             coal: { id: 'coal', name: 'Уголёк', emoji: '🪨', price: 22, color: 'from-gray-600 to-gray-800', locked: false, isNew: false, freeCount: 0 },
-            platinum: { id: 'platinum', name: 'Платина', emoji: '💎', price: 85, originalPrice: 100, discountPrice: 85, color: 'from-gray-300 to-gray-500', locked: false, isNew: false, freeCount: 0 },
-            gold: { id: 'gold', name: 'Золотой', emoji: '👑', price: 180, originalPrice: 250, discountPrice: 180, color: 'from-yellow-400 to-yellow-600', locked: false, isNew: false, freeCount: 0 },
+            platinum: { id: 'platinum', name: 'Платина', emoji: '💎', price: 100, originalPrice: 100, discountPrice: 85, color: 'from-gray-300 to-gray-500', locked: false, isNew: false, freeCount: 0 },
+            gold: { id: 'gold', name: 'Золотой', emoji: '👑', price: 250, originalPrice: 250, discountPrice: 180, color: 'from-yellow-400 to-yellow-600', locked: false, isNew: false, freeCount: 0 },
             money: { id: 'money', name: 'Денежный', emoji: '💵', price: 350, color: 'from-green-400 to-green-600', locked: false },
             elite: { id: 'elite', name: 'Элита', emoji: '🎖', price: 500, color: 'from-red-400 to-red-600', locked: false, isNew: false, freeCount: 0 },
             diamond: { id: 'diamond', name: 'Алмаз', emoji: '💎', price: 50, originalPrice: 50, discountPrice: 35, color: 'from-blue-400 to-blue-600', locked: false, isNew: false, freeCount: 0 },
-            winter: { id: 'winter', name: 'Зимний', emoji: '☃️', price: 99, originalPrice: 125, discountPrice: 99, color: 'from-cyan-400 to-blue-500', locked: false, isNew: true, freeCount: 0 },
+            winter: { id: 'winter', name: 'Зимний', emoji: '☃️', price: 125, originalPrice: 125, discountPrice: 99, color: 'from-cyan-400 to-blue-500', locked: false, isNew: true, freeCount: 0 },
             major: { id: 'major', name: 'Мажор', emoji: '🤴', price: 800, color: 'from-purple-500 to-indigo-700', locked: true, isNew: false, freeCount: 0 },
             collector: { id: 'collector', name: 'Коллекционер', emoji: '🎩', price: 650, color: 'from-rose-600 to-pink-800', locked: true, isNew: true, freeCount: 0 },
             man: { id: 'man', name: 'Мужык', emoji: '💪', price: 100, color: 'from-slate-700 to-slate-900', locked: false, isNew: true, freeCount: 0 }
@@ -1164,13 +1164,14 @@
                 });
             };
             
-            const getCasePrice = (ct) => {
-                const c = cases[ct];
-                if (!c) return 0;
-                if (c.freeCount > 0) return 0;
-                if (c.discountPrice && c.discountPrice !== c.price) return c.discountPrice;
-                return c.price;
-            };
+        const getCasePrice = (ct) => {
+            const c = cases[ct];
+            if (!c) return 0;
+            if (c.freeCount > 0) return 0;
+            if (c.discountPrice && c.originalPrice && c.discountPrice < c.originalPrice) return c.discountPrice;
+            if (c.discountPrice && c.discountPrice !== c.price) return c.discountPrice;
+            return c.price;
+        };
             
             const openCase = async (caseType) => {
                 if (caseType === 'collector' && cases.collector?.locked) {
@@ -2028,7 +2029,7 @@
                                             {c.isNew && (
                                                 <span className="absolute -top-2 -right-2 bg-red-500 text-xs px-2 py-1 rounded-full animate-pulse">Новое!</span>
                                             )}
-                                            {(c.id === 'diamond' || c.id === 'coal' || c.id === 'winter' || c.id === 'gold' || c.id === 'platinum') && !c.freeCount && c.discountPrice && c.discountPrice !== c.price && (
+                                                {!c.freeCount && c.discountPrice && c.originalPrice && c.discountPrice < c.originalPrice && (
                                                 <span className="absolute -top-2 -left-2 bg-green-500 text-xs px-2 py-1 rounded-full animate-pulse">Скидка!</span>
                                             )}
                                             <div className={`w-16 h-16 mx-auto rounded-lg ${
