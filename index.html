@@ -211,10 +211,6 @@
             0%, 100% { box-shadow: 0 0 8px rgba(250,204,21,0.4); }
             50% { box-shadow: 0 0 22px rgba(250,204,21,0.9); }
         }
-        @keyframes eventGlow {
-            0%, 100% { box-shadow: 0 0 10px rgba(255,215,0,0.5); }
-            50% { box-shadow: 0 0 35px rgba(255,215,0,0.9), 0 0 60px rgba(255,100,0,0.6); }
-        }
         .regular-section-glow { animation: regularGlow 2.5s ease-in-out infinite; }
         .regular-header {
             background: linear-gradient(135deg, rgba(161,98,7,0.35), rgba(234,179,8,0.25), rgba(161,98,7,0.35));
@@ -223,10 +219,6 @@
             padding: 10px 16px;
             text-align: center;
             margin-bottom: 12px;
-        }
-        .event-glow { animation: eventGlow 2s ease-in-out infinite; }
-        .event-countdown {
-            text-shadow: 0 0 10px rgba(255,215,0,0.8), 0 0 20px rgba(255,100,0,0.6), 0 0 30px rgba(255,50,0,0.4);
         }
     </style>
 </head>
@@ -283,12 +275,12 @@
                 { id: 'diamond_pro', name: '💎 PRO', displayChance: '0.5%', realChance: 0.5, type: 'collectible', emoji: '💎' }
             ],
             coal: [
-                { id: 'stars_5', name: '5 ⭐️', displayChance: '60.5%', realChance: 60.5, type: 'stars', value: 5, emoji: '⭐️' },
+                { id: 'stars_5', name: '5 ⭐️', displayChance: '60%', realChance: 60, type: 'stars', value: 5, emoji: '⭐️' },
                 { id: 'stars_12', name: '12 ⭐️', displayChance: '18%', realChance: 18, type: 'stars', value: 12, emoji: '⭐️' },
                 { id: 'pickaxe', name: 'Кирка ⛏️', displayChance: '10%', realChance: 10, type: 'item', sellPrice: 22, emoji: '⛏️' },
                 { id: 'stars_30', name: '30 ⭐️', displayChance: '6%', realChance: 6, type: 'stars', value: 30, emoji: '⭐️' },
                 { id: 'material', name: 'Материал 🧱', displayChance: '5%', realChance: 5, type: 'item', sellPrice: 80, emoji: '🧱' },
-                { id: 'brownie_pro', name: 'Happy Brownie PRO 💩', displayChance: '0.5%', realChance: 0.001, type: 'collectible', emoji: '💩' }
+                { id: 'brownie_pro', name: 'Happy Brownie PRO 💩', displayChance: '1%', realChance: 1, type: 'collectible', emoji: '💩' }
             ],
             platinum: [
                 { id: 'stars_35', name: '35 ⭐️', displayChance: '55%', realChance: 55, type: 'stars', value: 35, emoji: '⭐️' },
@@ -313,11 +305,11 @@
                 { id: 'cigar', name: 'Snoop Cigar 🚬', displayChance: '1%', realChance: 1, type: 'collectible', emoji: '🚬' }
             ],
             elite: [
-                { id: 'stars_200', name: '200 ⭐️', displayChance: '65%', realChance: 65, type: 'stars', value: 200, emoji: '⭐️' },
-                { id: 'stars_275', name: '275 ⭐️', displayChance: '25%', realChance: 25, type: 'stars', value: 275, emoji: '⭐️' },
-                { id: 'champagne', name: '🍾', displayChance: '8.5%', realChance: 8.5, type: 'collectible', emoji: '🍾' },
-                { id: 'socks', name: 'Носки 🧦', displayChance: '1%', realChance: 1, type: 'collectible', emoji: '🧦' },
-                { id: 'lightsword', name: 'Light Sword ⚔️', displayChance: '0.5%', realChance: 0.5, type: 'collectible', emoji: '⚔️' }
+                { id: 'stars_200', name: '200 ⭐️', displayChance: '75%', realChance: 75, type: 'stars', value: 200, emoji: '⭐️' },
+                { id: 'stars_275', name: '275 ⭐️', displayChance: '5%', realChance: 5, type: 'stars', value: 275, emoji: '⭐️' },
+                { id: 'champagne', name: '🍾', displayChance: '17%', realChance: 17, type: 'collectible', emoji: '🍾' },
+                { id: 'socks', name: 'Носки 🧦', displayChance: '2%', realChance: 2, type: 'collectible', emoji: '🧦' },
+                { id: 'lightsword', name: 'Light Sword ⚔️', displayChance: '1%', realChance: 1, type: 'collectible', emoji: '⚔️' }
             ],
             star: [
                 { id: 'star_1', name: '1 ⭐️', displayChance: '10.5%', realChance: 10.5, type: 'stars', value: 1, emoji: '⭐️' },
@@ -401,8 +393,8 @@
             man:       { id: 'man',       name: 'Мужык',       emoji: '💪', price: 100, color: 'from-slate-700 to-slate-900',    locked: false, isNew: true,  freeCount: 0, isSpecial: true },
             collector: { id: 'collector', name: 'Коллекционер',emoji: '🎩', price: 650, color: 'from-rose-600 to-pink-800',      locked: true,  isNew: true,  freeCount: 0, isSpecial: true },
             cardboard: { id: 'cardboard', name: 'Картон',      emoji: '📦', price: 3,   color: 'from-amber-800 to-amber-900',    locked: false, isNew: true,  freeCount: 0 },
-            coal:      { id: 'coal',      name: 'Уголёк',      emoji: '🪨', price: 26,  color: 'from-gray-600 to-gray-800',      locked: false, isNew: false, freeCount: 0 },
-            platinum:  { id: 'platinum',  name: 'Платина',     emoji: '💎', price: 100, color: 'from-gray-300 to-gray-500',       locked: false, isNew: false, freeCount: 0 },
+            coal:      { id: 'coal',      name: 'Уголёк',      emoji: '🪨', price: 22,  color: 'from-gray-600 to-gray-800',      locked: false, isNew: false, freeCount: 0 },
+            platinum:  { id: 'platinum',  name: 'Платина',     emoji: '💎', price: 100, originalPrice: 100, discountPrice: 85, color: 'from-gray-300 to-gray-500',       locked: false, isNew: false, freeCount: 0 },
             gold:      { id: 'gold',      name: 'Золотой',     emoji: '👑', price: 250, originalPrice: 250, discountPrice: 180, color: 'from-yellow-400 to-yellow-600',   locked: false, isNew: false, freeCount: 0 },
             money:     { id: 'money',     name: 'Денежный',    emoji: '💵', price: 350, color: 'from-green-400 to-green-600',    locked: false, isNew: false, freeCount: 0 },
             elite:     { id: 'elite',     name: 'Элита',       emoji: '🎖', price: 500, color: 'from-red-400 to-red-600',        locked: false, isNew: false, freeCount: 0 },
@@ -591,7 +583,6 @@
             const [freeEliteSpin, setFreeEliteSpin] = useState(0);
             const [dailyCaseLastOpenedAt, setDailyCaseLastOpenedAt] = useState(0);
             const [nowTs, setNowTs] = useState(Date.now());
-            const [eventCountdown, setEventCountdown] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
             // Ice arena
             const [currentGame, setCurrentGame] = useState(null);
@@ -615,22 +606,7 @@
 
             // ─── tick ───
             useEffect(() => {
-                const iv = setInterval(() => {
-                    setNowTs(Date.now());
-                    // Event countdown to 1.03.26 00:00:00
-                    const eventDate = new Date('2026-03-01T00:00:00').getTime();
-                    const now = Date.now();
-                    const diff = eventDate - now;
-                    if (diff > 0) {
-                        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-                        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-                        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-                        setEventCountdown({ days, hours, minutes, seconds });
-                    } else {
-                        setEventCountdown({ days: 0, hours: 0, minutes: 0, seconds: 0 });
-                    }
-                }, 1000);
+                const iv = setInterval(() => setNowTs(Date.now()), 1000);
                 return () => clearInterval(iv);
             }, []);
 
@@ -1747,57 +1723,6 @@
                             </div>
                         )}
 
-                        {/* ══ EVENTS SCREEN ══ */}
-                        {currentScreen === 'events' && (
-                            <div>
-                                <h2 className="text-2xl font-bold mb-4 text-center">🏛️ Ивенты</h2>
-                                <div className="glass rounded-2xl p-5 border border-yellow-500/40 event-glow">
-                                    <div className="rounded-xl overflow-hidden mb-4 border-2 border-yellow-500/50">
-                                        <img 
-                                            src="https://i.ibb.co/6y8HqKp1/olympus-event.jpg" 
-                                            alt="Олимп" 
-                                            className="w-full h-48 object-cover"
-                                            onError={(e) => {
-                                                e.target.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MDAgNjAwIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImEiIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMCUiIHkyPSIxMDAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjMWUzYzcyIi8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjNGE5MGU2Ii8+PC9saW5lYXJHcmFkaWVudD48bGluZWFyR3JhZGllbnQgaWQ9ImIiIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNmZmQ3MDAiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNmZmE1MDAiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iODAwIiBoZWlnaHQ9IjYwMCIgZmlsbD0idXJsKCNhKSIvPjxwYXRoIGQ9Ik00MDAgMTAwIEw1MDAgMjUwIEwzNTAgMjUwIFoiIGZpbGw9InVybCgjYikiIG9wYWNpdHk9IjAuOCIvPjxwYXRoIGQ9Ik0yNTAgMzAwIEw0MDAgMTUwIEw1NTAgMzAwIEw1NTAgNTAwIEwyNTAgNTAwIFoiIGZpbGw9InVybCgjYikiIG9wYWNpdHk9IjAuNiIvPjxjaXJjbGUgY3g9IjQwMCIgY3k9IjgwIiByPSI2MCIgZmlsbD0iI2ZmZDcwMCIgb3BhY2l0eT0iMC40Ii8+PHRleHQgeD0iNDAwIiB5PSI1NjAiIGZvbnQtZmFtaWx5PSJhcmlhbCIgZm9udC1zaXplPSIyNCIgZmlsbD0iI2ZmZiIgdGV4dC1hbmNob3I9Im1pZGRsZSI+T2x5bXB1czwvdGV4dD48L3N2Zz4=';
-                                            }}
-                                        />
-                                    </div>
-                                    <div className="text-center mb-4">
-                                        <h3 className="text-xl font-bold text-yellow-400 mb-2 event-countdown">Доберитесь до ОЛИМПА</h3>
-                                        <div className="text-2xl font-bold text-yellow-300 event-countdown mb-2">
-                                            {eventCountdown.days}д {eventCountdown.hours}ч {eventCountdown.minutes}м {eventCountdown.seconds}с
-                                        </div>
-                                        <p className="text-gray-300 text-sm">1.03.26</p>
-                                    </div>
-                                    <div className="text-center mb-4">
-                                        <p className="text-lg font-bold text-cyan-300 mb-1">⚡ Событие скоро начнется!</p>
-                                        <p className="text-gray-400 text-sm">Готовься к восхождению ⚡</p>
-                                    </div>
-                                    <div className="border-t border-yellow-500/30 pt-4">
-                                        <h4 className="text-center font-bold text-yellow-400 mb-3">Что вас ждет?</h4>
-                                        <div className="grid grid-cols-2 gap-3">
-                                            <div className="bg-gradient-to-br from-purple-600/40 to-pink-600/40 rounded-xl p-3 border border-purple-400/30">
-                                                <div className="text-2xl mb-1">🎁</div>
-                                                <p className="text-xs font-bold text-purple-200">Огромные розыгрыши</p>
-                                            </div>
-                                            <div className="bg-gradient-to-br from-blue-600/40 to-cyan-600/40 rounded-xl p-3 border border-blue-400/30">
-                                                <div className="text-2xl mb-1">🔮</div>
-                                                <p className="text-xs font-bold text-blue-200">Секретный кейс!</p>
-                                            </div>
-                                            <div className="bg-gradient-to-br from-green-600/40 to-emerald-600/40 rounded-xl p-3 border border-green-400/30">
-                                                <div className="text-2xl mb-1">🎉</div>
-                                                <p className="text-xs font-bold text-green-200">Новые подарки!</p>
-                                            </div>
-                                            <div className="bg-gradient-to-br from-orange-600/40 to-red-600/40 rounded-xl p-3 border border-orange-400/30">
-                                                <div className="text-2xl mb-1">🏪</div>
-                                                <p className="text-xs font-bold text-orange-200">Эксклюзивный магазин!</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
                         {/* ══ GAMES SCREEN ══ */}
                         {currentScreen === 'games' && (
                             <div>
@@ -2008,7 +1933,6 @@
                             {[
                                 { id: 'tasks', emoji: '📋', label: 'Задания' },
                                 { id: 'cases', emoji: '🎁', label: 'Кейсы' },
-                                { id: 'events', emoji: '🏛️', label: 'Ивенты' },
                                 { id: 'games', emoji: '🎮', label: 'Игры' },
                                 { id: 'profile', emoji: '👤', label: 'Профиль' }
                             ].map(s => (
