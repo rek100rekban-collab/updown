@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Step By Step Game</title>
+    <title>Step By Step Game - Olympus Edition</title>
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -211,10 +211,6 @@
             0%, 100% { box-shadow: 0 0 8px rgba(250,204,21,0.4); }
             50% { box-shadow: 0 0 22px rgba(250,204,21,0.9); }
         }
-        @keyframes eventGlow {
-            0%, 100% { box-shadow: 0 0 10px rgba(255,215,0,0.5); }
-            50% { box-shadow: 0 0 35px rgba(255,215,0,0.9), 0 0 60px rgba(255,100,0,0.6); }
-        }
         .regular-section-glow { animation: regularGlow 2.5s ease-in-out infinite; }
         .regular-header {
             background: linear-gradient(135deg, rgba(161,98,7,0.35), rgba(234,179,8,0.25), rgba(161,98,7,0.35));
@@ -223,10 +219,6 @@
             padding: 10px 16px;
             text-align: center;
             margin-bottom: 12px;
-        }
-        .event-glow { animation: eventGlow 2s ease-in-out infinite; }
-        .event-countdown {
-            text-shadow: 0 0 10px rgba(255,215,0,0.8), 0 0 20px rgba(255,100,0,0.6), 0 0 30px rgba(255,50,0,0.4);
         }
     </style>
 </head>
@@ -527,10 +519,11 @@
                         {renderPrice()}
                     </p>
                     <button
-                        onClick={() => onOpen(c, !dailyAvailable)}
-                        className="w-full py-2 rounded-lg font-bold text-sm bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 transition"
+                        onClick={() => onOpen(c)}
+                        disabled={c.id === 'daily' && !dailyAvailable}
+                        className="w-full py-2 rounded-lg font-bold text-sm bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        {c.id === 'daily' && !dailyAvailable ? '👁 Просмотр' : 'Открыть'}
+                        Открыть
                     </button>
                 </div>
             );
@@ -590,7 +583,6 @@
             const [freeEliteSpin, setFreeEliteSpin] = useState(0);
             const [dailyCaseLastOpenedAt, setDailyCaseLastOpenedAt] = useState(0);
             const [nowTs, setNowTs] = useState(Date.now());
-            const [eventCountdown, setEventCountdown] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
             // Ice arena
             const [currentGame, setCurrentGame] = useState(null);
@@ -614,22 +606,7 @@
 
             // ─── tick ───
             useEffect(() => {
-                const iv = setInterval(() => {
-                    setNowTs(Date.now());
-                    // Event countdown to 1.03.26 00:00:00
-                    const eventDate = new Date('2026-03-01T00:00:00').getTime();
-                    const now = Date.now();
-                    const diff = eventDate - now;
-                    if (diff > 0) {
-                        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-                        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-                        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-                        setEventCountdown({ days, hours, minutes, seconds });
-                    } else {
-                        setEventCountdown({ days: 0, hours: 0, minutes: 0, seconds: 0 });
-                    }
-                }, 1000);
+                const iv = setInterval(() => setNowTs(Date.now()), 1000);
                 return () => clearInterval(iv);
             }, []);
 
@@ -1043,12 +1020,11 @@
             // ─── CASE LOGIC ───
             const getCasePrice = (ct) => getCasePriceHelper(cases[ct]);
 
-            const openCase = async (caseOrId, viewOnly = false) => {
+            const openCase = async (caseOrId) => {
                 const caseType = typeof caseOrId === 'string' ? caseOrId : caseOrId.id;
 
                 if (caseType === 'collector' && cases.collector?.locked) { alert('Кейс «Коллекционер» заблокирован!'); return; }
-                // Daily case can be opened in view-only mode even during cooldown
-                if (caseType === 'daily' && !isDailyAvailable() && !viewOnly) { alert('Ежедневный кейс ещё не готов!'); return; }
+                if (caseType === 'daily' && !isDailyAvailable()) { alert('Ежедневный кейс ещё не готов!'); return; }
 
                 const price = getCasePrice(caseType);
                 const isFree = cases[caseType]?.freeCount > 0;
@@ -1060,13 +1036,6 @@
                 let newBal = balance;
                 if (caseType === 'daily') {
                     // free daily
-                    if (viewOnly) {
-                        // View-only mode: just show rewards, don't spin or consume
-                        setIsSpinning(false); setSpinResult(null); setFakeItems([]); setRouletteOffset(0);
-                        setSelectedCase({ ...cases[caseType], id: caseType });
-                        setRouletteKey(prev => prev + 1);
-                        return;
-                    }
                 } else if (isFree) {
                     const nf = cases[caseType].freeCount - 1;
                     setCases(prev => ({ ...prev, [caseType]: { ...prev[caseType], freeCount: nf } }));
@@ -1557,18 +1526,7 @@
                                             <button onClick={() => adminGiveReward(user.id, { type: 'case', caseType: 'diamond', count: 10 })} className="bg-blue-600 p-3 rounded text-sm">+10💎</button>
                                             <button onClick={() => adminGiveReward(user.id, { type: 'unlock_collector' })} className="bg-pink-800 p-3 rounded text-sm">🔓 Коллекц.</button>
                                             <button onClick={() => adminGiveReward(user.id, { type: 'daily_box' })} className="bg-cyan-700 p-3 rounded text-sm">+📦 Ящик</button>
-                                            <button onClick={() => adminGiveReward(user.id, { type: 'reset_daily_timer' })} className="bg-emerald-600 p-3 rounded text-sm">🗓️ Сброс таймера</button>
-                                        </div>
-                                        <div className="mt-4 pt-4 border-t border-gray-600">
-                                            <h4 className="text-sm font-bold text-gray-300 mb-2">Начислить кейс Ежедневный 🗓️</h4>
-                                            <p className="text-xs text-gray-400 mb-2">Кейс становится бесплатным, таймер исчезает</p>
-                                            <button onClick={async () => {
-                                                await db.ref(`users/${user.id}/dailyCaseLastOpenedAt`).set(0);
-                                                setDailyCaseLastOpenedAt(0);
-                                                alert('✅ Ежедневный кейс теперь доступен!');
-                                            }} className="w-full bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 py-3 rounded-xl font-bold text-sm transition">
-                                                🗓️ Сделать ежедневный кейс доступным
-                                            </button>
+                                            <button onClick={() => adminGiveReward(user.id, { type: 'reset_daily_timer' })} className="bg-emerald-600 p-3 rounded text-sm">🗓️ Ежедневный</button>
                                         </div>
                                     </div>
                                 )}
@@ -1765,57 +1723,6 @@
                             </div>
                         )}
 
-                        {/* ══ EVENTS SCREEN ══ */}
-                        {currentScreen === 'events' && (
-                            <div>
-                                <h2 className="text-2xl font-bold mb-4 text-center">🏛️ Ивенты</h2>
-                                <div className="glass rounded-2xl p-5 border border-yellow-500/40 event-glow">
-                                    <div className="rounded-xl overflow-hidden mb-4 border-2 border-yellow-500/50">
-                                        <img 
-                                            src="https://i.imgur.com/8Q3kZlP.jpeg" 
-                                            alt="Олимп" 
-                                            className="w-full h-48 object-cover"
-                                            onError={(e) => {
-                                                e.target.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MDAgNjAwIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImEiIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMCUiIHkyPSIxMDAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjMWUzYzcyIi8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjNGE5MGU2Ii8+PC9saW5lYXJHcmFkaWVudD48bGluZWFyR3JhZGllbnQgaWQ9ImIiIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNmZmQ3MDAiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNmZmE1MDAiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iODAwIiBoZWlnaHQ9IjYwMCIgZmlsbD0idXJsKCNhKSIvPjxwYXRoIGQ9Ik00MDAgMTAwIEw1MDAgMjUwIEwzNTAgMjUwIFoiIGZpbGw9InVybCgjYikiIG9wYWNpdHk9IjAuOCIvPjxwYXRoIGQ9Ik0yNTAgMzAwIEw0MDAgMTUwIEw1NTAgMzAwIEw1NTAgNTAwIEwyNTAgNTAwIFoiIGZpbGw9InVybCgjYikiIG9wYWNpdHk9IjAuNiIvPjxjaXJjbGUgY3g9IjQwMCIgY3k9IjgwIiByPSI2MCIgZmlsbD0iI2ZmZDcwMCIgb3BhY2l0eT0iMC40Ii8+PHRleHQgeD0iNDAwIiB5PSI1NjAiIGZvbnQtZmFtaWx5PSJhcmlhbCIgZm9udC1zaXplPSIyNCIgZmlsbD0iI2ZmZiIgdGV4dC1hbmNob3I9Im1pZGRsZSI+T2x5bXB1czwvdGV4dD48L3N2Zz4=';
-                                            }}
-                                        />
-                                    </div>
-                                    <div className="text-center mb-4">
-                                        <h3 className="text-xl font-bold text-yellow-400 mb-2 event-countdown">Доберитесь до ОЛИМПА</h3>
-                                        <div className="text-2xl font-bold text-yellow-300 event-countdown mb-2">
-                                            {eventCountdown.days}д {eventCountdown.hours}ч {eventCountdown.minutes}м {eventCountdown.seconds}с
-                                        </div>
-                                        <p className="text-gray-300 text-sm">1.03.26</p>
-                                    </div>
-                                    <div className="text-center mb-4">
-                                        <p className="text-lg font-bold text-cyan-300 mb-1">⚡ Событие скоро начнется!</p>
-                                        <p className="text-gray-400 text-sm">Готовься к восхождению ⚡</p>
-                                    </div>
-                                    <div className="border-t border-yellow-500/30 pt-4">
-                                        <h4 className="text-center font-bold text-yellow-400 mb-3">Что вас ждет?</h4>
-                                        <div className="grid grid-cols-2 gap-3">
-                                            <div className="bg-gradient-to-br from-purple-600/40 to-pink-600/40 rounded-xl p-3 border border-purple-400/30">
-                                                <div className="text-2xl mb-1">🎁</div>
-                                                <p className="text-xs font-bold text-purple-200">Огромные розыгрыши</p>
-                                            </div>
-                                            <div className="bg-gradient-to-br from-blue-600/40 to-cyan-600/40 rounded-xl p-3 border border-blue-400/30">
-                                                <div className="text-2xl mb-1">🔮</div>
-                                                <p className="text-xs font-bold text-blue-200">Секретный кейс!</p>
-                                            </div>
-                                            <div className="bg-gradient-to-br from-green-600/40 to-emerald-600/40 rounded-xl p-3 border border-green-400/30">
-                                                <div className="text-2xl mb-1">🎉</div>
-                                                <p className="text-xs font-bold text-green-200">Новые подарки!</p>
-                                            </div>
-                                            <div className="bg-gradient-to-br from-orange-600/40 to-red-600/40 rounded-xl p-3 border border-orange-400/30">
-                                                <div className="text-2xl mb-1">🏪</div>
-                                                <p className="text-xs font-bold text-orange-200">Эксклюзивный магазин!</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
                         {/* ══ GAMES SCREEN ══ */}
                         {currentScreen === 'games' && (
                             <div>
@@ -1974,26 +1881,17 @@
                                         <button onClick={() => { setSelectedCase(null); setSpinResult(null); setFakeItems([]); }} className="w-full bg-gray-600 hover:bg-gray-500 py-2.5 rounded-xl font-bold transition text-sm">К кейсам</button>
                                     </div>
                                 ) : (
-                                    <>
-                                        {selectedCase.id === 'daily' && getDailyRemainMs() > 0 && (
-                                            <div className="text-center mb-4 p-3 bg-cyan-900/30 rounded-xl border border-cyan-500/30">
-                                                <p className="text-cyan-300 font-bold text-sm mb-1">⏳ Кейс недоступен</p>
-                                                <p className="text-gray-400 text-xs">До следующего получения: <span className="text-white font-bold">{formatTimer(getDailyRemainMs())}</span></p>
-                                                <p className="text-gray-500 text-xs mt-2">Вы можете посмотреть награды, но не можете крутить</p>
-                                            </div>
-                                        )}
-                                        <button
-                                            onClick={() => openCase(selectedCase.id, selectedCase.id === 'daily' && getDailyRemainMs() > 0)}
-                                            disabled={isSpinning || (selectedCase.id !== 'daily' && getCasePrice(selectedCase.id) > 0 && balance < getCasePrice(selectedCase.id))}
-                                            className="w-full bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 py-4 rounded-xl font-bold text-lg disabled:opacity-50 shadow-lg transition"
-                                        >
-                                            {isSpinning
-                                                ? '🌀 Крутим...'
-                                                : selectedCase.id === 'daily' && getDailyRemainMs() > 0
-                                                    ? '👁 Только просмотр наград'
-                                                    : `Открыть${getCasePrice(selectedCase.id) > 0 ? ` за ${getCasePrice(selectedCase.id)}⭐️` : ' Бесплатно'}`}
-                                        </button>
-                                    </>
+                                    <button
+                                        onClick={() => openCase(selectedCase.id)}
+                                        disabled={isSpinning || (selectedCase.id === 'daily' && getDailyRemainMs() > 0)}
+                                        className="w-full bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 py-4 rounded-xl font-bold text-lg disabled:opacity-50 shadow-lg transition"
+                                    >
+                                        {isSpinning
+                                            ? '🌀 Крутим...'
+                                            : selectedCase.id === 'daily' && getDailyRemainMs() > 0
+                                                ? `⏳ ${formatTimer(getDailyRemainMs())}`
+                                                : `Открыть${getCasePrice(selectedCase.id) > 0 ? ` за ${getCasePrice(selectedCase.id)}⭐️` : ' Бесплатно'}`}
+                                    </button>
                                 )}
                             </div>
                         </div>
@@ -2035,7 +1933,6 @@
                             {[
                                 { id: 'tasks', emoji: '📋', label: 'Задания' },
                                 { id: 'cases', emoji: '🎁', label: 'Кейсы' },
-                                { id: 'events', emoji: '🏛️', label: 'Ивенты' },
                                 { id: 'games', emoji: '🎮', label: 'Игры' },
                                 { id: 'profile', emoji: '👤', label: 'Профиль' }
                             ].map(s => (
