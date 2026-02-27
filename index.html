@@ -203,9 +203,22 @@
             border-color: rgba(150,150,150,0.3) !important;
         }
         .divider-line {
-            height: 1px;
-            background: linear-gradient(to right, transparent, rgba(168,85,247,0.6), transparent);
-            margin: 16px 0 12px 0;
+            height: 2px;
+            background: linear-gradient(to right, transparent, rgba(168,85,247,0.8), rgba(250,204,21,0.8), transparent);
+            margin: 20px 0 16px 0;
+        }
+        @keyframes regularGlow {
+            0%, 100% { box-shadow: 0 0 8px rgba(250,204,21,0.4); }
+            50% { box-shadow: 0 0 22px rgba(250,204,21,0.9); }
+        }
+        .regular-section-glow { animation: regularGlow 2.5s ease-in-out infinite; }
+        .regular-header {
+            background: linear-gradient(135deg, rgba(161,98,7,0.35), rgba(234,179,8,0.25), rgba(161,98,7,0.35));
+            border: 1px solid rgba(250,204,21,0.55);
+            border-radius: 16px;
+            padding: 10px 16px;
+            text-align: center;
+            margin-bottom: 12px;
         }
     </style>
 </head>
@@ -1680,8 +1693,11 @@
                                     ))}
                                 </div>
 
-                                {/* ── РАЗДЕЛИТЕЛЬ ── */}
+                                {/* ── РАЗДЕЛИТЕЛЬ + ОБЫЧНЫЕ КЕЙСЫ ЗАГОЛОВОК ── */}
                                 <div className="divider-line" />
+                                <div className="regular-header regular-section-glow mb-3">
+                                    <span className="text-lg font-black tracking-widest text-yellow-100">🎁 Обычные 🎁</span>
+                                </div>
 
                                 {/* ── ОБЫЧНЫЕ КЕЙСЫ ── */}
                                 <div className="grid grid-cols-2 gap-4">
