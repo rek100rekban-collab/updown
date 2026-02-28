@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Step By Step Game</title>
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <script src="https://telegram.org/js/telegram-web-app.js "></script>
-    <script src="https://cdn.tailwindcss.com "></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js "></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js "></script>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -25,14 +25,12 @@
         }
     </script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&display=swap');
-        
         @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
         @keyframes pulseGlow { 0%, 100% { box-shadow: 0 0 10px rgba(0,210,255,0.3); } 50% { box-shadow: 0 0 30px rgba(0,210,255,0.8); } }
         @keyframes readyPulse { 0%, 100% { box-shadow: 0 0 10px rgba(0,255,100,0.3); } 50% { box-shadow: 0 0 30px rgba(0,255,100,0.8); } }
-        @keyframes spinBall { 0% { transform: translate(-50%, -50%) rotate(0deg); } 100% { transform: translate(-50%, -50%) rotate(360deg); } }
         .pulse-glow { animation: pulseGlow 2s ease-in-out infinite; }
         .ready-glow { animation: readyPulse 1.5s ease-in-out infinite; }
+        
         .roulette-container { position: relative; width: 100%; height: 160px; overflow: hidden; background: rgba(0,0,0,0.4); border-radius: 16px; border: 2px solid rgba(255,255,255,0.1); margin: 20px 0; }
         .roulette-inner { display: flex; position: absolute; left: 0; top: 20px; transition: transform 6.5s cubic-bezier(0.1, 0, 0.1, 1); will-change: transform; }
         .roulette-item { width: 120px; height: 120px; flex-shrink: 0; margin: 0 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05)); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); }
@@ -41,69 +39,31 @@
         .roulette-pointer { position: absolute; left: 50%; top: 0; bottom: 0; width: 4px; background: #ff4757; z-index: 20; transform: translateX(-50%); box-shadow: 0 0 20px #ff4757; }
         .roulette-pointer::before { content: ''; position: absolute; top: -5px; left: 50%; transform: translateX(-50%); border-left: 10px solid transparent; border-right: 10px solid transparent; border-top: 15px solid #ff4757; }
         .roulette-pointer::after { content: ''; position: absolute; bottom: -5px; left: 50%; transform: translateX(-50%); border-left: 10px solid transparent; border-right: 10px solid transparent; border-bottom: 15px solid #ff4757; }
+        
         .glass { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); }
-        .line-through { text-decoration: line-through; opacity: 0.6; color: #ef4444; text-decoration-color: #ef4444; text-decoration-thickness: 2px; }
+        .line-through { text-decoration: line-through; opacity: 0.6; color: #ef4444; text-decoration-thickness: 2px; }
         .fullscreen-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 100; overflow-y: auto; }
         
-        /* ICE ARENA STYLES */
-        .ice-circle { 
-            width: 300px; 
-            height: 300px; 
-            border-radius: 50%; 
-            border: 4px solid rgba(0,210,255,0.6); 
-            position: relative; 
-            overflow: hidden; 
-            background: rgba(0, 40, 80, 0.6); 
-            box-shadow: 0 0 40px rgba(0,210,255,0.4), inset 0 0 60px rgba(0,0,0,0.5); 
-        }
-        .ice-ball { 
-            position: absolute; 
-            width: 32px; 
-            height: 32px; 
-            background: radial-gradient(circle at 30% 30%, #ffffff, #00d2ff, #0066ff); 
-            border-radius: 50%; 
-            box-shadow: 0 0 15px rgba(0,210,255,0.9), 0 0 30px rgba(0,150,255,0.5); 
-            z-index: 20; 
-            transform: translate(-50%, -50%); 
-            border: 2px solid rgba(255,255,255,0.8); 
-            transition: left 0.05s linear, top 0.05s linear; 
-        }
-        .ice-ball.spinning {
-            animation: spinBall 0.5s linear infinite;
-        }
-        .player-avatar { 
-            position: absolute; 
-            width: 36px; 
-            height: 36px; 
-            border-radius: 50%; 
-            border: 3px solid white; 
-            overflow: hidden; 
-            transform: translate(-50%, -50%); 
-            z-index: 10; 
-            box-shadow: 0 0 10px rgba(0,0,0,0.5); 
-            transition: all 0.3s ease;
-        }
-        .player-zone {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            clip-path: polygon(50% 50%, 50% 0%, 100% 0%, 100% 100%, 0% 100%, 0% 0%, 50% 0%);
-            opacity: 0.3;
-            transition: all 0.5s ease;
-        }
-        .case-cardboard { background: linear-gradient(135deg, #8B4513 0%, #D2691E 50%, #8B4513 100%); border: 3px solid #A0522D; }
-        .case-collector { background: linear-gradient(135deg, #DC143C 0%, #FF1493 50%, #8B008B 100%); border: 3px solid #FFD700; }
+        /* ICE ARENA CSS */
+        .ice-circle { width: 300px; height: 300px; border-radius: 50%; border: 4px solid rgba(0,210,255,0.6); position: relative; overflow: hidden; background: rgba(0, 40, 80, 0.6); box-shadow: 0 0 40px rgba(0,210,255,0.4), inset 0 0 60px rgba(0,0,0,0.5); }
+        .ice-ball { position: absolute; width: 32px; height: 32px; background: radial-gradient(circle at 30% 30%, #ffffff, #00d2ff, #0066ff); border-radius: 50%; box-shadow: 0 0 15px rgba(0,210,255,0.9), 0 0 30px rgba(0,150,255,0.5); z-index: 20; transform: translate(-50%, -50%); border: 2px solid rgba(255,255,255,0.8); transition: left 0.025s linear, top 0.025s linear; }
+        .player-avatar { position: absolute; width: 36px; height: 36px; border-radius: 50%; border: 3px solid white; overflow: hidden; transform: translate(-50%, -50%); z-index: 10; box-shadow: 0 0 10px rgba(0,0,0,0.5); }
         .player-row-ready { border-color: rgba(0,255,100,0.5) !important; background: rgba(0,255,100,0.1) !important; }
         .player-row-waiting { border-color: rgba(255,200,0,0.4) !important; background: rgba(255,200,0,0.05) !important; }
         .player-row-presence { border-color: rgba(150,150,150,0.3) !important; }
+
+        .case-cardboard { background: linear-gradient(135deg, #8B4513 0%, #D2691E 50%, #8B4513 100%); border: 3px solid #A0522D; }
+        .case-collector { background: linear-gradient(135deg, #DC143C 0%, #FF1493 50%, #8B008B 100%); border: 3px solid #FFD700; }
+        
+        /* TIMERS & GLOWS */
         @keyframes goldGlow { 0%, 100% { text-shadow: 0 0 5px #facc15, 0 0 10px #facc15; } 50% { text-shadow: 0 0 20px #facc15, 0 0 30px #eab308; } }
         @keyframes purpleGlow { 0%, 100% { text-shadow: 0 0 5px #a855f7, 0 0 10px #a855f7; } 50% { text-shadow: 0 0 20px #a855f7, 0 0 30px #9333ea; } }
         @keyframes greenGlow { 0%, 100% { box-shadow: 0 0 5px #22c55e, 0 0 10px #22c55e; } 50% { box-shadow: 0 0 15px #22c55e, 0 0 25px #16a34a; } }
         @keyframes yellowGlow { 0%, 100% { text-shadow: 0 0 5px #fbbf24, 0 0 10px #fbbf24; } 50% { text-shadow: 0 0 20px #fbbf24, 0 0 30px #f59e0b; } }
+        
         .special-header { animation: purpleGlow 3s infinite; }
         .ordinary-header { animation: goldGlow 3s infinite; }
+        
         .daily-timer { 
             color: #4ade80; 
             font-family: monospace; 
@@ -117,171 +77,23 @@
             display: inline-block;
         }
         .event-timer { color: #ffffff; font-family: monospace; text-shadow: 0 0 10px #ffffff, 0 0 20px #ffffff; }
-        .cases-timer { color: #fbbf24; font-family: monospace; text-shadow: 0 0 5px #fbbf24, 0 0 10px #fbbf24; animation: yellowGlow 2s infinite; }
         .case-countdown-overlay { position: absolute; top: 0; left: 0; right: 0; background: rgba(0,0,0,0.7); padding: 4px; font-size: 10px; color: #fbbf24; text-align: center; font-family: monospace; z-index: 10; text-shadow: 0 0 5px #fbbf24; }
-        .olympus-font { font-family: 'Cinzel', serif; font-weight: 600; letter-spacing: 1px; }
+        .olympus-font { font-family: 'Georgia', serif; font-weight: bold; }
         .events-tab-active { background: linear-gradient(135deg, rgba(251,191,36,0.3), rgba(245,158,11,0.2)); border: 2px solid rgba(251,191,36,0.6); box-shadow: 0 0 20px rgba(251,191,36,0.4); }
-        
-        /* Greek Style for Olympus Event */
-        .olympus-container {
-            background: linear-gradient(180deg, #0f172a 0%, #1e3a5f 50%, #0f172a 100%);
-            border: 3px solid #d4af37;
-            box-shadow: 0 0 40px rgba(212, 175, 55, 0.3), inset 0 0 60px rgba(212, 175, 55, 0.1);
-            position: relative;
-            overflow: hidden;
-        }
-        .olympus-container::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, transparent, #d4af37, #fff, #d4af37, transparent);
-            animation: shimmer 3s infinite;
-        }
-        @keyframes shimmer {
-            0%, 100% { opacity: 0.5; }
-            50% { opacity: 1; }
-        }
-        .olympus-title {
-            font-family: 'Cinzel', serif;
-            font-weight: 900;
-            font-size: 2rem;
-            background: linear-gradient(180deg, #fff 0%, #d4af37 50%, #b8860b 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            text-shadow: 0 0 30px rgba(212, 175, 55, 0.5);
-            letter-spacing: 3px;
-            position: relative;
-        }
-        .olympus-title::after {
-            content: '⚡';
-            position: absolute;
-            left: -30px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 1.5rem;
-            -webkit-text-fill-color: #d4af37;
-        }
-        .olympus-title::before {
-            content: '⚡';
-            position: absolute;
-            right: -30px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 1.5rem;
-            -webkit-text-fill-color: #d4af37;
-        }
-        .olympus-subtitle {
-            font-family: 'Cinzel', serif;
-            color: #d4af37;
-            text-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
-            letter-spacing: 2px;
-        }
-        .olympus-timer-box {
-            background: linear-gradient(135deg, rgba(0,0,0,0.6), rgba(30,58,95,0.4));
-            border: 2px solid #d4af37;
-            box-shadow: 0 0 20px rgba(212, 175, 55, 0.2);
-            position: relative;
-        }
-        .olympus-timer-box::before,
-        .olympus-timer-box::after {
-            content: '◆';
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #d4af37;
-            font-size: 0.8rem;
-        }
-        .olympus-timer-box::before { left: 10px; }
-        .olympus-timer-box::after { right: 10px; }
-        .olympus-column {
-            background: linear-gradient(180deg, rgba(212,175,55,0.1) 0%, rgba(212,175,55,0.05) 100%);
-            border-left: 2px solid rgba(212,175,55,0.3);
-            border-right: 2px solid rgba(212,175,55,0.3);
-        }
-        .olympus-greek-pattern {
-            background-image: repeating-linear-gradient(
-                45deg,
-                transparent,
-                transparent 10px,
-                rgba(212,175,55,0.05) 10px,
-                rgba(212,175,55,0.05) 20px
-            );
-        }
-        .olympus-btn {
-            background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
-            border: 2px solid #d4af37;
-            color: #d4af37;
-            font-family: 'Cinzel', serif;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-        .olympus-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(212,175,55,0.2), transparent);
-            transition: left 0.5s;
-        }
-        .olympus-btn:hover::before {
-            left: 100%;
-        }
-        .olympus-btn:hover {
-            box-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
-            transform: translateY(-2px);
-        }
-        .olympus-divider {
-            height: 2px;
-            background: linear-gradient(90deg, transparent, #d4af37, transparent);
-            margin: 20px 0;
-        }
-        .olympus-laurel {
-            font-size: 1.5rem;
-            color: #d4af37;
-        }
-        
-        /* ICE ARENA ZONES */
-        .ice-zones-container {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            overflow: hidden;
-        }
-        .ice-zone {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 50%;
-            height: 50%;
-            transform-origin: 0% 0%;
-            opacity: 0.4;
-            transition: all 0.5s ease;
-        }
     </style>
 </head>
 <body class="bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 min-h-screen text-white overflow-x-hidden">
     <div id="root"></div>
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js "></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js "></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js "></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
         
         const firebaseConfig = {
             apiKey: "AIzaSyDZPRiByz69HQa8b7GFMCJeqq56J3Y-bOY",
             authDomain: "step-by-step-279df.firebaseapp.com",
-            databaseURL: "https://step-by-step-279df-default-rtdb.europe-west1.firebasedatabase.app ",
+            databaseURL: "https://step-by-step-279df-default-rtdb.europe-west1.firebasedatabase.app",
             projectId: "step-by-step-279df",
             storageBucket: "step-by-step-279df.firebasestorage.app",
             messagingSenderId: "302641152597",
@@ -291,7 +103,6 @@
         const db = firebase.database();
         const TelegramWebApp = window.Telegram?.WebApp;
         const ADMIN_WALLET = 'UQAWqaIPFSg81l9MlgAx0HBE9o3gpJMhk1dnyryKJXhWNHIc';
-        const TONCENTER_API = 'https://toncenter.com/api/v2 ';
         const BOT_TOKEN = '8325421899:AAG9t3yS4WWiwasRoHb-nbr3a94S9tQfHys';
         
         const PLAYER_COLORS = ['#FF6B6B','#FF9F43','#FFEAA7','#55EFC4','#74B9FF','#A29BFE','#FD79A8','#E17055','#00CEC9','#6C5CE7','#FDCB6E','#81ECEC','#FF7675','#DFE6E9','#B2BEC3'];
@@ -409,114 +220,15 @@
                 { id: 'simba', name: 'Симба 🦁', displayChance: '4%', realChance: 4, type: 'man_item', key: 'simba', emoji: '🦁', sellPrice: 50 },
                 { id: 'wolf_wallstreet', name: 'Волк с Уолл-стрит 🐺', displayChance: '1%', realChance: 1, type: 'man_item', key: 'wolf_wallstreet', emoji: '🐺', sellPrice: 0 }
             ],
-            star: [
-                {id: 'stars_1', name: '1 ⭐️', displayChance: '10.50%', realChance: 10.50, type: 'stars', value: 1, emoji: '⭐️'},
-                {id: 'stars_2', name: '2 ⭐️', displayChance: '8.00%', realChance: 8.00, type: 'stars', value: 2, emoji: '⭐️'},
-                {id: 'stars_3', name: '3 ⭐️', displayChance: '6.50%', realChance: 6.50, type: 'stars', value: 3, emoji: '⭐️'},
-                {id: 'stars_4', name: '4 ⭐️', displayChance: '5.20%', realChance: 5.20, type: 'stars', value: 4, emoji: '⭐️'},
-                {id: 'stars_5', name: '5 ⭐️', displayChance: '4.30%', realChance: 4.30, type: 'stars', value: 5, emoji: '⭐️'},
-                {id: 'stars_6', name: '6 ⭐️', displayChance: '3.70%', realChance: 3.70, type: 'stars', value: 6, emoji: '⭐️'},
-                {id: 'stars_7', name: '7 ⭐️', displayChance: '3.20%', realChance: 3.20, type: 'stars', value: 7, emoji: '⭐️'},
-                {id: 'stars_8', name: '8 ⭐️', displayChance: '2.80%', realChance: 2.80, type: 'stars', value: 8, emoji: '⭐️'},
-                {id: 'stars_9', name: '9 ⭐️', displayChance: '2.50%', realChance: 2.50, type: 'stars', value: 9, emoji: '⭐️'},
-                {id: 'stars_10', name: '10 ⭐️', displayChance: '2.20%', realChance: 2.20, type: 'stars', value: 10, emoji: '⭐️'},
-                {id: 'stars_11', name: '11 ⭐️', displayChance: '2.00%', realChance: 2.00, type: 'stars', value: 11, emoji: '⭐️'},
-                {id: 'stars_12', name: '12 ⭐️', displayChance: '1.85%', realChance: 1.85, type: 'stars', value: 12, emoji: '⭐️'},
-                {id: 'stars_13', name: '13 ⭐️', displayChance: '1.70%', realChance: 1.70, type: 'stars', value: 13, emoji: '⭐️'},
-                {id: 'stars_14', name: '14 ⭐️', displayChance: '1.60%', realChance: 1.60, type: 'stars', value: 14, emoji: '⭐️'},
-                {id: 'stars_15', name: '15 ⭐️', displayChance: '1.50%', realChance: 1.50, type: 'stars', value: 15, emoji: '⭐️'},
-                {id: 'stars_16', name: '16 ⭐️', displayChance: '1.40%', realChance: 1.40, type: 'stars', value: 16, emoji: '⭐️'},
-                {id: 'stars_17', name: '17 ⭐️', displayChance: '1.32%', realChance: 1.32, type: 'stars', value: 17, emoji: '⭐️'},
-                {id: 'stars_18', name: '18 ⭐️', displayChance: '1.24%', realChance: 1.24, type: 'stars', value: 18, emoji: '⭐️'},
-                {id: 'stars_19', name: '19 ⭐️', displayChance: '1.17%', realChance: 1.17, type: 'stars', value: 19, emoji: '⭐️'},
-                {id: 'stars_20', name: '20 ⭐️', displayChance: '1.10%', realChance: 1.10, type: 'stars', value: 20, emoji: '⭐️'},
-                {id: 'stars_21', name: '21 ⭐️', displayChance: '1.04%', realChance: 1.04, type: 'stars', value: 21, emoji: '⭐️'},
-                {id: 'stars_22', name: '22 ⭐️', displayChance: '0.98%', realChance: 0.98, type: 'stars', value: 22, emoji: '⭐️'},
-                {id: 'stars_23', name: '23 ⭐️', displayChance: '0.93%', realChance: 0.93, type: 'stars', value: 23, emoji: '⭐️'},
-                {id: 'stars_24', name: '24 ⭐️', displayChance: '0.88%', realChance: 0.88, type: 'stars', value: 24, emoji: '⭐️'},
-                {id: 'stars_25', name: '25 ⭐️', displayChance: '0.84%', realChance: 0.84, type: 'stars', value: 25, emoji: '⭐️'},
-                {id: 'stars_26', name: '26 ⭐️', displayChance: '0.80%', realChance: 0.80, type: 'stars', value: 26, emoji: '⭐️'},
-                {id: 'stars_27', name: '27 ⭐️', displayChance: '0.77%', realChance: 0.77, type: 'stars', value: 27, emoji: '⭐️'},
-                {id: 'stars_28', name: '28 ⭐️', displayChance: '0.74%', realChance: 0.74, type: 'stars', value: 28, emoji: '⭐️'},
-                {id: 'stars_29', name: '29 ⭐️', displayChance: '0.71%', realChance: 0.71, type: 'stars', value: 29, emoji: '⭐️'},
-                {id: 'stars_30', name: '30 ⭐️', displayChance: '0.68%', realChance: 0.68, type: 'stars', value: 30, emoji: '⭐️'},
-                {id: 'stars_31', name: '31 ⭐️', displayChance: '0.66%', realChance: 0.66, type: 'stars', value: 31, emoji: '⭐️'},
-                {id: 'stars_32', name: '32 ⭐️', displayChance: '0.64%', realChance: 0.64, type: 'stars', value: 32, emoji: '⭐️'},
-                {id: 'stars_33', name: '33 ⭐️', displayChance: '0.62%', realChance: 0.62, type: 'stars', value: 33, emoji: '⭐️'},
-                {id: 'stars_34', name: '34 ⭐️', displayChance: '0.60%', realChance: 0.60, type: 'stars', value: 34, emoji: '⭐️'},
-                {id: 'stars_35', name: '35 ⭐️', displayChance: '0.58%', realChance: 0.58, type: 'stars', value: 35, emoji: '⭐️'},
-                {id: 'stars_36', name: '36 ⭐️', displayChance: '0.56%', realChance: 0.56, type: 'stars', value: 36, emoji: '⭐️'},
-                {id: 'stars_37', name: '37 ⭐️', displayChance: '0.55%', realChance: 0.55, type: 'stars', value: 37, emoji: '⭐️'},
-                {id: 'stars_38', name: '38 ⭐️', displayChance: '0.54%', realChance: 0.54, type: 'stars', value: 38, emoji: '⭐️'},
-                {id: 'stars_39', name: '39 ⭐️', displayChance: '0.53%', realChance: 0.53, type: 'stars', value: 39, emoji: '⭐️'},
-                {id: 'stars_40', name: '40 ⭐️', displayChance: '0.52%', realChance: 0.52, type: 'stars', value: 40, emoji: '⭐️'},
-                {id: 'stars_41', name: '41 ⭐️', displayChance: '0.51%', realChance: 0.51, type: 'stars', value: 41, emoji: '⭐️'},
-                {id: 'stars_42', name: '42 ⭐️', displayChance: '0.50%', realChance: 0.50, type: 'stars', value: 42, emoji: '⭐️'},
-                {id: 'stars_43', name: '43 ⭐️', displayChance: '0.49%', realChance: 0.49, type: 'stars', value: 43, emoji: '⭐️'},
-                {id: 'stars_44', name: '44 ⭐️', displayChance: '0.48%', realChance: 0.48, type: 'stars', value: 44, emoji: '⭐️'},
-                {id: 'stars_45', name: '45 ⭐️', displayChance: '0.47%', realChance: 0.47, type: 'stars', value: 45, emoji: '⭐️'},
-                {id: 'stars_46', name: '46 ⭐️', displayChance: '0.46%', realChance: 0.46, type: 'stars', value: 46, emoji: '⭐️'},
-                {id: 'stars_47', name: '47 ⭐️', displayChance: '0.45%', realChance: 0.45, type: 'stars', value: 47, emoji: '⭐️'},
-                {id: 'stars_48', name: '48 ⭐️', displayChance: '0.44%', realChance: 0.44, type: 'stars', value: 48, emoji: '⭐️'},
-                {id: 'stars_49', name: '49 ⭐️', displayChance: '0.43%', realChance: 0.43, type: 'stars', value: 49, emoji: '⭐️'},
-                {id: 'stars_50', name: '50 ⭐️', displayChance: '0.42%', realChance: 0.42, type: 'stars', value: 50, emoji: '⭐️'},
-                {id: 'stars_51', name: '51 ⭐️', displayChance: '0.45%', realChance: 0.45, type: 'stars', value: 51, emoji: '⭐️'},
-                {id: 'stars_52', name: '52 ⭐️', displayChance: '0.44%', realChance: 0.44, type: 'stars', value: 52, emoji: '⭐️'},
-                {id: 'stars_53', name: '53 ⭐️', displayChance: '0.43%', realChance: 0.43, type: 'stars', value: 53, emoji: '⭐️'},
-                {id: 'stars_54', name: '54 ⭐️', displayChance: '0.42%', realChance: 0.42, type: 'stars', value: 54, emoji: '⭐️'},
-                {id: 'stars_55', name: '55 ⭐️', displayChance: '0.41%', realChance: 0.41, type: 'stars', value: 55, emoji: '⭐️'},
-                {id: 'stars_56', name: '56 ⭐️', displayChance: '0.40%', realChance: 0.40, type: 'stars', value: 56, emoji: '⭐️'},
-                {id: 'stars_57', name: '57 ⭐️', displayChance: '0.39%', realChance: 0.39, type: 'stars', value: 57, emoji: '⭐️'},
-                {id: 'stars_58', name: '58 ⭐️', displayChance: '0.38%', realChance: 0.38, type: 'stars', value: 58, emoji: '⭐️'},
-                {id: 'stars_59', name: '59 ⭐️', displayChance: '0.37%', realChance: 0.37, type: 'stars', value: 59, emoji: '⭐️'},
-                {id: 'stars_60', name: '60 ⭐️', displayChance: '0.36%', realChance: 0.36, type: 'stars', value: 60, emoji: '⭐️'},
-                {id: 'stars_61', name: '61 ⭐️', displayChance: '0.35%', realChance: 0.35, type: 'stars', value: 61, emoji: '⭐️'},
-                {id: 'stars_62', name: '62 ⭐️', displayChance: '0.34%', realChance: 0.34, type: 'stars', value: 62, emoji: '⭐️'},
-                {id: 'stars_63', name: '63 ⭐️', displayChance: '0.33%', realChance: 0.33, type: 'stars', value: 63, emoji: '⭐️'},
-                {id: 'stars_64', name: '64 ⭐️', displayChance: '0.32%', realChance: 0.32, type: 'stars', value: 64, emoji: '⭐️'},
-                {id: 'stars_65', name: '65 ⭐️', displayChance: '0.31%', realChance: 0.31, type: 'stars', value: 65, emoji: '⭐️'},
-                {id: 'stars_66', name: '66 ⭐️', displayChance: '0.30%', realChance: 0.30, type: 'stars', value: 66, emoji: '⭐️'},
-                {id: 'stars_67', name: '67 ⭐️', displayChance: '0.29%', realChance: 0.29, type: 'stars', value: 67, emoji: '⭐️'},
-                {id: 'stars_68', name: '68 ⭐️', displayChance: '0.28%', realChance: 0.28, type: 'stars', value: 68, emoji: '⭐️'},
-                {id: 'stars_69', name: '69 ⭐️', displayChance: '0.27%', realChance: 0.27, type: 'stars', value: 69, emoji: '⭐️'},
-                {id: 'stars_70', name: '70 ⭐️', displayChance: '0.26%', realChance: 0.26, type: 'stars', value: 70, emoji: '⭐️'},
-                {id: 'stars_71', name: '71 ⭐️', displayChance: '0.25%', realChance: 0.25, type: 'stars', value: 71, emoji: '⭐️'},
-                {id: 'stars_72', name: '72 ⭐️', displayChance: '0.24%', realChance: 0.24, type: 'stars', value: 72, emoji: '⭐️'},
-                {id: 'stars_73', name: '73 ⭐️', displayChance: '0.23%', realChance: 0.23, type: 'stars', value: 73, emoji: '⭐️'},
-                {id: 'stars_74', name: '74 ⭐️', displayChance: '0.22%', realChance: 0.22, type: 'stars', value: 74, emoji: '⭐️'},
-                {id: 'stars_75', name: '75 ⭐️', displayChance: '0.21%', realChance: 0.21, type: 'stars', value: 75, emoji: '⭐️'},
-                {id: 'stars_76', name: '76 ⭐️', displayChance: '0.20%', realChance: 0.20, type: 'stars', value: 76, emoji: '⭐️'},
-                {id: 'stars_77', name: '77 ⭐️', displayChance: '0.19%', realChance: 0.19, type: 'stars', value: 77, emoji: '⭐️'},
-                {id: 'stars_78', name: '78 ⭐️', displayChance: '0.18%', realChance: 0.18, type: 'stars', value: 78, emoji: '⭐️'},
-                {id: 'stars_79', name: '79 ⭐️', displayChance: '0.17%', realChance: 0.17, type: 'stars', value: 79, emoji: '⭐️'},
-                {id: 'stars_80', name: '80 ⭐️', displayChance: '0.16%', realChance: 0.16, type: 'stars', value: 80, emoji: '⭐️'},
-                {id: 'stars_81', name: '81 ⭐️', displayChance: '0.15%', realChance: 0.15, type: 'stars', value: 81, emoji: '⭐️'},
-                {id: 'stars_82', name: '82 ⭐️', displayChance: '0.14%', realChance: 0.14, type: 'stars', value: 82, emoji: '⭐️'},
-                {id: 'stars_83', name: '83 ⭐️', displayChance: '0.13%', realChance: 0.13, type: 'stars', value: 83, emoji: '⭐️'},
-                {id: 'stars_84', name: '84 ⭐️', displayChance: '0.12%', realChance: 0.12, type: 'stars', value: 84, emoji: '⭐️'},
-                {id: 'stars_85', name: '85 ⭐️', displayChance: '0.11%', realChance: 0.11, type: 'stars', value: 85, emoji: '⭐️'},
-                {id: 'stars_86', name: '86 ⭐️', displayChance: '0.10%', realChance: 0.10, type: 'stars', value: 86, emoji: '⭐️'},
-                {id: 'stars_87', name: '87 ⭐️', displayChance: '0.09%', realChance: 0.09, type: 'stars', value: 87, emoji: '⭐️'},
-                {id: 'stars_88', name: '88 ⭐️', displayChance: '0.08%', realChance: 0.08, type: 'stars', value: 88, emoji: '⭐️'},
-                {id: 'stars_89', name: '89 ⭐️', displayChance: '0.07%', realChance: 0.07, type: 'stars', value: 89, emoji: '⭐️'},
-                {id: 'stars_90', name: '90 ⭐️', displayChance: '0.06%', realChance: 0.06, type: 'stars', value: 90, emoji: '⭐️'},
-                {id: 'stars_91', name: '91 ⭐️', displayChance: '0.05%', realChance: 0.05, type: 'stars', value: 91, emoji: '⭐️'},
-                {id: 'stars_92', name: '92 ⭐️', displayChance: '0.04%', realChance: 0.04, type: 'stars', value: 92, emoji: '⭐️'},
-                {id: 'stars_93', name: '93 ⭐️', displayChance: '0.03%', realChance: 0.03, type: 'stars', value: 93, emoji: '⭐️'},
-                {id: 'stars_94', name: '94 ⭐️', displayChance: '0.02%', realChance: 0.02, type: 'stars', value: 94, emoji: '⭐️'},
-                {id: 'stars_95', name: '95 ⭐️', displayChance: '0.01%', realChance: 0.01, type: 'stars', value: 95, emoji: '⭐️'},
-                {id: 'stars_96', name: '96 ⭐️', displayChance: '0.009%', realChance: 0.009, type: 'stars', value: 96, emoji: '⭐️'},
-                {id: 'stars_97', name: '97 ⭐️', displayChance: '0.008%', realChance: 0.008, type: 'stars', value: 97, emoji: '⭐️'},
-                {id: 'stars_98', name: '98 ⭐️', displayChance: '0.007%', realChance: 0.007, type: 'stars', value: 98, emoji: '⭐️'},
-                {id: 'stars_99', name: '99 ⭐️', displayChance: '0.006%', realChance: 0.006, type: 'stars', value: 99, emoji: '⭐️'},
-                {id: 'stars_125', name: '125 ⭐️', displayChance: '0.005%', realChance: 0.005, type: 'stars', value: 125, emoji: '⭐️'}
-            ],
+            star: Array.from({length: 100}, (_, i) => ({
+                id: `stars_${i+1}`, name: `${i+1} ⭐️`, emoji: '⭐️', type: 'stars', value: i+1, realChance: 1, displayChance: '1%'
+            }))
         };
         
         const ICE_ARENA_PRIZES = [
             { id: 'bear', name: '🧸 Мишка', chance: 40, type: 'item', sellPrice: 20, emoji: '🧸' },
             { id: 'gloves', name: '🧤 Варежки', chance: 30, type: 'item', sellPrice: 50, emoji: '🧤' },
-            { id: 'fire', name: '🔥 Огонь', chance: 10, type: 'special', emoji: '🔥', message: 'Вы растопили лёд! Получаете 40% от банка' },
+            { id: 'fire', name: '🔥 Огонь', chance: 10, type: 'special', emoji: '🔥', message: 'Вы растопили лёд! Получаете 40% от ставок' },
             { id: 'snow', name: '❄️ Снежинка', chance: 5, type: 'item', sellPrice: 125, emoji: '❄️' },
             { id: 'snoop', name: '🐕 Snoop Dog', chance: 5, type: 'item', sellPrice: 130, emoji: '🐕' },
             { id: 'winter_case', name: '☃️ Кейс Зимний', chance: 4, type: 'case_free', caseType: 'winter', emoji: '☃️' },
@@ -528,6 +240,7 @@
         
         const TON_RATES = [{ stars: 50, ton: 0.6 }, { stars: 250, ton: 3 }, { stars: 500, ton: 6 }, { stars: 1000, ton: 12 }];
         const STARS_PACKAGES = [ { stars: 50, price: 50 }, { stars: 100, price: 100 }, { stars: 250, price: 250 }, { stars: 500, price: 500 }, { stars: 1000, price: 1000 } ];
+        const DEFAULT_LOBBY = { status: 'waiting', players: {}, presence: {}, readyPlayers: {}, winner: null, prizes: [], wonStars: 0, ballPosition: { x: 50, y: 50, vx: 0, vy: 0 }, countdownEnd: null, prizeClaimed: {}, finalBall: null, gameStartedAt: null };
         
         function App() {
             const [currentScreen, setCurrentScreen] = useState('cases');
@@ -577,8 +290,6 @@
             const [paymentStatus, setPaymentStatus] = useState('');
             const [totalDeposits, setTotalDeposits] = useState(0);
             const [freeEliteSpin, setFreeEliteSpin] = useState(0);
-            
-            // ICE ARENA STATES
             const [currentGame, setCurrentGame] = useState(null);
             const [iceLobby, setIceLobby] = useState(null);
             const [gameStatus, setGameStatus] = useState('waiting');
@@ -597,8 +308,6 @@
             const [victoryPrize, setVictoryPrize] = useState(null);
             const [boxOpened, setBoxOpened] = useState(false);
             const [prizeClaimedLocal, setPrizeClaimedLocal] = useState(false);
-            const [playerZones, setPlayerZones] = useState([]);
-            const [lobbiesStatus, setLobbiesStatus] = useState({});
             
             useEffect(() => {
                 const initApp = async () => {
@@ -723,82 +432,24 @@
                 return () => clearInterval(timer);
             }, [cases.daily, isLoading]);
             
-            // LOBBIES STATUS LISTENER
-            useEffect(() => {
-                const lobbiesRef = db.ref('iceLobbies');
-                lobbiesRef.on('value', snap => {
-                    const data = snap.val() || {};
-                    const status = {};
-                    for(let i = 1; i <= 10; i++) {
-                        const lobby = data[i];
-                        if(!lobby) {
-                            status[i] = 'empty';
-                        } else if(lobby.status === 'playing' || lobby.status === 'countdown') {
-                            status[i] = 'playing';
-                        } else if(lobby.status === 'finished') {
-                            status[i] = 'finished';
-                        } else {
-                            const players = lobby.players ? Object.keys(lobby.players).length : 0;
-                            const presence = lobby.presence ? Object.keys(lobby.presence).length : 0;
-                            if(players >= 2) status[i] = 'ready';
-                            else if(presence >= 1) status[i] = 'waiting';
-                            else status[i] = 'empty';
-                        }
-                    }
-                    setLobbiesStatus(status);
-                });
-                return () => lobbiesRef.off();
-            }, []);
-            
-            // ICE LOBBY LISTENER
             useEffect(() => {
                 if (!currentGame?.lobbyId || !user?.id) return;
                 const lobbyRef = db.ref('iceLobbies/' + currentGame.lobbyId);
                 lobbyRef.on('value', snap => {
                     const data = snap.val();
-                    if (!data) {
-                        // Lobby was reset, go back
-                        setCurrentGame(null);
-                        return;
-                    }
+                    if (!data) return;
                     setIceLobby(data);
                     setGameStatus(data.status || 'waiting');
                     const players = data.players || {};
-                    const playersList = Object.entries(players);
                     setPresenceCount(data.presence ? Object.keys(data.presence).length : 0);
-                    setBettingCount(playersList.length);
+                    setBettingCount(Object.keys(players).length);
                     setReadyCount(data.readyPlayers ? Object.keys(data.readyPlayers).length : 0);
-                    
-                    // Calculate player zones based on bets
-                    if(playersList.length > 0) {
-                        const totalBet = playersList.reduce((sum, [,p]) => sum + p.bet, 0);
-                        let currentAngle = 0;
-                        const zones = playersList.map(([id, p], index) => {
-                            const percentage = p.bet / totalBet;
-                            const angle = percentage * 360;
-                            const zone = {
-                                id,
-                                color: p.color,
-                                percentage: (percentage * 100).toFixed(1),
-                                startAngle: currentAngle,
-                                endAngle: currentAngle + angle,
-                                bet: p.bet
-                            };
-                            currentAngle += angle;
-                            return zone;
-                        });
-                        setPlayerZones(zones);
-                    } else {
-                        setPlayerZones([]);
-                    }
-                    
                     if (players[user.id]) {
                         setHasBet(true);
                         setMyBet(players[user.id].bet);
                         setMyBetInput(players[user.id].bet);
                     } else if (data.status !== 'playing' && data.status !== 'countdown') {
-                        setHasBet(false);
-                        setIsReady(false);
+                        setHasBet(false); setIsReady(false);
                     }
                     if (data.readyPlayers?.[user.id]) setIsReady(true);
                     else if (data.status === 'open') setIsReady(false);
@@ -808,7 +459,7 @@
                     }
                     if (data.status === 'finished' && data.winner?.id === user.id && !data.prizeClaimed?.[user.id] && !prizeClaimedLocal) {
                         setVictoryStars(data.wonStars || 0);
-                        setVictoryPrize(data.bonusPrize || ICE_ARENA_PRIZES[0]);
+                        setVictoryPrize(data.prizes?.[0] || null);
                         setShowVictoryBox(true);
                         setBoxOpened(false);
                     }
@@ -822,172 +473,73 @@
                 return () => clearInterval(iv);
             }, [gameStatus]);
             
-            const createLobby = async (lid) => {
-                const lobbyRef = db.ref('iceLobbies/' + lid);
-                const snap = await lobbyRef.once('value');
-                if(!snap.val()) {
-                    await lobbyRef.set({
-                        status: 'waiting',
-                        players: {},
-                        presence: {},
-                        readyPlayers: {},
-                        winner: null,
-                        prizes: [],
-                        wonStars: 0,
-                        ballPosition: { x: 50, y: 50, vx: 0, vy: 0 },
-                        countdownEnd: null,
-                        prizeClaimed: {},
-                        finalBall: null,
-                        gameStartedAt: null,
-                        createdAt: Date.now()
-                    });
-                }
-            };
-            
             const joinIceLobby = async (lid) => {
                 if(!user?.id) return;
-                
-                // Create lobby if not exists
-                await createLobby(lid);
-                
                 const ref = db.ref('iceLobbies/' + lid);
                 const snap = await ref.once('value');
                 const d = snap.val() || {};
                 const st = d.status || 'waiting';
-                
-                const color = getRandomColor();
-                setMyColor(color);
-                
+                setMyColor(getRandomColor());
                 if(st === 'playing' || st === 'countdown') {
                     setCurrentGame({ type: 'ice', lobbyId: lid, spectator: true });
                 } else {
-                    setShowVictoryBox(false);
-                    setBoxOpened(false);
-                    setPrizeClaimedLocal(false);
-                    setHasBet(false);
-                    setIsReady(false);
+                    setShowVictoryBox(false); setBoxOpened(false); setPrizeClaimedLocal(false); setHasBet(false); setIsReady(false);
                     setCurrentGame({ type: 'ice', lobbyId: lid, spectator: false });
-                    
-                    // Add to presence
-                    await db.ref(`iceLobbies/${lid}/presence/${user.id}`).set({ 
-                        name: user.name, 
-                        avatar: user.avatar, 
-                        joinedAt: Date.now(), 
-                        color: color 
-                    });
-                    
-                    // Check if we should open betting
+                    await db.ref(`iceLobbies/${lid}/presence/${user.id}`).set({ name: user.name, avatar: user.avatar, joinedAt: Date.now(), color: getRandomColor() });
                     const s2 = await ref.once('value');
-                    const presence = s2.val()?.presence || {};
-                    const presenceCount = Object.keys(presence).length;
-                    const currentStatus = s2.val()?.status || 'waiting';
-                    
-                    if(presenceCount >= 2 && currentStatus === 'waiting') {
-                        await ref.update({ status: 'open' });
-                    }
+                    if((s2.val()?.presence ? Object.keys(s2.val().presence).length : 0) >= 2 && st === 'waiting') await ref.update({ status: 'open' });
                 }
             };
             
             const leaveIceLobby = async () => {
                 if(!currentGame?.lobbyId) return;
                 const lid = currentGame.lobbyId;
-                
-                // Remove from presence
                 await db.ref(`iceLobbies/${lid}/presence/${user.id}`).remove();
-                
-                // Return bet if game hasn't started
                 if(hasBet) {
                      const snap = await db.ref(`iceLobbies/${lid}`).once('value');
-                     const data = snap.val();
-                     if(data && (data.status === 'open' || data.status === 'waiting')) {
-                         const playerData = data.players?.[user.id];
-                         if(playerData) {
-                             const bet = playerData.bet;
-                             setBalance(b => b + bet);
-                             await db.ref(`users/${user.id}/balance`).set(balance + bet);
-                             await db.ref(`iceLobbies/${lid}/players/${user.id}`).remove();
-                             await db.ref(`iceLobbies/${lid}/readyPlayers/${user.id}`).remove();
-                             
-                             // Check if we need to revert to waiting
-                             const remainingPlayers = data.players ? Object.keys(data.players).filter(id => id !== user.id).length : 0;
-                             if(remainingPlayers < 2) {
-                                 await db.ref(`iceLobbies/${lid}`).update({ status: 'waiting', readyPlayers: {} });
-                             }
-                         }
+                     if(snap.val()?.status === 'open' || snap.val()?.status === 'waiting') {
+                         const bet = snap.val().players[user.id].bet;
+                         setBalance(b => b + bet);
+                         await db.ref(`users/${user.id}/balance`).set(balance + bet);
+                         await db.ref(`iceLobbies/${lid}/players/${user.id}`).remove();
+                         await db.ref(`iceLobbies/${lid}/readyPlayers/${user.id}`).remove();
                      }
                 }
-                
                 setCurrentGame(null);
-                setHasBet(false);
-                setIsReady(false);
-                setPlayerZones([]);
             };
             
             const placeBet = async () => {
-                if(gameStatus !== 'open' || balance < myBetInput) {
-                    alert('Недостаточно звезд или ставки закрыты!');
-                    return;
-                }
-                
-                const betAmount = Math.max(25, Number(myBetInput));
-                setBalance(b => b - betAmount);
-                await db.ref(`users/${user.id}/balance`).set(balance - betAmount);
-                
-                await db.ref(`iceLobbies/${currentGame.lobbyId}/players/${user.id}`).set({ 
-                    name: user.name, 
-                    avatar: user.avatar, 
-                    bet: betAmount, 
-                    color: myColor, 
-                    timestamp: Date.now(),
-                    id: user.id
-                });
-                
-                setHasBet(true);
-                setMyBet(betAmount);
+                if(gameStatus !== 'open' || balance < myBetInput) return;
+                setBalance(b => b - myBetInput);
+                await db.ref(`users/${user.id}/balance`).set(balance - myBetInput);
+                await db.ref(`iceLobbies/${currentGame.lobbyId}/players/${user.id}`).set({ name: user.name, avatar: user.avatar, bet: myBetInput, color: myColor, timestamp: Date.now() });
+                setHasBet(true); setMyBet(myBetInput);
             };
             
             const changeBet = async () => {
                  if(gameStatus !== 'open') return;
                  const ref = db.ref(`iceLobbies/${currentGame.lobbyId}`);
                  const snap = await ref.once('value');
-                 const data = snap.val();
-                 if(!data || !data.players?.[user.id]) return;
-                 
-                 const oldBet = data.players[user.id].bet;
-                 const newBet = Math.max(25, Number(myBetInput));
-                 
-                 if(balance + oldBet < newBet) {
-                     alert('Недостаточно звезд!');
-                     return;
-                 }
-                 
-                 setBalance(b => b + oldBet - newBet);
-                 await db.ref(`users/${user.id}/balance`).set(balance + oldBet - newBet);
-                 await ref.child(`players/${user.id}`).update({ bet: newBet });
-                 setMyBet(newBet);
+                 const oldBet = snap.val().players[user.id].bet;
+                 if(balance + oldBet < myBetInput) return;
+                 setBalance(b => b + oldBet - myBetInput);
+                 await db.ref(`users/${user.id}/balance`).set(balance + oldBet - myBetInput);
+                 await ref.child(`players/${user.id}`).update({ bet: myBetInput });
+                 setMyBet(myBetInput);
             };
             
             const toggleReady = async () => {
                 if(!hasBet) return;
-                const ref = db.ref(`iceLobbies/${currentGame.lobbyId}`);
-                
-                if(isReady) { 
-                    await ref.child(`readyPlayers/${user.id}`).remove(); 
-                    setIsReady(false); 
-                } else { 
-                    await ref.child(`readyPlayers/${user.id}`).set({ name: user.name, readyAt: Date.now() }); 
+                const ref = db.ref(`iceLobbies/${currentGame.lobbyId}/readyPlayers/${user.id}`);
+                if(isReady) { await ref.remove(); setIsReady(false); }
+                else { 
+                    await ref.set({ name: user.name, readyAt: Date.now() }); 
                     setIsReady(true);
-                    
-                    // Check if all ready
-                    const s = await ref.once('value');
-                    const data = s.val();
-                    const p = data.players || {};
-                    const r = data.readyPlayers || {};
-                    const readyCount = Object.keys(r).length + 1; // +1 because we just added
-                    const playerCount = Object.keys(p).length;
-                    
-                    if(playerCount >= 2 && readyCount >= playerCount) {
-                        await ref.update({ status: 'countdown', countdownEnd: Date.now() + 10000 });
+                    const s = await db.ref(`iceLobbies/${currentGame.lobbyId}`).once('value');
+                    const p = s.val().players || {};
+                    const r = s.val().readyPlayers || {};
+                    if(Object.keys(p).length >= 2 && Object.keys(r).length >= Object.keys(p).length) {
+                        await db.ref(`iceLobbies/${currentGame.lobbyId}`).update({ status: 'countdown', countdownEnd: Date.now() + 10000 });
                         setTimeout(() => triggerGameStart(currentGame.lobbyId), 10000);
                     }
                 }
@@ -996,159 +548,106 @@
             const triggerGameStart = async (lid) => {
                 const ref = db.ref(`iceLobbies/${lid}`);
                 const s = await ref.once('value');
-                if(s.val()?.status === 'countdown') {
+                if(s.val().status === 'countdown') {
                     await ref.update({ status: 'playing', gameStartedAt: Date.now() });
                     runPhysics(ref);
                 }
             };
             
             const runPhysics = (ref) => {
-                let x = 50, y = 50;
-                let vx = (Math.random() - 0.5) * 20;
-                let vy = (Math.random() - 0.5) * 20;
-                let speed = Math.sqrt(vx*vx + vy*vy);
-                
-                // Normalize and set initial speed
-                const initialSpeed = 15;
-                vx = (vx / speed) * initialSpeed;
-                vy = (vy / speed) * initialSpeed;
-                
+                let x = 50, y = 50, vx = (Math.random()-0.5)*15, vy = (Math.random()-0.5)*15;
                 const iv = setInterval(async () => {
-                     x += vx * 0.5; 
-                     y += vy * 0.5;
-                     
-                     // Friction
-                     vx *= 0.992; 
-                     vy *= 0.992;
-                     
-                     // Boundary collision
-                     const distFromCenter = Math.sqrt((x-50)**2 + (y-50)**2);
-                     if(distFromCenter > 44) {
-                         const angle = Math.atan2(y - 50, x - 50);
-                         x = 50 + Math.cos(angle) * 43;
-                         y = 50 + Math.sin(angle) * 43;
-                         
-                         // Reflect velocity
-                         const normalX = Math.cos(angle);
-                         const normalY = Math.sin(angle);
-                         const dot = vx * normalX + vy * normalY;
-                         vx = vx - 2 * dot * normalX;
-                         vy = vy - 2 * dot * normalY;
-                     }
-                     
+                     x += vx * 0.4; y += vy * 0.4;
+                     vx *= 0.994; vy *= 0.994;
+                     if(Math.sqrt((x-50)**2 + (y-50)**2) > 44) { vx *= -1; vy *= -1; }
                      await ref.child('ballPosition').set({ x, y, vx, vy });
-                     
-                     const currentSpeed = Math.sqrt(vx*vx + vy*vy);
-                     if(currentSpeed < 0.3) {
+                     if(Math.abs(vx) < 0.1 && Math.abs(vy) < 0.1) {
                          clearInterval(iv);
                          finishIceGame(ref, x, y);
                      }
-                }, 50);
+                }, 25);
             };
             
             const finishIceGame = async (ref, x, y) => {
                 const s = await ref.once('value');
-                const data = s.val();
-                if(!data) return;
+                const players = Object.entries(s.val().players);
+                const total = players.reduce((a,b)=>a+b[1].bet,0);
                 
-                const players = Object.values(data.players || {});
-                if(players.length === 0) return;
+                // Determine winner by angle
+                const dx = x - 50; const dy = y - 50;
+                let angle = Math.atan2(dy, dx) * 180 / Math.PI;
+                if(angle < 0) angle += 360;
                 
-                // Select winner based on zone probability
-                const totalBet = players.reduce((a,b) => a + b.bet, 0);
-                let random = Math.random() * totalBet;
-                let winner = players[0];
+                const sorted = players.sort((a, b) => a[1].timestamp - b[1].timestamp);
+                let currentAngle = 0;
+                let winner = null;
                 
-                for(const player of players) {
-                    random -= player.bet;
-                    if(random <= 0) {
-                        winner = player;
+                for(let [pid, p] of sorted) {
+                    const sector = (p.bet / total) * 360;
+                    // Check if angle is within this sector
+                    if(angle >= currentAngle && angle < currentAngle + sector) {
+                        winner = { id: pid, ...p };
                         break;
                     }
+                    currentAngle += sector;
                 }
-                
-                const totalBank = players.reduce((a,b) => a + b.bet, 0);
-                const winAmount = Math.floor(totalBank * 0.65);
-                
-                // Select random bonus prize
-                const bonusPrize = selectRandomPrize();
-                
-                await ref.update({ 
-                    status: 'finished', 
-                    winner, 
-                    wonStars: winAmount, 
-                    bonusPrize: bonusPrize,
-                    finalBall: {x, y} 
-                });
-                
-                // Award winner immediately
-                if(winner.id === user?.id) {
-                    const nb = balance + winAmount;
+                if(!winner) winner = { id: sorted[0][0], ...sorted[0][1] }; // Fallback
+
+                await ref.update({ status: 'finished', winner, wonStars: Math.floor(total*0.65), prizes: [ICE_ARENA_PRIZES[0]], finalBall: {x,y} });
+                if(winner.id === user.id) {
+                    const nb = balance + Math.floor(total*0.65);
                     setBalance(nb);
                     await db.ref(`users/${user.id}/balance`).set(nb);
                 }
             };
             
-            const selectRandomPrize = () => {
-                const rand = Math.random() * 100;
-                let cumulative = 0;
-                for(const prize of ICE_ARENA_PRIZES) {
-                    cumulative += prize.chance;
-                    if(rand <= cumulative) return prize;
-                }
-                return ICE_ARENA_PRIZES[0];
-            };
-            
             const openVictoryBox = async () => {
-                 setBoxOpened(true);
-                 setPrizeClaimedLocal(true);
+                 setBoxOpened(true); setPrizeClaimedLocal(true);
                  await db.ref(`iceLobbies/${currentGame.lobbyId}/prizeClaimed/${user.id}`).set(true);
-                 
-                 if(victoryPrize.type === 'stars') {
-                     const nb = balance + victoryPrize.value;
-                     setBalance(nb);
-                     await db.ref(`users/${user.id}/balance`).set(nb);
-                 } else if(victoryPrize.type === 'item' || victoryPrize.type === 'collectible') {
-                     await addToInventory(victoryPrize);
-                 } else if(victoryPrize.type === 'case_free') {
-                     const nc = { ...cases, [victoryPrize.caseType]: { ...cases[victoryPrize.caseType], freeCount: (cases[victoryPrize.caseType].freeCount || 0) + 1 } };
-                     setCases(nc);
-                     await db.ref(`users/${user.id}/cases/${victoryPrize.caseType}/freeCount`).set(nc[victoryPrize.caseType].freeCount);
-                 }
+                 if(victoryPrize.type === 'stars') setBalance(b => b + victoryPrize.value);
+                 else if(victoryPrize.type === 'item') addToInventory(victoryPrize);
             };
             
             const exitLobbyAfterGame = async () => {
-                 // Reset lobby for next game
-                 const lid = currentGame.lobbyId;
-                 await db.ref(`iceLobbies/${lid}`).set({
-                     status: 'waiting',
-                     players: {},
-                     presence: {},
-                     readyPlayers: {},
-                     winner: null,
-                     prizes: [],
-                     wonStars: 0,
-                     ballPosition: { x: 50, y: 50, vx: 0, vy: 0 },
-                     countdownEnd: null,
-                     prizeClaimed: {},
-                     finalBall: null,
-                     gameStartedAt: null,
-                     createdAt: Date.now()
-                 });
-                 
-                 setCurrentGame(null);
-                 setHasBet(false);
-                 setIsReady(false);
-                 setShowVictoryBox(false);
-                 setPlayerZones([]);
+                 await db.ref(`iceLobbies/${currentGame.lobbyId}`).set(DEFAULT_LOBBY);
+                 setCurrentGame(null); setHasBet(false); setIsReady(false); setShowVictoryBox(false);
             };
             
             const exitLobbyNonWinner = async () => {
                  await db.ref(`iceLobbies/${currentGame.lobbyId}/presence/${user.id}`).remove();
-                 setCurrentGame(null);
-                 setHasBet(false);
-                 setIsReady(false);
-                 setPlayerZones([]);
+                 setCurrentGame(null); setHasBet(false); setIsReady(false);
+            };
+
+            const renderIceField = () => {
+                if(!iceLobby?.players) return null;
+                const players = Object.entries(iceLobby.players);
+                if (players.length === 0) return null;
+                const totalBet = players.reduce((s, [, p]) => s + p.bet, 0);
+                if (totalBet === 0) return null;
+                const sorted = players.sort((a, b) => a[1].timestamp - b[1].timestamp);
+                let currentAngle = 0;
+                return sorted.map(([id, player]) => {
+                    const pct = (player.bet / totalBet) * 100;
+                    const sectorDeg = (player.bet / totalBet) * 360;
+                    const midAngle = currentAngle + sectorDeg / 2;
+                    const startAngle = currentAngle;
+                    currentAngle += sectorDeg;
+                    const avatarDist = 28;
+                    const avatarX = 50 + avatarDist * Math.cos((midAngle - 90) * Math.PI / 180);
+                    const avatarY = 50 + avatarDist * Math.sin((midAngle - 90) * Math.PI / 180);
+                    const labelDist = 18;
+                    const labelX = 50 + labelDist * Math.cos((midAngle - 90) * Math.PI / 180);
+                    const labelY = 50 + labelDist * Math.sin((midAngle - 90) * Math.PI / 180);
+                    return (
+                        <React.Fragment key={id}>
+                            <div className="absolute inset-0" style={{ background: `conic-gradient(from ${startAngle}deg at 50% 50%, ${player.color}bb ${sectorDeg}deg, transparent ${sectorDeg}deg)`, clipPath: 'circle(50% at 50% 50%)', borderRadius: '50%' }} />
+                            <div className="absolute pointer-events-none font-bold text-white" style={{ left: `${labelX}%`, top: `${labelY}%`, transform: 'translate(-50%,-50%)', fontSize: '11px', textShadow: '0 0 6px black, 0 0 3px black' }}>{Math.round(pct)}%</div>
+                            <div className="player-avatar" style={{ left: `${avatarX}%`, top: `${avatarY}%`, borderColor: player.color, boxShadow: `0 0 12px ${player.color}` }}>
+                                {player.avatar ? <img src={player.avatar} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-xs font-bold" style={{ background: player.color }}>{player.name[0]}</div>}
+                            </div>
+                        </React.Fragment>
+                    );
+                });
             };
             
             const getCasePrice = (ct) => {
@@ -1161,9 +660,7 @@
             };
             
             const handleSelectCase = (caseData) => {
-                setSpinResult(null);
-                setFakeItems([]);
-                setSelectedCase(caseData);
+                setSpinResult(null); setFakeItems([]); setSelectedCase(caseData);
             };
             
             const openCase = async (caseType) => {
@@ -1172,7 +669,6 @@
                 const price = getCasePrice(caseType);
                 const isFree = cData.freeCount > 0;
                 if(!isFree && balance < price) { alert('Недостаточно звезд!'); return; }
-                
                 let nb = balance;
                 if(cData.id === 'daily' && isFree) {
                     const now = Date.now();
@@ -1187,20 +683,12 @@
                      setBalance(nb);
                      await db.ref(`users/${user.id}/balance`).set(nb);
                 }
-                
-                setIsSpinning(false);
-                setSpinResult(null);
-                setFakeItems([]);
-                setRouletteOffset(0);
-                setRouletteKey(k => k+1);
-                
+                setIsSpinning(false); setSpinResult(null); setFakeItems([]); setRouletteOffset(0); setRouletteKey(k => k+1);
                 const items = CASE_REWARDS[caseType];
                 let won = items[0], r = Math.random()*100, cum = 0;
                 for(let i of items) { cum += i.realChance; if(r <= cum) { won = i; break; } }
-                
                 const tape = [];
                 for(let i=0; i<80; i++) tape.push(i===70 ? won : items[Math.floor(Math.random()*items.length)]);
-                
                 setIsSpinning(true);
                 setTimeout(() => {
                      setFakeItems(tape);
@@ -1210,10 +698,8 @@
                          setRouletteOffset(-target);
                      }, 50);
                 }, 50);
-                
                 setTimeout(async () => {
-                     setSpinResult(won);
-                     setIsSpinning(false);
+                     setSpinResult(won); setIsSpinning(false);
                      if(won.type === 'stars') {
                          const fb = nb + won.value;
                          setBalance(fb);
@@ -1239,8 +725,7 @@
                 if(confirm(`Продать ${item.name} за ${item.sellPrice}⭐️?`)) {
                      const nb = balance + item.sellPrice;
                      const ni = inventory.filter(i => i.uniqueId !== item.uniqueId);
-                     setBalance(nb);
-                     setInventory(ni);
+                     setBalance(nb); setInventory(ni);
                      await db.ref(`users/${user.id}`).update({ balance: nb, inventory: ni });
                 }
             };
@@ -1249,11 +734,9 @@
                  if(!selectedIceGift) return;
                  const nb = balance + 25;
                  const ni = inventory.filter(i => i.uniqueId !== selectedIceGift.uniqueId);
-                 setBalance(nb);
-                 setInventory(ni);
+                 setBalance(nb); setInventory(ni);
                  await db.ref(`users/${user.id}`).update({ balance: nb, inventory: ni });
-                 setShowIceGiftModal(false);
-                 setSelectedIceGift(null);
+                 setShowIceGiftModal(false); setSelectedIceGift(null);
                  alert('Продано за 25⭐️!');
             };
             
@@ -1263,28 +746,23 @@
                  const ni = inventory.filter(i => i.uniqueId !== randomCaseItem.uniqueId);
                  const nc = { ...cases, [rKey]: { ...cases[rKey], freeCount: (cases[rKey].freeCount||0)+1 } };
                  if(rKey === 'collector') nc.collector.locked = false;
-                 setInventory(ni);
-                 setCases(nc);
+                 setInventory(ni); setCases(nc);
                  await db.ref(`users/${user.id}`).update({ inventory: ni, cases: nc });
-                 setShowRandomCaseModal(false);
-                 setRandomCaseItem(null);
+                 setShowRandomCaseModal(false); setRandomCaseItem(null);
                  alert(`Выпал кейс: ${cases[rKey].name}!`);
             };
             
             const unlockSlot = async () => {
                  if(balance < 50) return;
-                 setBalance(b => b - 50);
-                 setInventorySlots(s => s + 1);
+                 setBalance(b => b - 50); setInventorySlots(s => s + 1);
                  await db.ref(`users/${user.id}`).update({ balance: balance - 50, inventorySlots: inventorySlots + 1 });
             };
             
             const checkPromo = async () => {
                 const code = promoCode.toUpperCase().trim();
-                setPromoError('');
-                setPromoSuccess('');
+                setPromoError(''); setPromoSuccess('');
                 if(!code) return;
                 if(usedPromos.includes(code)) { setPromoError('Уже использован!'); return; }
-                
                 if(code === 'DELLKO') {
                      if(!wonPromos.includes('DELLKO')) { setPromoError('Только если выиграли в Ледяном Катке!'); return; }
                      const nc = { ...cases, money: { ...cases.money, freeCount: (cases.money.freeCount || 0) + 3 } };
@@ -1343,7 +821,7 @@
             
             const buyStars = async (pkg) => {
                  try {
-                     const r = await fetch(`https://api.telegram.org/bot ${BOT_TOKEN}/createInvoiceLink`, {
+                     const r = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/createInvoiceLink`, {
                          method: 'POST',
                          headers: { 'Content-Type': 'application/json' },
                          body: JSON.stringify({ title: `${pkg.stars} звёзд`, description: `Покупка ${pkg.stars} звёзд`, payload: `stars_${user.id}_${pkg.stars}_${Date.now()}`, currency: 'XTR', prices: [{ label: `${pkg.stars} звёзд`, amount: pkg.price }] })
@@ -1354,8 +832,7 @@
                              TelegramWebApp.openInvoice(data.result, async (status) => {
                                  if(status === 'paid') {
                                      const nb = balance + pkg.stars, nd = totalDeposits + pkg.stars;
-                                     setBalance(nb);
-                                     setTotalDeposits(nd);
+                                     setBalance(nb); setTotalDeposits(nd);
                                      await db.ref(`users/${user.id}`).update({ balance: nb, totalDeposits: nd });
                                      checkDepositTasks(nd);
                                      alert(`✅ Зачислено ${pkg.stars} звёзд!`);
@@ -1372,41 +849,38 @@
                  if(!tasks.deposit?.completed && nd >= 100) {
                      const nt = { ...tasks, deposit: { completed: true } };
                      const nc = { ...cases, gold: { ...cases.gold, freeCount: (cases.gold.freeCount || 0) + 1 } };
-                     setTasks(nt);
-                     setCases(nc);
+                     setTasks(nt); setCases(nc);
                      await db.ref(`users/${user.id}`).update({ tasks: nt, cases: nc });
                  }
                  if(!tasks.depositMajor?.completed && nd >= 350) {
                      const nt = { ...tasks, depositMajor: { completed: true } };
                      const nc = { ...cases, collector: { ...cases.collector, locked: false, freeCount: (cases.collector.freeCount || 0) + 1 } };
-                     setTasks(nt);
-                     setCases(nc);
+                     setTasks(nt); setCases(nc);
                      await db.ref(`users/${user.id}`).update({ tasks: nt, cases: nc });
                  }
             };
             
             const completeTask = async (tid) => {
                  if(tid === 'subscribe') {
-                     window.open('https://t.me/stepbystepdelision ', '_blank');
+                     window.open('https://t.me/stepbystepdelision', '_blank');
                      setTimeout(async () => {
                          if(!tasks.subscribe?.completed) {
                              const nt = { ...tasks, subscribe: { completed: true } };
                              const nc = { ...cases, elite: { ...cases.elite, freeCount: (cases.elite.freeCount || 0) + 1 } };
-                             setTasks(nt);
-                             setCases(nc);
+                             setTasks(nt); setCases(nc);
                              await db.ref(`users/${user.id}`).update({ tasks: nt, cases: nc });
                              alert('🎉 Получен 1 кейс «Элита»!');
                          }
                      }, 2000);
                  } else if(tid === 'inviteThree') {
-                     window.open('https://t.me/share/url?url= ' + encodeURIComponent(`https://t.me/stepbystep_game_bot?start= ${user.id}`), '_blank');
+                     window.open('https://t.me/share/url?url=' + encodeURIComponent(`https://t.me/stepbystep_game_bot?start=${user.id}`), '_blank');
                  } else if(tid === 'deposit' || tid === 'depositMajor') {
                      setShowTopUp(true);
                  }
             };
             
             const confirmWithdraw = () => {
-                 alert('Для получения награды обратитесь к администрации! https://t.me/stepbystepdelision ');
+                 alert('Для получения награды обратитесь к администрации! https://t.me/stepbystepdelision');
                  setShowWithdrawModal(false);
                  setWithdrawAmount('');
             };
@@ -1462,9 +936,9 @@
                 const readySet = new Set(iceLobby?.readyPlayers ? Object.keys(iceLobby.readyPlayers) : []);
                 const bettedSet = new Set(players.map(([id]) => id));
                 const totalBank = players.reduce((s, [, p]) => s + p.bet, 0);
+                const myPlayerData = iceLobby?.players?.[user?.id];
                 const isWinner = gameStatus === 'finished' && iceLobby?.winner?.id === user?.id;
                 const isLoser = gameStatus === 'finished' && iceLobby?.winner && iceLobby.winner.id !== user?.id;
-                
                 const statusText = () => {
                     if(isSpectator) return '👁 Наблюдатель';
                     switch(gameStatus) {
@@ -1476,7 +950,6 @@
                         default: return '';
                     }
                 };
-                
                 return (
                     <div className="min-h-screen bg-gradient-to-b from-blue-950 via-indigo-950 to-blue-900 pb-4">
                         <div className="max-w-lg mx-auto p-3">
@@ -1487,197 +960,59 @@
                                 </div>
                                 <button onClick={leaveIceLobby} className="bg-red-600/40 hover:bg-red-600 border border-red-500/50 px-3 py-1.5 rounded-xl font-bold transition text-sm">✕ Выйти</button>
                             </div>
-                            
-                            <div className={`rounded-xl p-2.5 mb-3 text-center font-bold border text-sm ${gameStatus === 'countdown' ? 'bg-yellow-500/20 border-yellow-500/50 animate-pulse' : gameStatus === 'open' ? 'bg-cyan-500/20 border-cyan-500/50' : gameStatus === 'playing' ? 'bg-red-500/20 border-red-500/50' : gameStatus === 'finished' ? 'bg-purple-500/20 border-purple-500/50' : 'bg-gray-700/50 border-gray-600/50'}`}>
-                                {statusText()}
-                            </div>
-                            
+                            <div className={`rounded-xl p-2.5 mb-3 text-center font-bold border text-sm ${gameStatus === 'countdown' ? 'bg-yellow-500/20 border-yellow-500/50 animate-pulse' : gameStatus === 'open' ? 'bg-cyan-500/20 border-cyan-500/50' : gameStatus === 'playing' ? 'bg-red-500/20 border-red-500/50' : gameStatus === 'finished' ? 'bg-purple-500/20 border-purple-500/50' : 'bg-gray-700/50 border-gray-600/50'}`}>{statusText()}</div>
                             {gameStatus === 'countdown' && timerRemaining > 0 && (
                                 <div className="text-center mb-3">
                                     <div className="text-6xl font-bold text-yellow-400 animate-pulse">{timerRemaining}</div>
                                     <div className="text-gray-400 text-xs">секунд до старта</div>
                                 </div>
                             )}
-                            
-                            {/* ICE ARENA WITH ZONES */}
                             <div className="flex justify-center mb-4">
                                 <div className={`ice-circle relative ${gameStatus === 'open' ? 'pulse-glow' : gameStatus === 'countdown' ? 'ready-glow' : ''}`}>
-                                    {/* Background pattern */}
                                     <div className="absolute inset-0 opacity-10" style={{backgroundImage: 'radial-gradient(circle, #00d2ff 1px, transparent 1px)', backgroundSize: '20px 20px'}} />
-                                    
-                                    {/* Player Zones */}
-                                    {playerZones.length > 0 && gameStatus !== 'waiting' && (
-                                        <div className="ice-zones-container">
-                                            {playerZones.map((zone, idx) => (
-                                                <div
-                                                    key={zone.id}
-                                                    className="ice-zone"
-                                                    style={{
-                                                        background: `conic-gradient(from ${zone.startAngle}deg, ${zone.color} 0deg, ${zone.color} ${zone.endAngle - zone.startAngle}deg, transparent ${zone.endAngle - zone.startAngle}deg)`,
-                                                        transform: `rotate(${zone.startAngle}deg)`,
-                                                        transformOrigin: '0% 0%',
-                                                        left: '50%',
-                                                        top: '50%',
-                                                        width: '50%',
-                                                        height: '50%',
-                                                        position: 'absolute',
-                                                        opacity: 0.35
-                                                    }}
-                                                />
-                                            ))}
-                                        </div>
-                                    )}
-                                    
-                                    {/* Waiting state */}
-                                    {gameStatus === 'waiting' && (
-                                        <div className="absolute inset-0 flex items-center justify-center">
-                                            <div className="text-5xl opacity-30">❓</div>
-                                        </div>
-                                    )}
-                                    
-                                    {/* Ball */}
-                                    {(gameStatus === 'playing' || gameStatus === 'finished') && (
-                                        <div 
-                                            className={`ice-ball ${gameStatus === 'playing' ? 'spinning' : ''}`} 
-                                            style={{left: ballPos.x + '%', top: ballPos.y + '%'}} 
-                                        />
-                                    )}
-                                    
-                                    {/* Player Avatars positioned around the circle */}
-                                    {players.map(([id, p], idx) => {
-                                        const angle = (idx / players.length) * 2 * Math.PI - Math.PI / 2;
-                                        const radius = 38; // percentage from center
-                                        const x = 50 + radius * Math.cos(angle);
-                                        const y = 50 + radius * Math.sin(angle);
-                                        return (
-                                            <div
-                                                key={id}
-                                                className="player-avatar"
-                                                style={{
-                                                    left: x + '%',
-                                                    top: y + '%',
-                                                    borderColor: p.color,
-                                                    boxShadow: `0 0 10px ${p.color}`
-                                                }}
-                                                title={`${p.name}: ${p.bet}⭐️`}
-                                            >
-                                                {p.avatar ? (
-                                                    <img src={p.avatar} alt="" className="w-full h-full object-cover" />
-                                                ) : (
-                                                    <div className="w-full h-full bg-gray-700 flex items-center justify-center text-xs font-bold" style={{background: p.color}}>
-                                                        {p.name.charAt(0).toUpperCase()}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        );
-                                    })}
+                                    {(gameStatus === 'open' || gameStatus === 'countdown' || gameStatus === 'playing' || gameStatus === 'finished') && renderIceField()}
+                                    {gameStatus === 'waiting' && <div className="absolute inset-0 flex items-center justify-center"><div className="text-5xl opacity-30">❓</div></div>}
+                                    {gameStatus === 'playing' && <div className="ice-ball" style={{left: ballPos.x + '%', top: ballPos.y + '%'}} />}
+                                    {gameStatus === 'finished' && iceLobby?.finalBall && <div className="ice-ball" style={{left: iceLobby.finalBall.x + '%', top: iceLobby.finalBall.y + '%', background: 'radial-gradient(circle at 30% 30%, #fff, #ffd700)', boxShadow: '0 0 25px #ffd700, 0 0 50px rgba(255,215,0,0.5)'}} />}
                                 </div>
                             </div>
-                            
-                            {/* Bet info */}
-                            {playerZones.length > 0 && (
-                                <div className="glass rounded-xl p-3 mb-3">
-                                    <div className="text-center text-sm font-bold mb-2">💰 Банк: {totalBank} ⭐️</div>
-                                    <div className="space-y-1">
-                                        {playerZones.map(zone => (
-                                            <div key={zone.id} className="flex justify-between items-center text-xs">
-                                                <div className="flex items-center gap-2">
-                                                    <div className="w-3 h-3 rounded-full" style={{background: zone.color}}></div>
-                                                    <span className={zone.id === user?.id ? 'text-cyan-300 font-bold' : 'text-gray-300'}>
-                                                        {zone.id === user?.id ? 'Вы' : iceLobby?.players?.[zone.id]?.name || 'Игрок'}
-                                                    </span>
-                                                </div>
-                                                <div className="text-right">
-                                                    <span className="text-yellow-400 font-bold">{zone.bet}⭐️</span>
-                                                    <span className="text-gray-500 ml-2">({zone.percentage}%)</span>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-                            
-                            {/* Betting Controls */}
                             {!isSpectator && gameStatus === 'open' && (
                                 <div className="glass rounded-xl p-3 mb-3 border border-cyan-500/30">
                                     {!hasBet ? (
                                         <>
                                             <p className="text-center text-cyan-300 font-bold mb-2 text-sm">💰 Ваша ставка</p>
                                             <div className="flex gap-2 mb-2">
-                                                <input 
-                                                    type="number" 
-                                                    min="25" 
-                                                    value={myBetInput} 
-                                                    onChange={e => setMyBetInput(Math.max(25, Number(e.target.value)))} 
-                                                    className="flex-1 bg-gray-800 border border-cyan-600 rounded-lg p-2.5 text-center text-lg text-white" 
-                                                />
+                                                <input type="number" min="25" value={myBetInput} onChange={e => setMyBetInput(Math.max(25, Number(e.target.value)))} className="flex-1 bg-gray-800 border border-cyan-600 rounded-lg p-2.5 text-center text-lg text-white" />
                                                 <button onClick={() => setMyBetInput(p => p + 25)} className="bg-cyan-700 hover:bg-cyan-600 px-3 rounded-lg font-bold transition text-sm">+25</button>
                                                 <button onClick={() => setMyBetInput(p => p + 100)} className="bg-cyan-700 hover:bg-cyan-600 px-3 rounded-lg font-bold transition text-sm">+100</button>
                                             </div>
-                                            <button 
-                                                onClick={placeBet} 
-                                                disabled={balance < myBetInput || myBetInput < 25} 
-                                                className="w-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 py-2.5 rounded-xl font-bold disabled:opacity-50 transition text-sm"
-                                            >
-                                                Поставить {myBetInput}⭐️
-                                            </button>
+                                            <button onClick={placeBet} disabled={balance < myBetInput || myBetInput < 25} className="w-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 py-2.5 rounded-xl font-bold disabled:opacity-50 transition text-sm">Поставить {myBetInput}⭐️</button>
                                             <p className="text-center text-xs text-gray-500 mt-1">Баланс: {balance.toFixed(0)}⭐️ | Мин: 25⭐️</p>
                                         </>
                                     ) : (
                                         <>
-                                            <div className="text-center mb-2">
-                                                <div className="text-green-400 font-bold">✅ Ставка: {myBet}⭐️</div>
-                                            </div>
+                                            <div className="text-center mb-2"><div className="text-green-400 font-bold">✅ Ставка: {myBet}⭐️</div></div>
                                             <div className="flex gap-2 mb-2">
-                                                <input 
-                                                    type="number" 
-                                                    min="25" 
-                                                    value={myBetInput} 
-                                                    onChange={e => setMyBetInput(Math.max(25, Number(e.target.value)))} 
-                                                    className="flex-1 bg-gray-800 border border-gray-600 rounded-lg p-2 text-center text-sm text-white" 
-                                                />
-                                                <button 
-                                                    onClick={changeBet} 
-                                                    disabled={myBetInput === myBet} 
-                                                    className="bg-orange-600 hover:bg-orange-500 px-3 rounded-lg font-bold transition text-xs disabled:opacity-40"
-                                                >
-                                                    Изменить
-                                                </button>
+                                                <input type="number" min="25" value={myBetInput} onChange={e => setMyBetInput(Math.max(25, Number(e.target.value)))} className="flex-1 bg-gray-800 border border-gray-600 rounded-lg p-2 text-center text-sm text-white" />
+                                                <button onClick={changeBet} disabled={myBetInput === myBet} className="bg-orange-600 hover:bg-orange-500 px-3 rounded-lg font-bold transition text-xs disabled:opacity-40">Изменить</button>
                                             </div>
-                                            <button 
-                                                onClick={toggleReady} 
-                                                className={`w-full py-3 rounded-xl font-bold transition ${isReady ? 'bg-gradient-to-r from-green-500 to-emerald-600 ready-glow text-white' : 'bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 border border-gray-500'}`}
-                                            >
-                                                {isReady ? '✅ Готов! (нажмите для отмены)' : '🏁 Готов к игре'}
-                                            </button>
-                                            {bettingCount > 0 && (
-                                                <p className="text-center text-xs text-gray-400 mt-1">
-                                                    Готовы: {readyCount}/{bettingCount}
-                                                </p>
-                                            )}
+                                            <button onClick={toggleReady} className={`w-full py-3 rounded-xl font-bold transition ${isReady ? 'bg-gradient-to-r from-green-500 to-emerald-600 ready-glow text-white' : 'bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 border border-gray-500'}`}>{isReady ? '✅ Готов! (нажмите для отмены)' : '🏁 Готов к игре'}</button>
+                                            {bettingCount > 0 && <p className="text-center text-xs text-gray-400 mt-1">Готовы: {readyCount}/{bettingCount}</p>}
                                         </>
                                     )}
                                 </div>
                             )}
-                            
-                            {/* Waiting state */}
                             {!isSpectator && gameStatus === 'waiting' && (
                                 <div className="glass rounded-xl p-4 mb-3 text-center border border-gray-600/30">
                                     <div className="text-3xl mb-2 animate-bounce">⏳</div>
                                     <div className="font-bold text-gray-300 text-sm">Ожидаем ещё игроков...</div>
                                     <div className="text-gray-500 text-xs mt-1">Ставки откроются когда зайдут 2+ игроков</div>
                                     <div className="flex justify-center gap-2 mt-2">
-                                        {[1, 2].map(i => (
-                                            <div key={i} className={`w-8 h-8 rounded-full border-2 flex items-center justify-center text-sm ${i <= presenceCount ? 'border-cyan-400 bg-cyan-400/20 text-cyan-300' : 'border-gray-600 bg-gray-800 text-gray-600'}`}>
-                                                {i <= presenceCount ? '👤' : '○'}
-                                            </div>
-                                        ))}
+                                        {[1, 2].map(i => <div key={i} className={`w-8 h-8 rounded-full border-2 flex items-center justify-center text-sm ${i <= presenceCount ? 'border-cyan-400 bg-cyan-400/20 text-cyan-300' : 'border-gray-600 bg-gray-800 text-gray-600'}`}>{i <= presenceCount ? '👤' : '○'}</div>)}
                                     </div>
                                     <div className="text-cyan-400 text-xs mt-1">{presenceCount}/2</div>
                                 </div>
                             )}
-                            
-                            {/* Playing state */}
                             {!isSpectator && gameStatus === 'playing' && hasBet && (
                                 <div className="glass rounded-xl p-3 mb-3 text-center border border-red-500/30">
                                     <div className="text-2xl animate-spin mb-1">🌀</div>
@@ -1685,8 +1020,6 @@
                                     <div className="text-gray-400 text-xs">Ставка: {myBet}⭐️ | Банк: {totalBank}⭐️</div>
                                 </div>
                             )}
-                            
-                            {/* Spectator */}
                             {isSpectator && (
                                 <div className="glass rounded-xl p-3 mb-3 text-center border border-yellow-500/30">
                                     <div className="text-2xl mb-1">👁</div>
@@ -1694,22 +1027,14 @@
                                     <div className="text-gray-500 text-xs">Игра уже началась</div>
                                 </div>
                             )}
-                            
-                            {/* Loser */}
                             {isLoser && (
                                 <div className="glass rounded-xl p-4 mb-3 text-center border border-gray-500/30">
                                     <div className="text-4xl mb-2">😔</div>
                                     <div className="font-bold text-gray-300">Победил {iceLobby?.winner?.name}</div>
-                                    <div className="text-gray-400 text-xs mt-1 mb-3">
-                                        Банк: {totalBank}⭐️ → победитель получил {Math.floor(totalBank * 0.65)}⭐️
-                                    </div>
-                                    <button onClick={exitLobbyNonWinner} className="w-full bg-gray-600 hover:bg-gray-500 py-2.5 rounded-xl font-bold transition text-sm">
-                                        Выйти из лобби
-                                    </button>
+                                    <div className="text-gray-400 text-xs mt-1 mb-3">Банк: {totalBank}⭐️ → победитель получил {Math.floor(totalBank * 0.65)}⭐️</div>
+                                    <button onClick={exitLobbyNonWinner} className="w-full bg-gray-600 hover:bg-gray-500 py-2.5 rounded-xl font-bold transition text-sm">Выйти из лобби</button>
                                 </div>
                             )}
-                            
-                            {/* Players list */}
                             <div className="glass rounded-xl p-3 mb-3">
                                 <div className="flex justify-between items-center mb-2">
                                     <h3 className="font-bold text-cyan-300 text-sm">👥 В лобби ({presenceCount})</h3>
@@ -1724,9 +1049,7 @@
                                         return (
                                             <div key={id} className={`flex items-center gap-2 p-2 rounded-lg border text-xs transition ${isReadyP ? 'player-row-ready' : hasBetted ? 'player-row-waiting' : 'player-row-presence bg-gray-800/30'}`}>
                                                 <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{background: pData?.color || p.color || '#888'}} />
-                                                <span className={`flex-1 font-medium ${isMe ? 'text-cyan-300' : 'text-white'}`}>
-                                                    {p.name}{isMe && ' (Вы)'}
-                                                </span>
+                                                <span className={`flex-1 font-medium ${isMe ? 'text-cyan-300' : 'text-white'}`}>{p.name}{isMe && ' (Вы)'}</span>
                                                 <div className="flex items-center gap-1.5">
                                                     {hasBetted && pData && <span className="text-yellow-400 font-bold">{pData.bet}⭐️</span>}
                                                     {isReadyP && <span className="text-green-400 font-bold">✅</span>}
@@ -1739,617 +1062,13 @@
                                     {presence.length === 0 && <div className="text-gray-500 text-center py-3 text-xs">Никого нет...</div>}
                                 </div>
                             </div>
-                            
-                            {/* Possible prizes */}
                             <div className="glass rounded-xl p-3">
-                                <h3 className="font-bold text-center text-cyan-300 text-xs mb-2">🎁 Возможные бонусы победителю</h3>
+                                <h3 className="font-bold text-center text-cyan-300 text-xs mb-2">🎁 Возможные бонусы</h3>
                                 <div className="flex flex-wrap justify-center gap-1.5 text-xl">
-                                    {ICE_ARENA_PRIZES.slice(0, 6).map((prize, i) => (
-                                        <span key={i} className="bg-gray-800/60 p-1.5 rounded-lg border border-white/10" title={prize.name}>
-                                            {prize.emoji}
-                                        </span>
-                                    ))}
+                                    {['🧸', '🧤', '❄️', '🐕', '☃️', '🎖', '⭐️', '🧣', '🔑'].map((e, i) => <span key={i} className="bg-gray-800/60 p-1.5 rounded-lg border border-white/10">{e}</span>)}
                                 </div>
                             </div>
                         </div>
-                        
-                        {/* Victory Modal */}
                         {showVictoryBox && isWinner && (
                             <div className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center p-4">
-                                <div className="glass rounded-2xl p-6 max-w-sm w-full text-center border border-yellow-500/60">
-                                    <h2 className="text-3xl font-bold mb-1 text-yellow-400">🏆 Победа!</h2>
-                                    <p className="text-gray-300 mb-1 text-sm">Вы выиграли:</p>
-                                    <p className="text-4xl font-bold text-yellow-400 mb-2">{victoryStars} ⭐️</p>
-                                    <p className="text-gray-400 text-xs mb-4">65% от общего банка</p>
-                                    
-                                    {!boxOpened ? (
-                                        <>
-                                            <p className="text-gray-400 text-sm mb-3">Откройте коробку для бонусного приза!</p>
-                                            <div 
-                                                className="text-7xl mb-3 cursor-pointer hover:scale-110 transition-transform active:scale-95 select-none animate-bounce" 
-                                                onClick={openVictoryBox}
-                                            >
-                                                🎁
-                                            </div>
-                                            <p className="text-cyan-300 text-xs animate-pulse">Нажмите на коробку!</p>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <div className="bg-gray-800/60 rounded-xl p-4 mb-4 border border-yellow-500/30">
-                                                <p className="text-gray-400 text-xs mb-1">Бонусный приз:</p>
-                                                <p className="text-5xl mb-2">{victoryPrize?.emoji}</p>
-                                                <p className="text-white font-bold text-lg">{victoryPrize?.name}</p>
-                                                <p className="text-yellow-400 text-xs mt-1">
-                                                    {victoryPrize?.type === 'stars' ? `${victoryPrize.value} ⭐️` : 
-                                                     victoryPrize?.type === 'item' ? `Можно продать за ${victoryPrize.sellPrice}⭐️` :
-                                                     victoryPrize?.type === 'case_free' ? 'Бесплатный кейс!' : 'Коллекционный предмет!'}
-                                                </p>
-                                            </div>
-                                            <button 
-                                                onClick={exitLobbyAfterGame} 
-                                                className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 py-3 rounded-xl font-bold transition"
-                                            >
-                                                ✅ Забрать и выйти
-                                            </button>
-                                        </>
-                                    )}
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                );
-            }
-            
-            // ===== ADMIN =====
-            if(isAdmin) {
-                const filteredUsers = allUsers.filter(u => !adminUserSearch || (u.name && u.name.toLowerCase().includes(adminUserSearch.toLowerCase())) || (u.username && u.username.toLowerCase().includes(adminUserSearch.toLowerCase())));
-                return (
-                    <div className="min-h-screen bg-gray-900 p-4">
-                        <div className="max-w-4xl mx-auto">
-                            <div className="flex justify-between items-center mb-6">
-                                <h1 className="text-2xl font-bold text-white">🔐 Админ-панель</h1>
-                                <button onClick={() => setIsAdmin(false)} className="text-gray-400 hover:text-white">Выйти</button>
-                            </div>
-                            <div className="flex gap-2 mb-6 overflow-x-auto">
-                                {['stats', 'users', 'rewards', 'settings'].map(tab => (
-                                    <button key={tab} onClick={() => setAdminScreen(tab)} className={`px-4 py-2 rounded-lg ${adminScreen === tab ? 'bg-indigo-600' : 'bg-gray-700'} text-sm`}>
-                                        {tab === 'stats' ? '📊 Стат.' : tab === 'users' ? '👥 Юзеры' : tab === 'rewards' ? '🎀 Награды' : '⚙️ Настр.'}
-                                    </button>
-                                ))}
-                            </div>
-                            <div className="glass rounded-xl p-6">
-                                {adminScreen === 'stats' && (
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="bg-gray-800 p-4 rounded-lg"><div className="text-gray-400 text-sm">Игроков</div><div className="text-3xl font-bold">{allUsers.length}</div></div>
-                                        <div className="bg-gray-800 p-4 rounded-lg"><div className="text-gray-400 text-sm">Онлайн</div><div className="text-3xl font-bold text-green-400">{onlineCount}</div></div>
-                                        <div className="bg-gray-800 p-4 rounded-lg"><div className="text-gray-400 text-sm">Общий баланс</div><div className="text-2xl font-bold">{allUsers.reduce((s, u) => s + (u.balance || 0), 0).toFixed(0)}⭐️</div></div>
-                                        <div className="bg-gray-800 p-4 rounded-lg"><div className="text-gray-400 text-sm">Предметов</div><div className="text-3xl font-bold">{allUsers.reduce((s, u) => s + (u.inventory?.length || 0), 0)}</div></div>
-                                    </div>
-                                )}
-                                {adminScreen === 'users' && !selectedUser && (
-                                    <div>
-                                        <div className="mb-4">
-                                            <input type="text" placeholder="🔍 Поиск по имени или нику..." value={adminUserSearch} onChange={e => setAdminUserSearch(e.target.value)} className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-2 text-sm" />
-                                        </div>
-                                        <div className="space-y-2 max-h-96 overflow-y-auto">
-                                            {filteredUsers.map(u => (
-                                                <div key={u.id} onClick={() => setSelectedUser(u)} className="bg-gray-800 p-3 rounded-lg cursor-pointer hover:bg-gray-700 flex justify-between">
-                                                    <div><div className="font-bold text-sm">{u.name}</div><div className="text-xs text-gray-400">{u.username || u.id.slice(0,12)}</div></div>
-                                                    <div className="text-yellow-400 text-sm">{(u.balance || 0).toFixed(0)}⭐️</div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-                                {adminScreen === 'users' && selectedUser && (
-                                    <div>
-                                        <h3 className="font-bold mb-4 text-lg">👤 {selectedUser.name}</h3>
-                                        <div className="grid grid-cols-3 gap-2 mb-4">
-                                            <button onClick={() => adminGiveReward(selectedUser.id, {type:'stars', amount:100})} className="bg-green-600 p-2 rounded text-sm">+100⭐️</button>
-                                            <button onClick={() => adminGiveReward(selectedUser.id, {type:'stars', amount:500})} className="bg-green-600 p-2 rounded text-sm">+500⭐️</button>
-                                            <button onClick={() => adminGiveReward(selectedUser.id, {type:'stars', amount:1000})} className="bg-green-600 p-2 rounded text-sm">+1000⭐️</button>
-                                            <button onClick={() => adminGiveReward(selectedUser.id, {type:'case', caseType:'diamond', count:5})} className="bg-blue-600 p-2 rounded text-sm">+5💎</button>
-                                            <button onClick={() => adminGiveReward(selectedUser.id, {type:'case', caseType:'elite', count:2})} className="bg-red-600 p-2 rounded text-sm">+2🎖</button>
-                                            <button onClick={() => adminGiveReward(selectedUser.id, {type:'unlock_collector'})} className="bg-pink-800 p-2 rounded text-sm">🔓 Коллекц.</button>
-                                            <button onClick={() => adminGiveReward(selectedUser.id, {type:'reset_daily'})} className="bg-cyan-600 p-2 rounded text-sm">🗓️ Сброс дейли</button>
-                                            <button onClick={() => adminGiveReward(selectedUser.id, {type:'item', item:{id:'random_case_box', name:'Случайный кейс', emoji:'📦', type:'random_case_box'}})} className="bg-amber-600 p-2 rounded text-sm">📦 Выдать ящик</button>
-                                        </div>
-                                        <button onClick={() => setSelectedUser(null)} className="w-full bg-gray-600 p-2 rounded text-sm">← Назад</button>
-                                    </div>
-                                )}
-                                {adminScreen === 'rewards' && (
-                                    <div>
-                                        <h3 className="text-lg mb-4">Выдать себе:</h3>
-                                        <div className="grid grid-cols-3 gap-2">
-                                            <button onClick={() => adminGiveReward(user.id, {type:'stars', amount:10000})} className="bg-indigo-600 p-3 rounded text-sm">+10000⭐️</button>
-                                            <button onClick={() => adminGiveReward(user.id, {type:'case', caseType:'diamond', count:10})} className="bg-blue-600 p-3 rounded text-sm">+10💎</button>
-                                            <button onClick={() => adminGiveReward(user.id, {type:'unlock_collector'})} className="bg-pink-800 p-3 rounded text-sm">🔓 Коллекц.</button>
-                                            <button onClick={() => adminGiveReward(user.id, {type:'reset_daily'})} className="bg-cyan-600 p-3 rounded text-sm">🗓️ Сброс дейли</button>
-                                            <button onClick={() => adminGiveReward(user.id, {type:'item', item:{id:'random_case_box', name:'Случайный кейс', emoji:'📦', type:'random_case_box'}})} className="bg-amber-600 p-3 rounded text-sm">📦 Выдать ящик</button>
-                                        </div>
-                                    </div>
-                                )}
-                                {adminScreen === 'settings' && (
-                                    <div>
-                                        <h3 className="text-lg mb-4">Сбросить аккаунт</h3>
-                                        <button onClick={async () => { if(confirm('Удалить ВСЕ данные?')) { await db.ref('users/' + user.id).remove(); localStorage.removeItem('sbs_user_id'); window.location.reload(); } }} className="bg-red-600 px-4 py-2 rounded-lg text-sm">🗑 Сбросить</button>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                );
-            }
-            
-            // ===== MAIN =====
-            return (
-                <div className="min-h-screen pb-24">
-                    <header className="p-4 flex justify-between items-center glass sticky top-0 z-50">
-                        <h1 onClick={handleTitleClick} className="text-xl font-bold cursor-pointer select-none hover:text-cyan-300 transition">Step By Step Game</h1>
-                        <button onClick={() => setShowTopUp(true)} className="bg-gradient-to-r from-yellow-400 to-orange-500 px-4 py-2 rounded-full font-bold text-gray-900 shadow-lg text-sm">{balance.toFixed(2)} ⭐️</button>
-                    </header>
-                    
-                    {paymentStatus && <div className="mx-4 mt-2 p-3 rounded-lg text-center text-xs bg-blue-500/20 border border-blue-500">{paymentStatus}</div>}
-                    
-                    {showRandomCaseModal && (
-                        <div className="fixed inset-0 bg-black/90 z-[60] flex items-center justify-center p-4">
-                            <div className="glass rounded-2xl p-6 max-w-sm w-full text-center">
-                                <div className="text-6xl mb-4 animate-bounce">📦</div>
-                                <h3 className="text-xl font-bold mb-2">Случайный Кейс</h3>
-                                <p className="mb-4 text-sm">Обменять этот ящик на один случайный бесплатный кейс из списка?</p>
-                                <div className="space-y-3">
-                                    <button onClick={exchangeRandomCaseBox} className="w-full bg-green-600 hover:bg-green-500 py-3 rounded-xl font-bold">Обменять</button>
-                                    <button onClick={() => setShowRandomCaseModal(false)} className="w-full bg-gray-600 hover:bg-gray-500 py-2 rounded-xl text-sm font-bold">Отмена</button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                    
-                    {showCollectibleModal && (
-                        <div className="fixed inset-0 bg-black/90 z-[60] flex items-center justify-center p-4">
-                            <div className="glass rounded-2xl p-6 max-w-sm w-full text-center">
-                                <div className="text-6xl mb-4 animate-bounce">{selectedCollectible?.emoji}</div>
-                                <h3 className="text-xl font-bold mb-2">Коллекционный предмет!</h3>
-                                <p className="mb-4 text-sm">Обратитесь к <a href="https://t.me/stepbystepdelision " target="_blank" className="text-blue-400 underline">администрации</a></p>
-                                <button onClick={() => setShowCollectibleModal(false)} className="w-full bg-indigo-600 hover:bg-indigo-500 py-3 rounded-xl font-bold">Понятно</button>
-                            </div>
-                        </div>
-                    )}
-                    
-                    {showIceGiftModal && (
-                        <div className="fixed inset-0 bg-black/90 z-[60] flex items-center justify-center p-4">
-                            <div className="glass rounded-2xl p-6 max-w-sm w-full text-center border border-cyan-500/50">
-                                <div className="text-6xl mb-4">🧊</div>
-                                <h3 className="text-xl font-bold mb-2 text-cyan-300">Ледяной Подарок!</h3>
-                                <div className="space-y-3">
-                                    <button onClick={sellIceGift} className="w-full bg-orange-600 hover:bg-orange-500 py-3 rounded-xl font-bold transition">🔥 Продать за 25⭐️</button>
-                                    <button onClick={() => { setShowIceGiftModal(false); setSelectedIceGift(null); }} className="w-full bg-cyan-600 hover:bg-cyan-500 py-3 rounded-xl font-bold transition">💎 Оставить</button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                    
-                    {showManItemModal && selectedManItem && (
-                        <div className="fixed inset-0 bg-black/90 z-[60] flex items-center justify-center p-4">
-                            <div className="glass rounded-2xl p-6 max-w-sm w-full text-center border border-yellow-500/50">
-                                <div className="text-6xl mb-4">{selectedManItem.emoji}</div>
-                                <h3 className="text-xl font-bold mb-3 text-yellow-300">Мужык 💪</h3>
-                                {selectedManItem.key === 'gold_ball' && <p className="mb-4 text-sm text-gray-200">Продайте Золотой Мяч за 5⭐️ или сохраните его на будущее</p>}
-                                {selectedManItem.key === 'mikhaylov_ball' && <p className="mb-4 text-sm text-gray-200">Продайте мяч Максима Михайлова за 7⭐️ или сохраните его на будущее!</p>}
-                                {selectedManItem.key === 'tyson_gloves' && <p className="mb-4 text-sm text-gray-200">Продайте Перчатки Майка Тайсона за 15⭐️ или сохраните их на будущее!</p>}
-                                {selectedManItem.key === 'steak' && <p className="mb-4 text-sm text-gray-200">Продайте Стейк за 20⭐️ или сохраните его на будущее!</p>}
-                                {selectedManItem.key === 'simba' && <p className="mb-4 text-sm text-gray-200">Отпустите Симбу сейчас за 50⭐️ или подождите, пока он вырастет</p>}
-                                {selectedManItem.key === 'wolf_wallstreet' && <p className="mb-4 text-sm text-gray-200">Обменяйте Волка с Уолл-стрит на кейс «Коллекционер» сейчас или оставьте его у себя!</p>}
-                                <div className="space-y-3">
-                                    {selectedManItem.type === 'man_item' && (
-                                        <>
-                                            <button onClick={async () => { const nb = balance + (selectedManItem.sellPrice || 0); const ni = inventory.filter(i => i.uniqueId !== selectedManItem.uniqueId); setBalance(nb); setInventory(ni); await db.ref(`users/${user.id}`).update({ balance: nb, inventory: ni }); setShowManItemModal(false); setSelectedManItem(null); }} className="w-full bg-orange-600 hover:bg-orange-500 py-3 rounded-xl font-bold transition">Продать за {selectedManItem.sellPrice || 0}⭐️</button>
-                                            <button onClick={() => { setShowManItemModal(false); setSelectedManItem(null); }} className="w-full bg-gray-600 hover:bg-gray-500 py-3 rounded-xl font-bold transition">Оставить</button>
-                                        </>
-                                    )}
-                                    {selectedManItem.key === 'wolf_wallstreet' && (
-                                        <button onClick={async () => { const curFree = cases.collector?.freeCount || 0; const nc = { ...cases, collector: { ...cases.collector, locked: false, freeCount: curFree + 1 } }; const ni = inventory.filter(i => i.uniqueId !== selectedManItem.uniqueId); setCases(nc); setInventory(ni); await db.ref(`users/${user.id}`).update({ cases: nc, inventory: ni }); setShowManItemModal(false); setSelectedManItem(null); }} className="w-full bg-green-600 hover:bg-green-500 py-3 rounded-xl font-bold transition">Обменять на кейс «Коллекционер»</button>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                    
-                    {showAdminLogin && (
-                        <div className="fixed inset-0 bg-black/90 z-[60] flex items-center justify-center p-4">
-                            <div className="glass rounded-2xl p-6 max-w-sm w-full">
-                                <h2 className="text-xl font-bold text-center mb-4">🔐 Вход в админ-панель</h2>
-                                <input type="text" placeholder="Логин" value={adminLogin} onChange={e => setAdminLogin(e.target.value)} className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 mb-3 text-center text-sm" />
-                                <input type="password" placeholder="Пароль" value={adminPassword} onChange={e => setAdminPassword(e.target.value)} className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 mb-4 text-center text-sm" />
-                                <button onClick={checkAdminLogin} className="w-full bg-indigo-600 hover:bg-indigo-500 py-3 rounded-xl font-bold mb-2">Войти</button>
-                                <button onClick={() => setShowAdminLogin(false)} className="w-full bg-gray-700 hover:bg-gray-600 py-2 rounded-xl text-sm">Отмена</button>
-                            </div>
-                        </div>
-                    )}
-                    
-                    {showWithdrawModal && (
-                        <div className="fixed inset-0 bg-black/90 z-[60] flex items-center justify-center p-4">
-                            <div className="glass rounded-2xl p-6 max-w-sm w-full">
-                                <h2 className="text-xl font-bold text-center mb-4">📊 Вывод призов</h2>
-                                <input type="number" placeholder="Кол-во звёзд" value={withdrawAmount} onChange={e => setWithdrawAmount(e.target.value)} className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 mb-4 text-center" />
-                                <div className="grid grid-cols-2 gap-3 mb-4">
-                                    <button onClick={confirmWithdraw} className="bg-yellow-600 hover:bg-yellow-500 py-3 rounded-xl font-bold">В звёздах</button>
-                                    <button onClick={confirmWithdraw} className="bg-purple-600 hover:bg-purple-500 py-3 rounded-xl font-bold">В подарках</button>
-                                </div>
-                                <button onClick={() => setShowWithdrawModal(false)} className="w-full bg-gray-700 hover:bg-gray-600 py-2 rounded-xl text-sm">Отмена</button>
-                            </div>
-                        </div>
-                    )}
-                    
-                    <main className="p-4 max-w-md mx-auto">
-                        {currentScreen === 'cases' && (
-                            <div>
-                                <h2 className="text-2xl font-bold mb-4 text-center">🎰 Кейсы</h2>
-                                {cases.diamond?.freeCount > 0 && <div className="bg-green-500/20 border border-green-500 rounded-lg p-3 mb-3 text-center text-sm animate-pulse">🎁 Бесплатных кейсов Алмаз: {cases.diamond.freeCount}</div>}
-                                {cases.elite?.freeCount > 0 && <div className="bg-green-500/20 border border-green-500 rounded-lg p-3 mb-3 text-center text-sm animate-pulse">🎁 Бесплатных кейсов Элита: {cases.elite.freeCount}</div>}
-                                {freeEliteSpin > 0 && <div className="bg-green-500/20 border border-green-500 rounded-lg p-3 mb-3 text-center text-sm animate-pulse">🎁 Бесплатных прокрутов Элита: {freeEliteSpin}</div>}
-                                
-                                {/* SPECIAL CASES */}
-                                <div className="mb-6">
-                                    <h3 className="text-lg font-bold text-center mb-3 text-purple-300 special-header">🔮 Особые 🔮</h3>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        {Object.values(cases).filter(c => c.type === 'special').map(c => {
-                                            const isDaily = c.id === 'daily';
-                                            const isDailyWait = isDaily && c.freeCount === 0;
-                                            const showTimer = (c.id === 'winter' || c.id === 'man') && eventCasesTimeLeft;
-                                            
-                                            if (c.locked) {
-                                                return (
-                                                     <div key={c.id} className="case-collector rounded-xl p-4 relative overflow-hidden hover:scale-105 transition opacity-60">
-                                                        <div className="absolute inset-0 bg-black/60 z-20 flex flex-col items-center justify-center rounded-xl text-center p-2">
-                                                            <span className="text-4xl mb-2">🔒</span>
-                                                        </div>
-                                                        <div className="w-16 h-16 mx-auto rounded-lg bg-white/20 flex items-center justify-center text-3xl mb-2 shadow-lg">{c.emoji}</div>
-                                                        <h3 className="font-bold text-center text-sm">{c.name}</h3>
-                                                        <p className="text-center text-xs opacity-75 mb-2 h-4">{c.price}⭐️</p>
-                                                        <button disabled className="w-full py-2 rounded-lg font-bold text-sm bg-gray-700 cursor-not-allowed text-gray-400">Заблокирован</button>
-                                                    </div>
-                                                );
-                                            }
-
-                                            return (
-                                                <div key={c.id} className="glass rounded-xl p-4 relative overflow-hidden hover:scale-105 transition">
-                                                    {showTimer && <div className="case-countdown-overlay">⏳ {eventCasesTimeLeft}</div>}
-                                                    <div className={`w-16 h-16 mx-auto rounded-lg bg-gradient-to-br ${c.color} flex items-center justify-center text-3xl mb-2 shadow-lg`}>{c.emoji}</div>
-                                                    <h3 className="font-bold text-center text-sm">{c.name}</h3>
-                                                    <p className="text-center text-xs opacity-75 mb-2 h-4 flex items-center justify-center">
-                                                        {isDaily ? (c.freeCount > 0 ? <span className="text-green-400 font-bold">Бесплатно!</span> : <span className="daily-timer">{dailyCaseTimeLeft}</span>) :
-                                                        (c.price > 0 ? c.price + '⭐️' : '')}
-                                                    </p>
-                                                    <button onClick={() => handleSelectCase(c)} className="w-full py-2 rounded-lg font-bold text-sm bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 transition">
-                                                        {isDailyWait ? '👁 Смотреть' : 'Открыть'}
-                                                    </button>
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
-                                
-                                {/* ORDINARY CASES */}
-                                <div className="mb-6">
-                                    <h3 className="text-lg font-bold text-center mb-3 text-yellow-300 ordinary-header">🎁 Обычные 🎁</h3>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        {Object.values(cases).filter(c => !c.type && !c.locked).map(c => (
-                                            <div key={c.id} className={`glass rounded-xl p-4 relative overflow-hidden hover:scale-105 transition ${c.id === 'cardboard' ? 'case-cardboard' : ''}`}>
-                                                {c.isNew && !c.type && <span className="absolute -top-2 -right-2 bg-red-500 text-xs px-2 py-1 rounded-full animate-pulse">Новое!</span>}
-                                                {(c.discountPrice && c.discountPrice !== c.price) && !c.freeCount && <span className="absolute -top-2 -left-2 bg-green-500 text-xs px-2 py-1 rounded-full animate-pulse">Скидка!</span>}
-                                                <div className={`w-16 h-16 mx-auto rounded-lg ${c.id === 'cardboard' ? 'bg-white/20' : `bg-gradient-to-br ${c.color}`} flex items-center justify-center text-3xl mb-2 shadow-lg`}>{c.emoji}</div>
-                                                <h3 className="font-bold text-center text-sm">{c.name}</h3>
-                                                <p className="text-center text-xs opacity-75 mb-2 h-4">
-                                                    {c.freeCount > 0 ? <span className="text-green-400 font-bold">Бесплатно!</span> :
-                                                    (c.discountPrice && c.discountPrice !== c.price ? <span><span className="line-through">{c.originalPrice || c.price}⭐️</span> <span className="font-bold text-white">{c.discountPrice}⭐️</span></span> : c.price + '⭐️')}
-                                                </p>
-                                                <button onClick={() => handleSelectCase(c)} className="w-full py-2 rounded-lg font-bold text-sm bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 transition">Открыть</button>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-                        
-                        {currentScreen === 'games' && (
-                            <div>
-                                <h2 className="text-2xl font-bold mb-4 text-center">🎮 Игры</h2>
-                                <div className="space-y-4">
-                                    <div className="glass rounded-xl p-5 border border-cyan-500/30">
-                                        <h3 className="text-xl font-bold mb-1 text-center text-cyan-300">☃️ Ледяной Каток</h3>
-                                        <p className="text-gray-400 mb-1 text-center text-xs">Дождитесь 2+ игроков → ставьте → жмите «Готов»</p>
-                                        <p className="text-cyan-400 text-center text-xs mb-3">Победитель получает 65% от банка + бонус 🎁</p>
-                                        <div className="grid grid-cols-5 gap-2">
-                                            {[1,2,3,4,5,6,7,8,9,10].map(i => {
-                                                const status = lobbiesStatus[i] || 'empty';
-                                                const statusColors = {
-                                                    empty: 'bg-cyan-700 hover:bg-cyan-600',
-                                                    waiting: 'bg-yellow-600 hover:bg-yellow-500',
-                                                    ready: 'bg-green-600 hover:bg-green-500',
-                                                    playing: 'bg-red-600 hover:bg-red-500',
-                                                    finished: 'bg-purple-600 hover:bg-purple-500'
-                                                };
-                                                const statusText = {
-                                                    empty: '',
-                                                    waiting: '●',
-                                                    ready: '✓',
-                                                    playing: '▶',
-                                                    finished: '◆'
-                                                };
-                                                return (
-                                                    <button 
-                                                        key={i} 
-                                                        onClick={() => joinIceLobby(i)} 
-                                                        className={`${statusColors[status]} py-2 rounded-lg text-sm font-bold transition relative`}
-                                                    >
-                                                        #{i}
-                                                        {status !== 'empty' && (
-                                                            <span className="absolute -top-1 -right-1 w-3 h-3 bg-white rounded-full flex items-center justify-center text-[8px] text-black">
-                                                                {statusText[status]}
-                                                            </span>
-                                                        )}
-                                                    </button>
-                                                );
-                                            })}
-                                        </div>
-                                        <div className="flex justify-center gap-4 mt-3 text-xs">
-                                            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-cyan-700"></span> Свободно</span>
-                                            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-yellow-600"></span> Ожидание</span>
-                                            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-green-600"></span> Готов</span>
-                                        </div>
-                                    </div>
-                                    <div className="glass rounded-xl p-5 opacity-50 text-center">
-                                        <h3 className="text-lg font-bold">В разработке... 👲</h3>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-                        
-                        {currentScreen === 'events' && (
-                            <div className="olympus-container rounded-2xl p-6 olympus-greek-pattern">
-                                <div className="text-center mb-6">
-                                    <div className="flex justify-center items-center gap-4 mb-2">
-                                        <span className="olympus-laurel">🏛️</span>
-                                        <h2 className="olympus-title">ИВЕНТ ОЛИМП</h2>
-                                        <span className="olympus-laurel">🏛️</span>
-                                    </div>
-                                    <div className="olympus-divider"></div>
-                                </div>
-                                
-                                <div className="mb-6 rounded-xl overflow-hidden border-2 border-yellow-600/50 shadow-2xl relative">
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10"></div>
-                                    <img src="olymp.jpg" alt="Olympus" className="w-full h-auto" style={{animation: 'float 8s ease-in-out infinite'}} onError={(e) => {e.target.onerror=null; e.target.src='https://images.unsplash.com/photo-1560130958-f933331b7e9b?q=80&w=1000 ';}} />
-                                    <div className="absolute bottom-4 left-0 right-0 z-20 text-center">
-                                        <p className="olympus-subtitle text-lg">Доберитесь до ОЛИМПА</p>
-                                    </div>
-                                </div>
-                                
-                                <div className="olympus-timer-box rounded-xl p-4 mb-6 text-center">
-                                    <p className="text-gray-400 text-xs mb-2 uppercase tracking-widest">До начала события</p>
-                                    <span className="text-4xl font-mono font-bold text-white tracking-wider">{eventOlympusTimeLeft}</span>
-                                </div>
-                                
-                                <p className="text-center text-cyan-300 mb-6 text-sm animate-pulse olympus-font">⚡ Событие скоро начнется! Готовься к восхождению! ⚡</p>
-                                
-                                <div className="olympus-divider"></div>
-                                
-                                <div className="mb-4">
-                                    <div className="flex items-center justify-center gap-2 mb-4">
-                                        <span className="text-yellow-500 text-xl">✦</span>
-                                        <h4 className="olympus-subtitle text-center">Что вас ждет?</h4>
-                                        <span className="text-yellow-500 text-xl">✦</span>
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-3">
-                                        <div className="olympus-btn rounded-lg p-3 text-center text-xs">
-                                            <span className="text-xl block mb-1">🎁</span>
-                                            Огромные розыгрыши
-                                        </div>
-                                        <div className="olympus-btn rounded-lg p-3 text-center text-xs">
-                                            <span className="text-xl block mb-1">🔮</span>
-                                            Секретный кейс!
-                                        </div>
-                                        <div className="olympus-btn rounded-lg p-3 text-center text-xs">
-                                            <span className="text-xl block mb-1">🎉</span>
-                                            Новые подарки!
-                                        </div>
-                                        <div className="olympus-btn rounded-lg p-3 text-center text-xs">
-                                            <span className="text-xl block mb-1">🏪</span>
-                                            Эксклюзивный магазин!
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div className="olympus-column rounded-lg p-4 mt-4">
-                                    <p className="text-center text-xs text-gray-400 olympus-font italic">
-                                        "Только достойнейшие поднимутся на вершину Олимпа"
-                                    </p>
-                                </div>
-                            </div>
-                        )}
-                        
-                        {currentScreen === 'tasks' && (
-                            <div>
-                                <h2 className="text-2xl font-bold mb-4 text-center">📋 Задания</h2>
-                                <div className="space-y-3">
-                                    <div className={`glass rounded-xl p-4 ${tasks.subscribe?.completed ? 'bg-green-500/20' : ''}`}>
-                                        <div className="flex justify-between items-start mb-2">
-                                            <div>
-                                                <h3 className="font-bold text-sm">Подпишись на канал</h3>
-                                                <p className="text-xs opacity-75">Награда: 1 кейс «Элита» 🎖</p>
-                                            </div>
-                                            {tasks.subscribe?.completed && <span className="text-green-400 text-xl">✅</span>}
-                                        </div>
-                                        <button onClick={() => completeTask('subscribe')} disabled={tasks.subscribe?.completed} className={`w-full py-2 rounded-lg text-sm ${tasks.subscribe?.completed ? 'bg-green-600' : 'bg-blue-600 hover:bg-blue-500'} transition`}>{tasks.subscribe?.completed ? 'Выполнено' : 'Подписаться'}</button>
-                                    </div>
-                                    <div className={`glass rounded-xl p-4 ${tasks.inviteThree?.completed ? 'bg-green-500/20' : ''}`}>
-                                        <div className="flex justify-between items-start mb-2">
-                                            <div>
-                                                <h3 className="font-bold text-sm">Пригласить 3 друзей</h3>
-                                                <p className="text-xs opacity-75">Награда: 25 ⭐️</p>
-                                                {!tasks.inviteThree?.completed && <p className="text-xs text-cyan-400 mt-0.5">Прогресс: {tasks.inviteThree?.count || 0}/3</p>}
-                                            </div>
-                                            {tasks.inviteThree?.completed && <span className="text-green-400 text-xl">✅</span>}
-                                        </div>
-                                        <button onClick={() => completeTask('inviteThree')} disabled={tasks.inviteThree?.completed} className={`w-full py-2 rounded-lg text-sm ${tasks.inviteThree?.completed ? 'bg-green-600' : 'bg-blue-600 hover:bg-blue-500'} transition`}>{tasks.inviteThree?.completed ? 'Выполнено' : 'Пригласить'}</button>
-                                    </div>
-                                    <div className={`glass rounded-xl p-4 ${tasks.deposit?.completed ? 'bg-green-500/20' : ''}`}>
-                                        <div className="flex justify-between items-start mb-2">
-                                            <div>
-                                                <h3 className="font-bold text-sm">Пополнить на 100 ⭐️</h3>
-                                                <p className="text-xs opacity-75">Награда: 1 золотой кейс 👑</p>
-                                            </div>
-                                            {tasks.deposit?.completed && <span className="text-green-400 text-xl">✅</span>}
-                                        </div>
-                                        <button onClick={() => completeTask('deposit')} disabled={tasks.deposit?.completed} className={`w-full py-2 rounded-lg text-sm ${tasks.deposit?.completed ? 'bg-green-600' : 'bg-blue-600 hover:bg-blue-500'} transition`}>{tasks.deposit?.completed ? 'Выполнено' : 'Пополнить'}</button>
-                                    </div>
-                                    <div className={`glass rounded-xl p-4 ${tasks.depositMajor?.completed ? 'bg-green-500/20' : ''}`}>
-                                        <div className="flex justify-between items-start mb-2">
-                                            <div>
-                                                <h3 className="font-bold text-sm">Пополнить на 350 ⭐️</h3>
-                                                <p className="text-xs opacity-75">Награда: Кейс «Коллекционер» + 1 прокрут</p>
-                                            </div>
-                                            {tasks.depositMajor?.completed && <span className="text-green-400 text-xl">✅</span>}
-                                        </div>
-                                        <button onClick={() => completeTask('depositMajor')} disabled={tasks.depositMajor?.completed} className={`w-full py-2 rounded-lg text-sm ${tasks.depositMajor?.completed ? 'bg-green-600' : 'bg-blue-600 hover:bg-blue-500'} transition`}>{tasks.depositMajor?.completed ? 'Выполнено' : 'Пополнить'}</button>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-                        
-                        {currentScreen === 'profile' && (
-                            <div>
-                                <div className="glass rounded-xl p-3 mb-4 flex justify-between items-center">
-                                    <span className="text-gray-400 text-sm">🟢 Онлайн:</span>
-                                    <span className="font-bold text-green-400 text-sm">{onlineCount} игроков</span>
-                                </div>
-                                <h2 className="text-2xl font-bold mb-4 text-center">👤 Мой Профиль</h2>
-                                <div className="glass rounded-xl p-5 text-center mb-4">
-                                    <div className="w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center text-3xl mb-3 overflow-hidden border-2 border-white/20">
-                                        {user?.avatar ? <img src={user.avatar} alt="" className="w-full h-full object-cover" /> : user?.name?.charAt(0).toUpperCase()}
-                                    </div>
-                                    <h3 className="text-lg font-bold">{user?.name}</h3>
-                                    {user?.username && <p className="text-gray-400 text-sm">{user.username}</p>}
-                                </div>
-                                <div className="flex gap-2 mb-4">
-                                    <button onClick={() => setShowTopUp(true)} className="flex-1 bg-gradient-to-r from-yellow-400 to-orange-500 text-gray-900 font-bold py-3 rounded-xl shadow-lg transition text-sm">💎 Пополнить</button>
-                                </div>
-                                <div className="mb-4">
-                                    <button onClick={() => setShowWithdrawModal(true)} disabled={!tasks.depositMajor?.completed} className="w-full bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-bold py-3 rounded-xl shadow-lg transition text-sm disabled:opacity-50 disabled:cursor-not-allowed">{tasks.depositMajor?.completed ? '🏆 Вывести призы 🏆' : '🔒 Вывести призы (нужно 350⭐️)'}</button>
-                                </div>
-                                <div className="glass rounded-xl p-4 mb-4">
-                                    <h3 className="font-bold mb-2 text-sm">🎁 Промокод</h3>
-                                    <div className="flex gap-2">
-                                        <input type="text" placeholder="ПРОМОКОД" value={promoCode} onChange={e => setPromoCode(e.target.value)} className="flex-1 bg-gray-700/50 border border-gray-600 rounded-lg px-3 py-2 text-center uppercase text-sm" />
-                                        <button onClick={checkPromo} className="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-lg font-bold transition text-sm">OK</button>
-                                    </div>
-                                    {promoError && <p className="text-red-400 text-xs mt-2 text-center">{promoError}</p>}
-                                    {promoSuccess && <p className="text-green-400 text-xs mt-2 text-center">{promoSuccess}</p>}
-                                </div>
-                                <div className="glass rounded-xl p-4">
-                                    <div className="flex justify-between items-center mb-3">
-                                        <h3 className="font-bold text-sm">🎒 Инвентарь</h3>
-                                        <span className="text-xs text-gray-400">{inventory.length}/{inventorySlots}</span>
-                                    </div>
-                                    <div className="grid grid-cols-5 gap-2 mb-3">
-                                        {[...Array(inventorySlots)].map((_, i) => (
-                                            <div key={i} className="aspect-square bg-gray-700/50 rounded-lg flex items-center justify-center text-2xl hover:bg-gray-600/50 transition cursor-pointer">
-                                                {inventory[i] ? <span onClick={() => sellItem(inventory[i])} className="hover:scale-110 transition">{inventory[i].emoji}</span> : <span className="text-gray-600 text-xs">○</span>}
-                                            </div>
-                                        ))}
-                                    </div>
-                                    <button onClick={unlockSlot} disabled={balance < 50} className="w-full bg-gray-700 hover:bg-gray-600 disabled:opacity-50 py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition">🔓 Разблокировать слот (50⭐️)</button>
-                                </div>
-                            </div>
-                        )}
-                    </main>
-                    
-                    {selectedCase && (
-                        <div className="fullscreen-modal flex items-center justify-center p-4">
-                            <div className="w-full max-w-lg" ref={rouletteContainerRef}>
-                                <div className="flex justify-between items-center mb-5">
-                                    <h3 className="text-2xl font-bold">{selectedCase.emoji} {selectedCase.name}</h3>
-                                    <button onClick={() => { setSelectedCase(null); setSpinResult(null); setFakeItems([]); }} className="text-3xl hover:text-red-400 transition">×</button>
-                                </div>
-                                <div className="roulette-container mb-5">
-                                    <div className="roulette-pointer" />
-                                    <div key={rouletteKey} className="roulette-inner" style={{ transform: `translateX(${rouletteOffset}px)` }}>
-                                        {fakeItems.length > 0 ? fakeItems.map((item, i) => (
-                                            <div key={i} className="roulette-item"><div className="emoji">{item.emoji}</div><div className="name">{item.name}</div></div>
-                                        )) : [...Array(80)].map((_, i) => <div key={i} className="roulette-item"><div className="emoji">❓</div></div>)}
-                                    </div>
-                                </div>
-                                <div className="glass rounded-xl p-4 mb-5 max-h-40 overflow-y-auto">
-                                    <p className="font-bold mb-2 text-center text-sm">Возможные награды:</p>
-                                    <div className="space-y-1">
-                                        {CASE_REWARDS[selectedCase.id]?.map((r, i) => (
-                                            <div key={i} className="flex justify-between py-1 border-b border-white/10 last:border-0 text-xs">
-                                                <span>{r.emoji} {r.name}</span>
-                                                <span className="text-yellow-400 font-bold">{r.displayChance}</span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                                {spinResult ? (
-                                    <div className="text-center">
-                                        <p className="text-xl font-bold mb-2">🎉 Выпало: {spinResult.name}!</p>
-                                        {spinResult.type === 'collectible' && <p className="text-yellow-400 text-xs mb-4">⭐️ Коллекционный предмет!</p>}
-                                        <button onClick={() => { setSpinResult(null); openCase(selectedCase.id); }} className="w-full bg-green-600 hover:bg-green-500 py-3 rounded-xl font-bold mb-2 transition">Забрать и открыть ещё</button>
-                                        <button onClick={() => { setSelectedCase(null); setSpinResult(null); setFakeItems([]); }} className="w-full bg-gray-600 hover:bg-gray-500 py-2.5 rounded-xl font-bold transition text-sm">К кейсам</button>
-                                    </div>
-                                ) : (
-                                    <button onClick={() => openCase(selectedCase.id)} disabled={isSpinning || (selectedCase.id === 'daily' && selectedCase.freeCount === 0)} className="w-full bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 py-4 rounded-xl font-bold text-lg disabled:opacity-50 shadow-lg transition">
-                                        {isSpinning ? '🌀 Крутим...' : (selectedCase.id === 'daily' && selectedCase.freeCount === 0 ? dailyCaseTimeLeft : `Открыть за ${getCasePrice(selectedCase.id) === 0 ? 'Бесплатно' : getCasePrice(selectedCase.id) + '⭐️'}`)}
-                                    </button>
-                                )}
-                            </div>
-                        </div>
-                    )}
-                    
-                    {showTopUp && (
-                        <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
-                            <div className="glass rounded-2xl p-5 max-w-sm w-full">
-                                <div className="flex justify-between items-center mb-4">
-                                    <h3 className="text-lg font-bold">💳 Пополнение</h3>
-                                    <button onClick={() => setShowTopUp(false)} className="text-2xl hover:text-red-400 transition">×</button>
-                                </div>
-                                <p className="text-xs text-gray-400 text-center mb-3">⭐️ Telegram Stars</p>
-                                <div className="space-y-2 mb-4">
-                                    {STARS_PACKAGES.map(pkg => (
-                                        <button key={pkg.stars} onClick={() => buyStars(pkg)} className="w-full glass p-3 rounded-xl flex justify-between items-center hover:bg-white/10 transition border border-white/10">
-                                            <span className="font-bold text-yellow-400 text-sm">+{pkg.stars} ⭐️</span>
-                                            <span className="text-gray-300 text-xs">Купить</span>
-                                        </button>
-                                    ))}
-                                </div>
-                                <div className="border-t border-gray-600 pt-4">
-                                    <p className="text-xs text-gray-400 text-center mb-3">💎 TON</p>
-                                    {TON_RATES.map(rate => (
-                                        <button key={rate.stars} onClick={() => topUpBalance(rate.stars, rate.ton)} className="w-full glass p-3 rounded-xl flex justify-between items-center hover:bg-white/10 transition border border-white/10 mb-2">
-                                            <span className="font-bold text-sm">+{rate.stars}⭐️</span>
-                                            <span className="text-yellow-400 font-bold text-sm">{rate.ton} TON</span>
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                    
-                    <nav className="fixed bottom-0 left-0 right-0 glass border-t border-white/10 p-2 z-40">
-                        <div className="max-w-md mx-auto flex justify-around">
-                            {[ { id: 'tasks', emoji: '📋', label: 'Задания' }, { id: 'cases', emoji: '🎁', label: 'Кейсы' }, { id: 'events', emoji: '🏛️', label: 'Ивенты' }, { id: 'games', emoji: '🎮', label: 'Игры' }, { id: 'profile', emoji: '👤', label: 'Профиль' } ].map(s => (
-                                <button key={s.id} onClick={() => setCurrentScreen(s.id)} className={`flex flex-col items-center p-2 rounded-lg transition ${currentScreen === s.id ? 'events-tab-active text-yellow-400 scale-110' : 'text-gray-400 hover:text-white'}`}>
-                                    <span className="text-2xl">{s.emoji}</span>
-                                    <span className="text-xs font-bold">{s.label}</span>
-                                </button>
-                            ))}
-                        </div>
-                    </nav>
-                </div>
-            );
-        }
-        
-        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
-    </script>
-</body>
-</html>
+                                <div className="glass rounded-2xl p-6 max-w
