@@ -53,7 +53,7 @@
         @keyframes purpleGlow { 0%, 100% { text-shadow: 0 0 5px #a855f7, 0 0 10px #a855f7; } 50% { text-shadow: 0 0 20px #a855f7, 0 0 30px #9333ea; } }
         .special-header { animation: purpleGlow 3s infinite; }
         .ordinary-header { animation: goldGlow 3s infinite; }
-        .case-countdown-overlay { position: absolute; top: 0; left: 0; right: 0; background: rgba(0,0,0,0.75); padding: 4px; font-size: 11px; color: #ef4444; text-align: center; font-family: monospace; z-index: 10; font-weight: bold; }
+        .case-countdown-overlay { position: absolute; top: 0; left: 0; right: 0; background: rgba(0,0,0,0.7); padding: 4px; font-size: 10px; color: #ef4444; text-align: center; font-family: monospace; z-index: 10; }
     </style>
 </head>
 <body class="bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 min-h-screen text-white overflow-x-hidden">
@@ -196,19 +196,107 @@
                 { id: 'wolf_wallstreet', name: 'Волк с Уолл-стрит 🐺', displayChance: '1%', realChance: 1, type: 'man_item', key: 'wolf_wallstreet', emoji: '🐺', sellPrice: 0 }
             ],
             star: [
-                ...[
-                  [1,10.50],[2,8.00],[3,6.50],[4,5.20],[5,4.30],[6,3.70],[7,3.20],[8,2.80],[9,2.50],[10,2.20],
-                  [11,2.00],[12,1.85],[13,1.70],[14,1.60],[15,1.50],[16,1.40],[17,1.32],[18,1.24],[19,1.17],[20,1.10],
-                  [21,1.04],[22,0.98],[23,0.93],[24,0.88],[25,0.84],[26,0.80],[27,0.77],[28,0.74],[29,0.71],[30,0.68],
-                  [31,0.66],[32,0.64],[33,0.62],[34,0.60],[35,0.58],[36,0.56],[37,0.55],[38,0.54],[39,0.53],[40,0.52],
-                  [41,0.51],[42,0.50],[43,0.49],[44,0.48],[45,0.47],[46,0.46],[47,0.45],[48,0.44],[49,0.43],[50,0.42],
-                  [51,0.45],[52,0.44],[53,0.43],[54,0.42],[55,0.41],[56,0.40],[57,0.39],[58,0.38],[59,0.37],[60,0.36],
-                  [61,0.35],[62,0.34],[63,0.33],[64,0.32],[65,0.31],[66,0.30],[67,0.29],[68,0.28],[69,0.27],[70,0.26],
-                  [71,0.25],[72,0.24],[73,0.23],[74,0.22],[75,0.21],[76,0.20],[77,0.19],[78,0.18],[79,0.17],[80,0.16],
-                  [81,0.15],[82,0.14],[83,0.13],[84,0.12],[85,0.11],[86,0.10],[87,0.09],[88,0.08],[89,0.07],[90,0.06],
-                  [91,0.05],[92,0.04],[93,0.03],[94,0.02],[95,0.01],[96,0.009],[97,0.008],[98,0.007],[99,0.006],[125,0.005]
-                ].map(([v, c]) => ({ id: 'stars_'+v, name: v+' ⭐️', displayChance: c+'%', realChance: c, type: 'stars', value: v, emoji: '⭐️' }))
-            ]
+                {id: 'stars_1', name: '1 ⭐️', displayChance: '10.50%', realChance: 10.5, type: 'stars', value: 1, emoji: '⭐️'},
+                {id: 'stars_2', name: '2 ⭐️', displayChance: '8.00%', realChance: 8, type: 'stars', value: 2, emoji: '⭐️'},
+                {id: 'stars_3', name: '3 ⭐️', displayChance: '6.50%', realChance: 6.5, type: 'stars', value: 3, emoji: '⭐️'},
+                {id: 'stars_4', name: '4 ⭐️', displayChance: '5.20%', realChance: 5.2, type: 'stars', value: 4, emoji: '⭐️'},
+                {id: 'stars_5', name: '5 ⭐️', displayChance: '4.30%', realChance: 4.3, type: 'stars', value: 5, emoji: '⭐️'},
+                {id: 'stars_6', name: '6 ⭐️', displayChance: '3.70%', realChance: 3.7, type: 'stars', value: 6, emoji: '⭐️'},
+                {id: 'stars_7', name: '7 ⭐️', displayChance: '3.20%', realChance: 3.2, type: 'stars', value: 7, emoji: '⭐️'},
+                {id: 'stars_8', name: '8 ⭐️', displayChance: '2.80%', realChance: 2.8, type: 'stars', value: 8, emoji: '⭐️'},
+                {id: 'stars_9', name: '9 ⭐️', displayChance: '2.50%', realChance: 2.5, type: 'stars', value: 9, emoji: '⭐️'},
+                {id: 'stars_10', name: '10 ⭐️', displayChance: '2.20%', realChance: 2.2, type: 'stars', value: 10, emoji: '⭐️'},
+                {id: 'stars_11', name: '11 ⭐️', displayChance: '2.00%', realChance: 2, type: 'stars', value: 11, emoji: '⭐️'},
+                {id: 'stars_12', name: '12 ⭐️', displayChance: '1.85%', realChance: 1.85, type: 'stars', value: 12, emoji: '⭐️'},
+                {id: 'stars_13', name: '13 ⭐️', displayChance: '1.70%', realChance: 1.7, type: 'stars', value: 13, emoji: '⭐️'},
+                {id: 'stars_14', name: '14 ⭐️', displayChance: '1.60%', realChance: 1.6, type: 'stars', value: 14, emoji: '⭐️'},
+                {id: 'stars_15', name: '15 ⭐️', displayChance: '1.50%', realChance: 1.5, type: 'stars', value: 15, emoji: '⭐️'},
+                {id: 'stars_16', name: '16 ⭐️', displayChance: '1.40%', realChance: 1.4, type: 'stars', value: 16, emoji: '⭐️'},
+                {id: 'stars_17', name: '17 ⭐️', displayChance: '1.32%', realChance: 1.32, type: 'stars', value: 17, emoji: '⭐️'},
+                {id: 'stars_18', name: '18 ⭐️', displayChance: '1.24%', realChance: 1.24, type: 'stars', value: 18, emoji: '⭐️'},
+                {id: 'stars_19', name: '19 ⭐️', displayChance: '1.17%', realChance: 1.17, type: 'stars', value: 19, emoji: '⭐️'},
+                {id: 'stars_20', name: '20 ⭐️', displayChance: '1.10%', realChance: 1.1, type: 'stars', value: 20, emoji: '⭐️'},
+                {id: 'stars_21', name: '21 ⭐️', displayChance: '1.04%', realChance: 1.04, type: 'stars', value: 21, emoji: '⭐️'},
+                {id: 'stars_22', name: '22 ⭐️', displayChance: '0.98%', realChance: 0.98, type: 'stars', value: 22, emoji: '⭐️'},
+                {id: 'stars_23', name: '23 ⭐️', displayChance: '0.93%', realChance: 0.93, type: 'stars', value: 23, emoji: '⭐️'},
+                {id: 'stars_24', name: '24 ⭐️', displayChance: '0.88%', realChance: 0.88, type: 'stars', value: 24, emoji: '⭐️'},
+                {id: 'stars_25', name: '25 ⭐️', displayChance: '0.84%', realChance: 0.84, type: 'stars', value: 25, emoji: '⭐️'},
+                {id: 'stars_26', name: '26 ⭐️', displayChance: '0.80%', realChance: 0.8, type: 'stars', value: 26, emoji: '⭐️'},
+                {id: 'stars_27', name: '27 ⭐️', displayChance: '0.77%', realChance: 0.77, type: 'stars', value: 27, emoji: '⭐️'},
+                {id: 'stars_28', name: '28 ⭐️', displayChance: '0.74%', realChance: 0.74, type: 'stars', value: 28, emoji: '⭐️'},
+                {id: 'stars_29', name: '29 ⭐️', displayChance: '0.71%', realChance: 0.71, type: 'stars', value: 29, emoji: '⭐️'},
+                {id: 'stars_30', name: '30 ⭐️', displayChance: '0.68%', realChance: 0.68, type: 'stars', value: 30, emoji: '⭐️'},
+                {id: 'stars_31', name: '31 ⭐️', displayChance: '0.66%', realChance: 0.66, type: 'stars', value: 31, emoji: '⭐️'},
+                {id: 'stars_32', name: '32 ⭐️', displayChance: '0.64%', realChance: 0.64, type: 'stars', value: 32, emoji: '⭐️'},
+                {id: 'stars_33', name: '33 ⭐️', displayChance: '0.62%', realChance: 0.62, type: 'stars', value: 33, emoji: '⭐️'},
+                {id: 'stars_34', name: '34 ⭐️', displayChance: '0.60%', realChance: 0.6, type: 'stars', value: 34, emoji: '⭐️'},
+                {id: 'stars_35', name: '35 ⭐️', displayChance: '0.58%', realChance: 0.58, type: 'stars', value: 35, emoji: '⭐️'},
+                {id: 'stars_36', name: '36 ⭐️', displayChance: '0.56%', realChance: 0.56, type: 'stars', value: 36, emoji: '⭐️'},
+                {id: 'stars_37', name: '37 ⭐️', displayChance: '0.55%', realChance: 0.55, type: 'stars', value: 37, emoji: '⭐️'},
+                {id: 'stars_38', name: '38 ⭐️', displayChance: '0.54%', realChance: 0.54, type: 'stars', value: 38, emoji: '⭐️'},
+                {id: 'stars_39', name: '39 ⭐️', displayChance: '0.53%', realChance: 0.53, type: 'stars', value: 39, emoji: '⭐️'},
+                {id: 'stars_40', name: '40 ⭐️', displayChance: '0.52%', realChance: 0.52, type: 'stars', value: 40, emoji: '⭐️'},
+                {id: 'stars_41', name: '41 ⭐️', displayChance: '0.51%', realChance: 0.51, type: 'stars', value: 41, emoji: '⭐️'},
+                {id: 'stars_42', name: '42 ⭐️', displayChance: '0.50%', realChance: 0.5, type: 'stars', value: 42, emoji: '⭐️'},
+                {id: 'stars_43', name: '43 ⭐️', displayChance: '0.49%', realChance: 0.49, type: 'stars', value: 43, emoji: '⭐️'},
+                {id: 'stars_44', name: '44 ⭐️', displayChance: '0.48%', realChance: 0.48, type: 'stars', value: 44, emoji: '⭐️'},
+                {id: 'stars_45', name: '45 ⭐️', displayChance: '0.47%', realChance: 0.47, type: 'stars', value: 45, emoji: '⭐️'},
+                {id: 'stars_46', name: '46 ⭐️', displayChance: '0.46%', realChance: 0.46, type: 'stars', value: 46, emoji: '⭐️'},
+                {id: 'stars_47', name: '47 ⭐️', displayChance: '0.45%', realChance: 0.45, type: 'stars', value: 47, emoji: '⭐️'},
+                {id: 'stars_48', name: '48 ⭐️', displayChance: '0.44%', realChance: 0.44, type: 'stars', value: 48, emoji: '⭐️'},
+                {id: 'stars_49', name: '49 ⭐️', displayChance: '0.43%', realChance: 0.43, type: 'stars', value: 49, emoji: '⭐️'},
+                {id: 'stars_50', name: '50 ⭐️', displayChance: '0.42%', realChance: 0.42, type: 'stars', value: 50, emoji: '⭐️'},
+                {id: 'stars_51', name: '51 ⭐️', displayChance: '0.45%', realChance: 0.45, type: 'stars', value: 51, emoji: '⭐️'},
+                {id: 'stars_52', name: '52 ⭐️', displayChance: '0.44%', realChance: 0.44, type: 'stars', value: 52, emoji: '⭐️'},
+                {id: 'stars_53', name: '53 ⭐️', displayChance: '0.43%', realChance: 0.43, type: 'stars', value: 53, emoji: '⭐️'},
+                {id: 'stars_54', name: '54 ⭐️', displayChance: '0.42%', realChance: 0.42, type: 'stars', value: 54, emoji: '⭐️'},
+                {id: 'stars_55', name: '55 ⭐️', displayChance: '0.41%', realChance: 0.41, type: 'stars', value: 55, emoji: '⭐️'},
+                {id: 'stars_56', name: '56 ⭐️', displayChance: '0.40%', realChance: 0.4, type: 'stars', value: 56, emoji: '⭐️'},
+                {id: 'stars_57', name: '57 ⭐️', displayChance: '0.39%', realChance: 0.39, type: 'stars', value: 57, emoji: '⭐️'},
+                {id: 'stars_58', name: '58 ⭐️', displayChance: '0.38%', realChance: 0.38, type: 'stars', value: 58, emoji: '⭐️'},
+                {id: 'stars_59', name: '59 ⭐️', displayChance: '0.37%', realChance: 0.37, type: 'stars', value: 59, emoji: '⭐️'},
+                {id: 'stars_60', name: '60 ⭐️', displayChance: '0.36%', realChance: 0.36, type: 'stars', value: 60, emoji: '⭐️'},
+                {id: 'stars_61', name: '61 ⭐️', displayChance: '0.35%', realChance: 0.35, type: 'stars', value: 61, emoji: '⭐️'},
+                {id: 'stars_62', name: '62 ⭐️', displayChance: '0.34%', realChance: 0.34, type: 'stars', value: 62, emoji: '⭐️'},
+                {id: 'stars_63', name: '63 ⭐️', displayChance: '0.33%', realChance: 0.33, type: 'stars', value: 63, emoji: '⭐️'},
+                {id: 'stars_64', name: '64 ⭐️', displayChance: '0.32%', realChance: 0.32, type: 'stars', value: 64, emoji: '⭐️'},
+                {id: 'stars_65', name: '65 ⭐️', displayChance: '0.31%', realChance: 0.31, type: 'stars', value: 65, emoji: '⭐️'},
+                {id: 'stars_66', name: '66 ⭐️', displayChance: '0.30%', realChance: 0.3, type: 'stars', value: 66, emoji: '⭐️'},
+                {id: 'stars_67', name: '67 ⭐️', displayChance: '0.29%', realChance: 0.29, type: 'stars', value: 67, emoji: '⭐️'},
+                {id: 'stars_68', name: '68 ⭐️', displayChance: '0.28%', realChance: 0.28, type: 'stars', value: 68, emoji: '⭐️'},
+                {id: 'stars_69', name: '69 ⭐️', displayChance: '0.27%', realChance: 0.27, type: 'stars', value: 69, emoji: '⭐️'},
+                {id: 'stars_70', name: '70 ⭐️', displayChance: '0.26%', realChance: 0.26, type: 'stars', value: 70, emoji: '⭐️'},
+                {id: 'stars_71', name: '71 ⭐️', displayChance: '0.25%', realChance: 0.25, type: 'stars', value: 71, emoji: '⭐️'},
+                {id: 'stars_72', name: '72 ⭐️', displayChance: '0.24%', realChance: 0.24, type: 'stars', value: 72, emoji: '⭐️'},
+                {id: 'stars_73', name: '73 ⭐️', displayChance: '0.23%', realChance: 0.23, type: 'stars', value: 73, emoji: '⭐️'},
+                {id: 'stars_74', name: '74 ⭐️', displayChance: '0.22%', realChance: 0.22, type: 'stars', value: 74, emoji: '⭐️'},
+                {id: 'stars_75', name: '75 ⭐️', displayChance: '0.21%', realChance: 0.21, type: 'stars', value: 75, emoji: '⭐️'},
+                {id: 'stars_76', name: '76 ⭐️', displayChance: '0.20%', realChance: 0.2, type: 'stars', value: 76, emoji: '⭐️'},
+                {id: 'stars_77', name: '77 ⭐️', displayChance: '0.19%', realChance: 0.19, type: 'stars', value: 77, emoji: '⭐️'},
+                {id: 'stars_78', name: '78 ⭐️', displayChance: '0.18%', realChance: 0.18, type: 'stars', value: 78, emoji: '⭐️'},
+                {id: 'stars_79', name: '79 ⭐️', displayChance: '0.17%', realChance: 0.17, type: 'stars', value: 79, emoji: '⭐️'},
+                {id: 'stars_80', name: '80 ⭐️', displayChance: '0.16%', realChance: 0.16, type: 'stars', value: 80, emoji: '⭐️'},
+                {id: 'stars_81', name: '81 ⭐️', displayChance: '0.15%', realChance: 0.15, type: 'stars', value: 81, emoji: '⭐️'},
+                {id: 'stars_82', name: '82 ⭐️', displayChance: '0.14%', realChance: 0.14, type: 'stars', value: 82, emoji: '⭐️'},
+                {id: 'stars_83', name: '83 ⭐️', displayChance: '0.13%', realChance: 0.13, type: 'stars', value: 83, emoji: '⭐️'},
+                {id: 'stars_84', name: '84 ⭐️', displayChance: '0.12%', realChance: 0.12, type: 'stars', value: 84, emoji: '⭐️'},
+                {id: 'stars_85', name: '85 ⭐️', displayChance: '0.11%', realChance: 0.11, type: 'stars', value: 85, emoji: '⭐️'},
+                {id: 'stars_86', name: '86 ⭐️', displayChance: '0.10%', realChance: 0.1, type: 'stars', value: 86, emoji: '⭐️'},
+                {id: 'stars_87', name: '87 ⭐️', displayChance: '0.09%', realChance: 0.09, type: 'stars', value: 87, emoji: '⭐️'},
+                {id: 'stars_88', name: '88 ⭐️', displayChance: '0.08%', realChance: 0.08, type: 'stars', value: 88, emoji: '⭐️'},
+                {id: 'stars_89', name: '89 ⭐️', displayChance: '0.07%', realChance: 0.07, type: 'stars', value: 89, emoji: '⭐️'},
+                {id: 'stars_90', name: '90 ⭐️', displayChance: '0.06%', realChance: 0.06, type: 'stars', value: 90, emoji: '⭐️'},
+                {id: 'stars_91', name: '91 ⭐️', displayChance: '0.05%', realChance: 0.05, type: 'stars', value: 91, emoji: '⭐️'},
+                {id: 'stars_92', name: '92 ⭐️', displayChance: '0.04%', realChance: 0.04, type: 'stars', value: 92, emoji: '⭐️'},
+                {id: 'stars_93', name: '93 ⭐️', displayChance: '0.03%', realChance: 0.03, type: 'stars', value: 93, emoji: '⭐️'},
+                {id: 'stars_94', name: '94 ⭐️', displayChance: '0.02%', realChance: 0.02, type: 'stars', value: 94, emoji: '⭐️'},
+                {id: 'stars_95', name: '95 ⭐️', displayChance: '0.01%', realChance: 0.01, type: 'stars', value: 95, emoji: '⭐️'},
+                {id: 'stars_96', name: '96 ⭐️', displayChance: '0.009%', realChance: 0.009, type: 'stars', value: 96, emoji: '⭐️'},
+                {id: 'stars_97', name: '97 ⭐️', displayChance: '0.008%', realChance: 0.008, type: 'stars', value: 97, emoji: '⭐️'},
+                {id: 'stars_98', name: '98 ⭐️', displayChance: '0.007%', realChance: 0.007, type: 'stars', value: 98, emoji: '⭐️'},
+                {id: 'stars_99', name: '99 ⭐️', displayChance: '0.006%', realChance: 0.006, type: 'stars', value: 99, emoji: '⭐️'},
+                {id: 'stars_125', name: '125 ⭐️', displayChance: '0.005%', realChance: 0.005, type: 'stars', value: 125, emoji: '⭐️'}
+            ],
         };
         
         const ICE_ARENA_PRIZES = [
@@ -903,6 +991,10 @@
                             <div className="flex justify-center mb-4">
                                 <div className={`ice-circle relative ${gameStatus === 'open' ? 'pulse-glow' : gameStatus === 'countdown' ? 'ready-glow' : ''}`}>
                                     <div className="absolute inset-0 opacity-10" style={{backgroundImage: 'radial-gradient(circle, #00d2ff 1px, transparent 1px)', backgroundSize: '20px 20px'}} />
+                                    {(gameStatus === 'open' || gameStatus === 'countdown' || gameStatus === 'playing' || gameStatus === 'finished') && (
+                                        // renderIceField() would go here
+                                        null
+                                    )}
                                     {gameStatus === 'waiting' && <div className="absolute inset-0 flex items-center justify-center"><div className="text-5xl opacity-30">❓</div></div>}
                                     {gameStatus === 'playing' && <div className="ice-ball" style={{left: ballPos.x + '%', top: ballPos.y + '%'}} />}
                                     {gameStatus === 'finished' && iceLobby?.finalBall && <div className="ice-ball" style={{left: iceLobby.finalBall.x + '%', top: iceLobby.finalBall.y + '%', background: 'radial-gradient(circle at 30% 30%, #fff, #ffd700)', boxShadow: '0 0 25px #ffd700, 0 0 50px rgba(255,215,0,0.5)'}} />}
@@ -1228,17 +1320,16 @@
                                             const isDailyWait = isDaily && c.freeCount === 0;
                                             const showTimer = (c.id === 'winter' || c.id === 'man') && eventCasesTimeLeft;
                                             return (
-                                                <div key={c.id} className={`glass rounded-xl p-4 relative overflow-hidden transition ${c.id === 'collector' ? 'case-collector' : ''} ${c.locked ? 'opacity-50' : 'hover:scale-105'}`}>
-                                                    {c.locked && <div className="absolute inset-0 bg-black/70 rounded-xl flex items-center justify-center z-20"><span className="text-2xl">🔒</span></div>}
+                                                <div key={c.id} className={`glass rounded-xl p-4 relative overflow-hidden hover:scale-105 transition ${c.id === 'collector' ? 'case-collector' : ''}`}>
                                                     {showTimer && <div className="case-countdown-overlay">⏳ {eventCasesTimeLeft}</div>}
                                                     <div className={`w-16 h-16 mx-auto rounded-lg ${c.id === 'collector' ? 'bg-white/20' : `bg-gradient-to-br ${c.color}`} flex items-center justify-center text-3xl mb-2 shadow-lg`}>{c.emoji}</div>
                                                     <h3 className="font-bold text-center text-sm">{c.name}</h3>
                                                     <p className="text-center text-xs opacity-75 mb-2 h-4">
-                                                        {isDaily ? (c.freeCount > 0 ? <span className="text-green-400 font-bold">Бесплатно!</span> : <span className="text-red-500 font-bold font-mono">{dailyCaseTimeLeft}</span>) :
+                                                        {isDaily ? (c.freeCount > 0 ? <span className="text-green-400 font-bold">Бесплатно!</span> : <span className="text-cyan-400 font-mono">{dailyCaseTimeLeft}</span>) :
                                                         (c.price > 0 ? c.price + '⭐️' : '')}
                                                     </p>
-                                                    <button onClick={() => handleSelectCase(c)} disabled={c.locked} className="w-full py-2 rounded-lg font-bold text-sm bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 transition disabled:bg-gray-600 relative z-30">
-                                                        {c.locked ? 'Недоступно' : (isDailyWait ? '👁 Смотреть' : 'Открыть')}
+                                                    <button onClick={() => handleSelectCase(c)} disabled={c.locked} className="w-full py-2 rounded-lg font-bold text-sm bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 transition disabled:bg-gray-600">
+                                                        {c.locked ? '🔒' : (isDailyWait ? '👁 Смотреть' : 'Открыть')}
                                                     </button>
                                                 </div>
                                             );
@@ -1250,23 +1341,33 @@
                                 <div className="mb-6">
                                     <h3 className="text-lg font-bold text-center mb-3 text-yellow-300 ordinary-header">🎁 Обычные 🎁</h3>
                                     <div className="grid grid-cols-2 gap-4">
-                                        {Object.values(cases).filter(c => !c.type).map(c => (
-                                            <div key={c.id} className={`glass rounded-xl p-4 relative overflow-hidden transition ${c.id === 'cardboard' ? 'case-cardboard' : ''} ${c.locked ? 'opacity-50' : 'hover:scale-105'}`}>
-                                                {c.locked && <div className="absolute inset-0 bg-black/70 rounded-xl flex items-center justify-center z-20"><span className="text-2xl">🔒</span></div>}
+                                        {Object.values(cases).filter(c => !c.type && !c.locked).map(c => (
+                                            <div key={c.id} className={`glass rounded-xl p-4 relative overflow-hidden hover:scale-105 transition ${c.id === 'cardboard' ? 'case-cardboard' : ''}`}>
                                                 {c.isNew && !c.type && <span className="absolute -top-2 -right-2 bg-red-500 text-xs px-2 py-1 rounded-full animate-pulse">Новое!</span>}
                                                 <div className={`w-16 h-16 mx-auto rounded-lg ${c.id === 'cardboard' ? 'bg-white/20' : `bg-gradient-to-br ${c.color}`} flex items-center justify-center text-3xl mb-2 shadow-lg`}>{c.emoji}</div>
                                                 <h3 className="font-bold text-center text-sm">{c.name}</h3>
                                                 <p className="text-center text-xs opacity-75 mb-2 h-4">
                                                     {c.freeCount > 0 ? <span className="text-green-400 font-bold">Бесплатно!</span> : c.price + '⭐️'}
                                                 </p>
-                                                <button onClick={() => handleSelectCase(c)} disabled={c.locked} className="w-full py-2 rounded-lg font-bold text-sm bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 transition disabled:bg-gray-600 relative z-30">
-                                                    {c.locked ? 'Недоступно' : 'Открыть'}
-                                                </button>
+                                                <button onClick={() => handleSelectCase(c)} className="w-full py-2 rounded-lg font-bold text-sm bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 transition">Открыть</button>
                                             </div>
                                         ))}
                                     </div>
                                 </div>
                                 
+                                {Object.values(cases).filter(c => c.locked && !c.type).length > 0 && (
+                                    <div className="grid grid-cols-2 gap-4">
+                                        {Object.values(cases).filter(c => c.locked && !c.type).map(c => (
+                                            <div key={c.id} className="glass rounded-xl p-4 relative opacity-50">
+                                                <div className="absolute inset-0 bg-black/70 rounded-xl flex items-center justify-center"><span className="text-2xl">🔒</span></div>
+                                                <div className={`w-16 h-16 mx-auto rounded-lg bg-gradient-to-br ${c.color} flex items-center justify-center text-3xl mb-2`}>{c.emoji}</div>
+                                                <h3 className="font-bold text-center text-sm">{c.name}</h3>
+                                                <p className="text-center text-xs mb-2 h-4">{c.price}⭐️</p>
+                                                <button className="w-full py-2 rounded-lg font-bold text-sm bg-gray-600 cursor-not-allowed">Недоступно</button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         )}
                         
@@ -1292,12 +1393,13 @@
                         {currentScreen === 'events' && (
                             <div className="glass rounded-xl p-4" style={{background: 'radial-gradient(circle at center, #2e1065 0%, #0f172a 100%)'}}>
                                 <h2 className="text-2xl font-bold mb-4 text-center text-yellow-300" style={{textShadow: '0 0 10px #facc15'}}>🏛️ Ивент ОЛИМП 🏛️</h2>
-                                <div className="mb-4 rounded-lg overflow-hidden shadow-lg border-2 border-yellow-400/20">
-                                    <img src="olymp.jpg" alt="Olympus" className="w-full h-auto object-cover" style={{animation: 'float 8s ease-in-out infinite'}} />
+                                <div className="mb-4 rounded-lg overflow-hidden shadow-lg">
+                                    {/* INSTRUCTION: Place olymp.jpg in the root folder of your Vercel project */}
+                                    <img src="olymp.jpg" alt="Olympus" className="w-full h-auto" style={{animation: 'float 8s ease-in-out infinite'}} onError={(e) => {e.target.onerror=null; e.target.src='https://images.unsplash.com/photo-1560130958-f933331b7e9b?q=80&w=1000'}} />
                                 </div>
                                 <h3 className="text-xl font-bold text-center mb-2 text-yellow-300" style={{textShadow: '0 0 10px #facc15'}}>Доберитесь до ОЛИМПА</h3>
-                                <div className="bg-black/60 p-2 rounded-lg mb-4 text-center border border-red-500/30">
-                                    <span className="text-2xl font-mono font-bold text-red-500" style={{textShadow: '0 0 10px #ef4444'}}>{eventOlympusTimeLeft}</span>
+                                <div className="bg-black/60 p-2 rounded-lg mb-4 text-center border border-yellow-400/30">
+                                    <span className="text-2xl font-mono font-bold text-white">{eventOlympusTimeLeft}</span>
                                 </div>
                                 <p className="text-center text-cyan-300 mb-4 text-sm animate-pulse">⚡ Событие скоро начнется! Готовься к восхождению! ⚡</p>
                                 <div className="border-t border-yellow-400/30 pt-4">
