@@ -61,27 +61,8 @@
         .case-countdown-overlay { position: absolute; top: 0; left: 0; right: 0; background: rgba(0,0,0,0.7); padding: 4px; font-size: 10px; color: #fbbf24; text-align: center; font-family: monospace; z-index: 10; text-shadow: 0 0 5px #fbbf24; }
         .olympus-font { font-family: 'Georgia', serif; font-weight: bold; }
         .events-tab-active { background: linear-gradient(135deg, rgba(251,191,36,0.3), rgba(245,158,11,0.2)); border: 2px solid rgba(251,191,36,0.6); box-shadow: 0 0 20px rgba(251,191,36,0.4); }
-        .gerakl-game-bg {
-            background-image: url('gerakl.jpg');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-        }
-        .gerakl-game-bg::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.7);
-            z-index: 0;
-        }
-        .gerakl-game-bg .content-overlay {
-            position: relative;
-            z-index: 1;
-        }
-        @keyframes firePulse { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.3); } }
-        @keyframes icePulse { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.2); } }
-        .fire-btn { animation: firePulse 2s ease-in-out infinite; }
-        .ice-btn { animation: icePulse 2s ease-in-out infinite; }
+        @keyframes herculesPulse { 0%, 100% { box-shadow: 0 0 20px rgba(255,100,50,0.5), 0 0 40px rgba(255,50,0,0.3); } 50% { box-shadow: 0 0 40px rgba(255,100,50,0.8), 0 0 60px rgba(255,50,0,0.6); } }
+        .hercules-glow { animation: herculesPulse 2s ease-in-out infinite; }
     </style>
 </head>
 <body class="bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 min-h-screen text-white overflow-x-hidden">
@@ -140,7 +121,7 @@
                 { id: 'stars_0_75', name: '0.75 ⭐️', displayChance: '10%', realChance: 10, type: 'stars', value: 0.75, emoji: '⭐️' },
                 { id: 'stars_1_5', name: '1.5 ⭐️', displayChance: '6%', realChance: 6, type: 'stars', value: 1.5, emoji: '⭐️' },
                 { id: 'stars_5', name: '5 ⭐️', displayChance: '2%', realChance: 2, type: 'stars', value: 5, emoji: '⭐️' },
-                { id: 'bear', name: '🧸', displayChance: '1.5%', realChance: 1.5, type: 'item', sellPrice: 20, emoji: '🧸' },
+                { id: 'bear', name: '🧸', displayChance: '1.5%', realChance: 0, type: 'item', sellPrice: 20, emoji: '🧸' },
                 { id: 'diamond_pro', name: '💎 PRO', displayChance: '0.5%', realChance: 0, type: 'collectible', emoji: '💎' }
             ],
             coal: [
@@ -327,22 +308,22 @@
             ],
         };
         
-        const GERAKL_10_ROUND_REWARDS = [
-            { id: 'bear', name: '🧸 Мишка', chance: 35, type: 'item', sellPrice: 20, emoji: '🧸' },
-            { id: 'bear_pro', name: '🧸 PRO', chance: 20, type: 'collectible', emoji: '🧸' },
-            { id: 'material', name: '🧱 Материал', chance: 15, type: 'item', sellPrice: 80, emoji: '🧱' },
-            { id: 'dellko', name: '🔑 Промокод DELLKO', chance: 2, type: 'promo', code: 'DELLKO', emoji: '🔑' },
-            { id: 'champagne', name: '🍾 Бутылка', chance: 10, type: 'collectible', emoji: '🍾' },
-            { id: 'ring', name: '💍 Кольцо', chance: 8, type: 'collectible', emoji: '💍' },
-            { id: 'stars_25', name: '25 ⭐️', chance: 5, type: 'stars', value: 25, emoji: '⭐️' },
-            { id: 'stars_200', name: '200 ⭐️', chance: 3, type: 'stars', value: 200, emoji: '⭐️' },
-            { id: 'stars_350', name: '350 ⭐️', chance: 2, type: 'stars', value: 350, emoji: '⭐️' }
+        const HERCULES_PRIZES = [
+            { id: 'bear', name: '🧸 Мишка', emoji: '🧸', type: 'item', sellPrice: 20, chance: 35 },
+            { id: 'bear_pro', name: '🧸 PRO', emoji: '🧸', type: 'collectible', chance: 20 },
+            { id: 'material', name: 'Материал 🧱', emoji: '🧱', type: 'item', sellPrice: 80, chance: 15 },
+            { id: 'promo', name: '🔑 Промокод DELLKO', emoji: '🔑', type: 'promo', code: 'DELLKO', chance: 2 },
+            { id: 'bottle', name: '🍾 Бутылка', emoji: '🍾', type: 'collectible', chance: 10 },
+            { id: 'ring', name: '💍 Кольцо', emoji: '💍', type: 'collectible', chance: 8 },
+            { id: 'stars_25', name: '25 ⭐️', emoji: '⭐️', type: 'stars', value: 25, chance: 5 },
+            { id: 'stars_200', name: '200 ⭐️', emoji: '⭐️', type: 'stars', value: 200, chance: 3 },
+            { id: 'stars_350', name: '350 ⭐️', emoji: '⭐️', type: 'stars', value: 350, chance: 2 }
         ];
-        
-        const ICE_CHANCE_TABLE = [0, 25, 28, 29, 40, 49, 64, 70, 75, 90, 90];
         
         const TON_RATES = [{ stars: 50, ton: 0.6 }, { stars: 250, ton: 3 }, { stars: 500, ton: 6 }, { stars: 1000, ton: 12 }];
         const STARS_PACKAGES = [ { stars: 50, price: 50 }, { stars: 100, price: 100 }, { stars: 250, price: 250 }, { stars: 500, price: 500 }, { stars: 1000, price: 1000 } ];
+        const DEFAULT_LOBBY = { status: 'waiting', players: {}, presence: {}, readyPlayers: {}, winner: null, prizes: [], wonStars: 0, ballPosition: { x: 50, y: 50, vx: 0, vy: 0 }, countdownEnd: null, prizeClaimed: {}, finalBall: null, gameStartedAt: null };
+        const HERCULES_GAME = { status: 'waiting', player: null, bet: 0, round: 0, multiplier: 1.0, win: 0, active: false, timer: 25 };
         
         function App() {
             const [currentScreen, setCurrentScreen] = useState('cases');
@@ -392,21 +373,225 @@
             const [paymentStatus, setPaymentStatus] = useState('');
             const [totalDeposits, setTotalDeposits] = useState(0);
             const [freeEliteSpin, setFreeEliteSpin] = useState(0);
+            const [currentGame, setCurrentGame] = useState(null);
+            const [iceLobby, setIceLobby] = useState(null);
+            const [gameStatus, setGameStatus] = useState('waiting');
+            const [ballPos, setBallPos] = useState({ x: 50, y: 50 });
+            const [timerRemaining, setTimerRemaining] = useState(0);
+            const [myBet, setMyBet] = useState(25);
+            const [myBetInput, setMyBetInput] = useState(25);
+            const [hasBet, setHasBet] = useState(false);
+            const [isReady, setIsReady] = useState(false);
+            const [myColor, setMyColor] = useState('');
+            const [presenceCount, setPresenceCount] = useState(0);
+            const [bettingCount, setBettingCount] = useState(0);
+            const [readyCount, setReadyCount] = useState(0);
+            const [showVictoryBox, setShowVictoryBox] = useState(false);
+            const [victoryStars, setVictoryStars] = useState(0);
+            const [victoryPrize, setVictoryPrize] = useState(null);
+            const [boxOpened, setBoxOpened] = useState(false);
+            const [prizeClaimedLocal, setPrizeClaimedLocal] = useState(false);
+            const [herculesGame, setHerculesGame] = useState(null);
+            const [herculesTimer, setHerculesTimer] = useState(25);
+            const [herculesResult, setHerculesResult] = useState(null);
+            const [showHerculesLobby, setShowHerculesLobby] = useState(false);
+            const [herculesBet, setHerculesBet] = useState(50);
+            const [herculesRewardBox, setHerculesRewardBox] = useState(null);
+            const [showRewardBoxModal, setShowRewardBoxModal] = useState(false);
             
-            // Геракл 13 игра
-            const [geraklGameActive, setGeraklGameActive] = useState(false);
-            const [geraklBetAmount, setGeraklBetAmount] = useState(25);
-            const [geraklBetInput, setGeraklBetInput] = useState(25);
-            const [geraklCurrentMultiplier, setGeraklCurrentMultiplier] = useState(1.0);
-            const [geraklCurrentWin, setGeraklCurrentWin] = useState(0);
-            const [geraklRoundNumber, setGeraklRoundNumber] = useState(0);
-            const [geraklTimer, setGeraklTimer] = useState(25);
-            const [geraklResult, setGeraklResult] = useState(null);
-            const [geraklChestReward, setGeraklChestReward] = useState(null);
-            const [geraklShowChest, setGeraklShowChest] = useState(false);
-            const [geraklChestOpened, setGeraklChestOpened] = useState(false);
+            const getIceChance = (round) => {
+                const chances = [25, 28, 29, 40, 49, 64, 70, 75, 90, 90];
+                return chances[Math.min(round - 1, 9)] || 90;
+            };
             
-            // Полная инициализация приложения
+            const getMultiplierGrowth = (round) => {
+                return 0.8 + (round * 0.2);
+            };
+            
+            const startHerculesGame = async () => {
+                if (!user?.id || balance < herculesBet || herculesBet < 15) {
+                    alert('Недостаточно звезд! Минимальная ставка 15⭐️');
+                    return;
+                }
+                if (herculesGame && herculesGame.active) {
+                    alert('У вас уже активна игра!');
+                    return;
+                }
+                const newBalance = balance - herculesBet;
+                setBalance(newBalance);
+                await db.ref(`users/${user.id}/balance`).set(newBalance);
+                
+                const newGame = {
+                    status: 'playing',
+                    player: user.id,
+                    bet: herculesBet,
+                    round: 0,
+                    multiplier: 1.0,
+                    win: herculesBet,
+                    active: true,
+                    timer: 25,
+                    lastUpdate: Date.now()
+                };
+                setHerculesGame(newGame);
+                setHerculesTimer(25);
+                setHerculesResult(null);
+                setCurrentGame({ type: 'hercules' });
+                setShowHerculesLobby(false);
+                
+                await db.ref(`herculesGames/${user.id}`).set(newGame);
+            };
+            
+            const continueHerculesGame = async () => {
+                if (!herculesGame || !herculesGame.active) return;
+                
+                const newRound = herculesGame.round + 1;
+                const iceChance = getIceChance(newRound);
+                const randomValue = Math.random() * 100;
+                
+                if (randomValue < iceChance) {
+                    const result = {
+                        type: 'loss',
+                        round: newRound,
+                        bet: herculesGame.bet,
+                        win: 0
+                    };
+                    setHerculesResult(result);
+                    setHerculesGame({ ...herculesGame, active: false, round: newRound });
+                    await db.ref(`herculesGames/${user.id}`).remove();
+                } else {
+                    const multiplierGrowth = getMultiplierGrowth(newRound);
+                    const newMultiplier = herculesGame.multiplier + multiplierGrowth;
+                    const newWin = Math.floor(herculesGame.bet * newMultiplier);
+                    const newGame = {
+                        ...herculesGame,
+                        round: newRound,
+                        multiplier: newMultiplier,
+                        win: newWin,
+                        timer: 25,
+                        lastUpdate: Date.now()
+                    };
+                    setHerculesGame(newGame);
+                    setHerculesTimer(25);
+                    await db.ref(`herculesGames/${user.id}`).set(newGame);
+                }
+            };
+            
+            const cashoutHerculesGame = async () => {
+                if (!herculesGame || !herculesGame.active) return;
+                
+                const winAmount = herculesGame.win;
+                const newBalance = balance + winAmount;
+                setBalance(newBalance);
+                await db.ref(`users/${user.id}/balance`).set(newBalance);
+                
+                const result = {
+                    type: 'win',
+                    rounds: herculesGame.round,
+                    win: winAmount,
+                    profit: winAmount - herculesGame.bet
+                };
+                setHerculesResult(result);
+                setHerculesGame({ ...herculesGame, active: false });
+                await db.ref(`herculesGames/${user.id}`).remove();
+            };
+            
+            const maxoutHerculesGame = async () => {
+                if (!herculesGame || !herculesGame.active) return;
+                
+                const winAmount = herculesGame.win;
+                const newBalance = balance + winAmount;
+                setBalance(newBalance);
+                await db.ref(`users/${user.id}/balance`).set(newBalance);
+                
+                const result = {
+                    type: 'maxout',
+                    rounds: 10,
+                    win: winAmount,
+                    profit: winAmount - herculesGame.bet
+                };
+                setHerculesResult(result);
+                setHerculesRewardBox(true);
+                setHerculesGame({ ...herculesGame, active: false });
+                await db.ref(`herculesGames/${user.id}`).remove();
+            };
+            
+            const openRewardBox = async () => {
+                if (!herculesGame) return;
+                
+                const r = Math.random() * 100;
+                let cum = 0;
+                let won = HERCULES_PRIZES[0];
+                for (let prize of HERCULES_PRIZES) {
+                    cum += prize.chance;
+                    if (r <= cum) {
+                        won = prize;
+                        break;
+                    }
+                }
+                
+                setHerculesRewardBox(won);
+                setShowRewardBoxModal(true);
+            };
+            
+            const claimRewardBox = async () => {
+                if (!herculesRewardBox) return;
+                
+                if (herculesRewardBox.type === 'stars') {
+                    const newBalance = balance + herculesRewardBox.value;
+                    setBalance(newBalance);
+                    await db.ref(`users/${user.id}/balance`).set(newBalance);
+                } else if (herculesRewardBox.type === 'item') {
+                    await addToInventory(herculesRewardBox);
+                } else if (herculesRewardBox.type === 'collectible') {
+                    await addToInventory(herculesRewardBox);
+                } else if (herculesRewardBox.type === 'promo') {
+                    if (!wonPromos.includes('DELLKO')) {
+                        const nc = { ...cases, money: { ...cases.money, freeCount: (cases.money.freeCount || 0) + 3 } };
+                        setCases(nc);
+                        await db.ref(`users/${user.id}/cases`).set(nc);
+                        await addToInventory({ name: '🧊 Лёд (1/3)', emoji: '🧊', type: 'ice', part: 1 });
+                        const np = [...usedPromos, 'DELLKO'];
+                        setUsedPromos(np);
+                        await db.ref(`users/${user.id}/usedPromos`).set(np);
+                    }
+                }
+                
+                setShowRewardBoxModal(false);
+                setHerculesRewardBox(null);
+                setHerculesResult(null);
+                setCurrentGame(null);
+                setShowHerculesLobby(false);
+            };
+            
+            const leaveHerculesGame = () => {
+                setHerculesGame(null);
+                setHerculesResult(null);
+                setCurrentGame(null);
+                setShowHerculesLobby(false);
+            };
+            
+            useEffect(() => {
+                if (!user?.id) return;
+                const ref = db.ref('online/' + user.id);
+                ref.set({ name: user.name, timestamp: Date.now() });
+                ref.onDisconnect().remove();
+                db.ref('online').on('value', snap => setOnlineCount(Math.floor(Math.random() * 300) + 200 + snap.numChildren()));
+                return () => ref.remove();
+            }, [user?.id]);
+            
+            useEffect(() => {
+                if (!user?.id || isLoading) return;
+                const iv = setInterval(() => {
+                    const dailyData = cases.daily;
+                    db.ref('users/' + user.id).update({ 
+                        balance, inventory, tasks, inventorySlots, usedPromos, wonPromos, lastActive: Date.now(), totalDeposits, freeEliteSpin,
+                        'cases/daily/lastOpened': dailyData.lastOpened,
+                        'cases/daily/freeCount': dailyData.freeCount
+                    });
+                }, 5000);
+                return () => clearInterval(iv);
+            }, [balance, cases, inventory, tasks, inventorySlots, usedPromos, wonPromos, user?.id, isLoading, totalDeposits, freeEliteSpin]);
+            
             useEffect(() => {
                 const initApp = async () => {
                     let userId = null;
@@ -466,7 +651,6 @@
                 initApp();
             }, []);
             
-            // Таймеры ивента
             useEffect(() => {
                 const olympusTarget = new Date('2026-03-01T15:00:00').getTime();
                 const casesTarget = new Date('2026-03-01T12:00:00').getTime();
@@ -486,31 +670,6 @@
                 return () => clearInterval(timer);
             }, []);
             
-            // Онлайн статус
-            useEffect(() => {
-                if (!user?.id) return;
-                const ref = db.ref('online/' + user.id);
-                ref.set({ name: user.name, timestamp: Date.now() });
-                ref.onDisconnect().remove();
-                db.ref('online').on('value', snap => setOnlineCount(Math.floor(Math.random() * 300) + 200 + snap.numChildren()));
-                return () => ref.remove();
-            }, [user?.id]);
-            
-            // Авто-сохранение
-            useEffect(() => {
-                if (!user?.id || isLoading) return;
-                const iv = setInterval(() => {
-                    const dailyData = cases.daily;
-                    db.ref('users/' + user.id).update({ 
-                        balance, inventory, tasks, inventorySlots, usedPromos, wonPromos, lastActive: Date.now(), totalDeposits, freeEliteSpin,
-                        'cases/daily/lastOpened': dailyData.lastOpened,
-                        'cases/daily/freeCount': dailyData.freeCount
-                    });
-                }, 5000);
-                return () => clearInterval(iv);
-            }, [balance, cases, inventory, tasks, inventorySlots, usedPromos, wonPromos, user?.id, isLoading, totalDeposits, freeEliteSpin]);
-            
-            // Таймер ежедневного кейса
             useEffect(() => {
                 if (isLoading || !cases.daily) return;
                 const DAILY_COOLDOWN = 23 * 60 * 60 * 1000;
@@ -534,131 +693,127 @@
                 return () => clearInterval(timer);
             }, [cases.daily, isLoading]);
             
-            // Таймер игры Геракл
             useEffect(() => {
-                if (!geraklGameActive || geraklResult) return;
-                const timer = setInterval(() => {
-                    setGeraklTimer(prev => {
-                        if (prev <= 1) {
-                            clearInterval(timer);
-                            handleGeraklLoss('Время вышло!');
-                            return 0;
-                        }
-                        return prev - 1;
-                    });
-                }, 1000);
-                return () => clearInterval(timer);
-            }, [geraklGameActive, geraklResult]);
-            
-            // Функции игры Геракл
-            const startGeraklGame = async () => {
-                if (balance < geraklBetInput || geraklBetInput < 25) {
-                    alert('Недостаточно звезд или ставка меньше 25⭐️!');
-                    return;
+                if (currentGame?.type === 'hercules' && herculesGame?.active) {
+                    const iv = setInterval(() => {
+                        setHerculesTimer(t => {
+                            if (t <= 1) {
+                                continueHerculesGame();
+                                return 25;
+                            }
+                            return t - 1;
+                        });
+                    }, 1000);
+                    return () => clearInterval(iv);
                 }
-                setBalance(b => b - geraklBetInput);
-                await db.ref(`users/${user.id}/balance`).set(balance - geraklBetInput);
-                setGeraklBetAmount(geraklBetInput);
-                setGeraklCurrentMultiplier(1.0);
-                setGeraklCurrentWin(geraklBetInput);
-                setGeraklRoundNumber(0);
-                setGeraklTimer(25);
-                setGeraklGameActive(true);
-                setGeraklResult(null);
-                setGeraklShowChest(false);
-                setGeraklChestOpened(false);
-                setGeraklChestReward(null);
+            }, [currentGame?.type, herculesGame?.active]);
+            
+            const getCasePrice = (ct) => {
+                const c = cases[ct];
+                if (!c) return 0;
+                if (c.id === 'daily' && c.freeCount > 0) return 0;
+                if (c.freeCount > 0) return 0;
+                if (c.discountPrice && c.discountPrice !== c.price) return c.discountPrice;
+                return c.price;
             };
             
-            const handleGeraklFire = () => {
-                const newRound = geraklRoundNumber + 1;
-                const iceChance = ICE_CHANCE_TABLE[Math.min(newRound, 10)];
-                const randomValue = Math.random() * 100;
-                
-                if (randomValue < iceChance) {
-                    handleGeraklLoss(`Лёд! Вы продержались ${newRound} раунд(ов)`);
+            const handleSelectCase = (caseData) => {
+                setSpinResult(null); setFakeItems([]); setSelectedCase(caseData);
+            };
+            
+            const openCase = async (caseType) => {
+                const cData = cases[caseType];
+                if(cData.id === 'daily' && cData.freeCount === 0) { alert('Ежедневный кейс не готов!'); return; }
+                const price = getCasePrice(caseType);
+                const isFree = cData.freeCount > 0;
+                if(!isFree && balance < price) { alert('Недостаточно звезд!'); return; }
+                let nb = balance;
+                if(cData.id === 'daily' && isFree) {
+                    const now = Date.now();
+                    setCases(p => ({ ...p, daily: { ...p.daily, freeCount: 0, lastOpened: now } }));
+                    await db.ref(`users/${user.id}/cases/daily`).update({ freeCount: 0, lastOpened: now });
+                } else if(isFree) {
+                     const nf = cData.freeCount - 1;
+                     setCases(p => ({ ...p, [caseType]: { ...p[caseType], freeCount: nf } }));
+                     await db.ref(`users/${user.id}/cases/${caseType}/freeCount`).set(nf);
                 } else {
-                    const multiplierGrowth = 0.8 + (newRound * 0.2);
-                    const newMultiplier = geraklCurrentMultiplier + multiplierGrowth;
-                    const newWin = Math.floor(geraklBetAmount * newMultiplier);
-                    
-                    setGeraklRoundNumber(newRound);
-                    setGeraklCurrentMultiplier(newMultiplier);
-                    setGeraklCurrentWin(newWin);
-                    setGeraklTimer(25);
-                    
-                    if (newRound >= 10) {
-                        handleGeraklWin(true);
-                    }
+                     nb -= price;
+                     setBalance(nb);
+                     await db.ref(`users/${user.id}/balance`).set(nb);
+                }
+                setIsSpinning(false); setSpinResult(null); setFakeItems([]); setRouletteOffset(0); setRouletteKey(k => k+1);
+                const items = CASE_REWARDS[caseType];
+                let won = items[0], r = Math.random()*100, cum = 0;
+                for(let i of items) { cum += i.realChance; if(r <= cum) { won = i; break; } }
+                const tape = [];
+                for(let i=0; i<80; i++) tape.push(i===70 ? won : items[Math.floor(Math.random()*items.length)]);
+                setIsSpinning(true);
+                setTimeout(() => {
+                     setFakeItems(tape);
+                     setTimeout(() => {
+                         const cw = rouletteContainerRef.current ? rouletteContainerRef.current.offsetWidth : window.innerWidth;
+                         const target = (70 * 136 + 68 - cw/2);
+                         setRouletteOffset(-target);
+                     }, 50);
+                }, 50);
+                setTimeout(async () => {
+                     setSpinResult(won); setIsSpinning(false);
+                     if(won.type === 'stars') {
+                         const fb = nb + won.value;
+                         setBalance(fb);
+                         await db.ref(`users/${user.id}/balance`).set(fb);
+                     } else {
+                         await addToInventory(won);
+                     }
+                }, 6600);
+            };
+            
+            const addToInventory = async (item) => {
+                if(inventory.length >= inventorySlots) { alert('Инвентарь полон!'); return; }
+                const ni = [...inventory, { ...item, uniqueId: Date.now(), collected: Date.now() }];
+                setInventory(ni);
+                await db.ref(`users/${user.id}/inventory`).set(ni);
+            };
+            
+            const sellItem = async (item) => {
+                if(item.type === 'random_case_box') { setRandomCaseItem(item); setShowRandomCaseModal(true); return; }
+                if(item.type === 'ice_gift') { setSelectedIceGift(item); setShowIceGiftModal(true); return; }
+                if(item.type === 'man_item' || item.type === 'man_bonus_elite') { setSelectedManItem(item); setShowManItemModal(true); return; }
+                if(item.type === 'collectible') { setSelectedCollectible(item); setShowCollectibleModal(true); return; }
+                if(confirm(`Продать ${item.name} за ${item.sellPrice}⭐️?`)) {
+                     const nb = balance + item.sellPrice;
+                     const ni = inventory.filter(i => i.uniqueId !== item.uniqueId);
+                     setBalance(nb); setInventory(ni);
+                     await db.ref(`users/${user.id}`).update({ balance: nb, inventory: ni });
                 }
             };
             
-            const handleGeraklIce = () => {
-                handleGeraklWin(false);
+            const sellIceGift = async () => {
+                 if(!selectedIceGift) return;
+                 const nb = balance + 25;
+                 const ni = inventory.filter(i => i.uniqueId !== selectedIceGift.uniqueId);
+                 setBalance(nb); setInventory(ni);
+                 await db.ref(`users/${user.id}`).update({ balance: nb, inventory: ni });
+                 setShowIceGiftModal(false); setSelectedIceGift(null);
+                 alert('Продано за 25⭐️!');
             };
             
-            const handleGeraklWin = (isMaxRound) => {
-                setBalance(b => b + geraklCurrentWin);
-                db.ref(`users/${user.id}/balance`).set(balance + geraklCurrentWin);
-                setGeraklResult({
-                    type: 'win',
-                    rounds: geraklRoundNumber,
-                    win: geraklCurrentWin,
-                    profit: geraklCurrentWin - geraklBetAmount,
-                    isMaxRound: isMaxRound
-                });
-                if (isMaxRound) {
-                    setGeraklShowChest(true);
-                }
-                setGeraklGameActive(false);
+            const exchangeRandomCaseBox = async () => {
+                 const keys = ['cardboard','coal','platinum','diamond','money','gold','elite','collector'];
+                 const rKey = keys[Math.floor(Math.random()*keys.length)];
+                 const ni = inventory.filter(i => i.uniqueId !== randomCaseItem.uniqueId);
+                 const nc = { ...cases, [rKey]: { ...cases[rKey], freeCount: (cases[rKey].freeCount||0)+1 } };
+                 if(rKey === 'collector') nc.collector.locked = false;
+                 setInventory(ni); setCases(nc);
+                 await db.ref(`users/${user.id}`).update({ inventory: ni, cases: nc });
+                 setShowRandomCaseModal(false); setRandomCaseItem(null);
+                 alert(`Выпал кейс: ${cases[rKey].name}!`);
             };
             
-            const handleGeraklLoss = (reason) => {
-                setGeraklResult({
-                    type: 'loss',
-                    reason: reason,
-                    rounds: geraklRoundNumber,
-                    bet: geraklBetAmount
-                });
-                setGeraklGameActive(false);
-            };
-            
-            const openGeraklChest = () => {
-                const totalChance = GERAKL_10_ROUND_REWARDS.reduce((sum, r) => sum + r.chance, 0);
-                let random = Math.random() * totalChance;
-                let reward = GERAKL_10_ROUND_REWARDS[0];
-                
-                for (const r of GERAKL_10_ROUND_REWARDS) {
-                    random -= r.chance;
-                    if (random <= 0) {
-                        reward = r;
-                        break;
-                    }
-                }
-                
-                setGeraklChestReward(reward);
-                setGeraklChestOpened(true);
-                
-                if (reward.type === 'stars') {
-                    setBalance(b => b + reward.value);
-                    db.ref(`users/${user.id}/balance`).set(balance + reward.value);
-                } else if (reward.type === 'item') {
-                    addToInventory(reward);
-                } else if (reward.type === 'collectible') {
-                    setSelectedCollectible(reward);
-                    setShowCollectibleModal(true);
-                } else if (reward.type === 'promo') {
-                    setWonPromos([...wonPromos, reward.code]);
-                    db.ref(`users/${user.id}/wonPromos`).set([...wonPromos, reward.code]);
-                }
-            };
-            
-            const closeGeraklGame = () => {
-                setGeraklGameActive(false);
-                setGeraklResult(null);
-                setGeraklShowChest(false);
-                setGeraklChestOpened(false);
-                setGeraklChestReward(null);
+            const unlockSlot = async () => {
+                 if(balance < 50) return;
+                 setBalance(b => b - 50); setInventorySlots(s => s + 1);
+                 await db.ref(`users/${user.id}`).update({ balance: balance - 50, inventorySlots: inventorySlots + 1 });
             };
             
             const checkPromo = async () => {
@@ -667,7 +822,7 @@
                 if(!code) return;
                 if(usedPromos.includes(code)) { setPromoError('Уже использован!'); return; }
                 if(code === 'DELLKO') {
-                     if(!wonPromos.includes('DELLKO')) { setPromoError('Только если выиграли в 13 Подвиге Геракла!'); return; }
+                     if(!wonPromos.includes('DELLKO')) { setPromoError('Только если выиграли в Ледяном Катке!'); return; }
                      const nc = { ...cases, money: { ...cases.money, freeCount: (cases.money.freeCount || 0) + 3 } };
                      setCases(nc);
                      await addToInventory({ name: '🧊 Лёд (1/3)', emoji: '🧊', type: 'ice', part: 1 });
@@ -831,115 +986,6 @@
                  alert('Награда выдана!');
             };
             
-            const getCasePrice = (ct) => {
-                const c = cases[ct];
-                if (!c) return 0;
-                if (c.id === 'daily' && c.freeCount > 0) return 0;
-                if (c.freeCount > 0) return 0;
-                if (c.discountPrice && c.discountPrice !== c.price) return c.discountPrice;
-                return c.price;
-            };
-            
-            const handleSelectCase = (caseData) => {
-                setSpinResult(null); setFakeItems([]); setSelectedCase(caseData);
-            };
-            
-            const openCase = async (caseType) => {
-                const cData = cases[caseType];
-                if(cData.id === 'daily' && cData.freeCount === 0) { alert('Ежедневный кейс не готов!'); return; }
-                const price = getCasePrice(caseType);
-                const isFree = cData.freeCount > 0;
-                if(!isFree && balance < price) { alert('Недостаточно звезд!'); return; }
-                let nb = balance;
-                if(cData.id === 'daily' && isFree) {
-                    const now = Date.now();
-                    setCases(p => ({ ...p, daily: { ...p.daily, freeCount: 0, lastOpened: now } }));
-                    await db.ref(`users/${user.id}/cases/daily`).update({ freeCount: 0, lastOpened: now });
-                } else if(isFree) {
-                     const nf = cData.freeCount - 1;
-                     setCases(p => ({ ...p, [caseType]: { ...p[caseType], freeCount: nf } }));
-                     await db.ref(`users/${user.id}/cases/${caseType}/freeCount`).set(nf);
-                } else {
-                     nb -= price;
-                     setBalance(nb);
-                     await db.ref(`users/${user.id}/balance`).set(nb);
-                }
-                setIsSpinning(false); setSpinResult(null); setFakeItems([]); setRouletteOffset(0); setRouletteKey(k => k+1);
-                const items = CASE_REWARDS[caseType];
-                let won = items[0], r = Math.random()*100, cum = 0;
-                for(let i of items) { cum += i.realChance; if(r <= cum) { won = i; break; } }
-                const tape = [];
-                for(let i=0; i<80; i++) tape.push(i===70 ? won : items[Math.floor(Math.random()*items.length)]);
-                setIsSpinning(true);
-                setTimeout(() => {
-                     setFakeItems(tape);
-                     setTimeout(() => {
-                         const cw = rouletteContainerRef.current ? rouletteContainerRef.current.offsetWidth : window.innerWidth;
-                         const target = (70 * 136 + 68 - cw/2);
-                         setRouletteOffset(-target);
-                     }, 50);
-                }, 50);
-                setTimeout(async () => {
-                     setSpinResult(won); setIsSpinning(false);
-                     if(won.type === 'stars') {
-                         const fb = nb + won.value;
-                         setBalance(fb);
-                         await db.ref(`users/${user.id}/balance`).set(fb);
-                     } else {
-                         await addToInventory(won);
-                     }
-                }, 6600);
-            };
-            
-            const addToInventory = async (item) => {
-                if(inventory.length >= inventorySlots) { alert('Инвентарь полон!'); return; }
-                const ni = [...inventory, { ...item, uniqueId: Date.now(), collected: Date.now() }];
-                setInventory(ni);
-                await db.ref(`users/${user.id}/inventory`).set(ni);
-            };
-            
-            const sellItem = async (item) => {
-                if(item.type === 'random_case_box') { setRandomCaseItem(item); setShowRandomCaseModal(true); return; }
-                if(item.type === 'ice_gift') { setSelectedIceGift(item); setShowIceGiftModal(true); return; }
-                if(item.type === 'man_item' || item.type === 'man_bonus_elite') { setSelectedManItem(item); setShowManItemModal(true); return; }
-                if(item.type === 'collectible') { setSelectedCollectible(item); setShowCollectibleModal(true); return; }
-                if(confirm(`Продать ${item.name} за ${item.sellPrice}⭐️?`)) {
-                     const nb = balance + item.sellPrice;
-                     const ni = inventory.filter(i => i.uniqueId !== item.uniqueId);
-                     setBalance(nb); setInventory(ni);
-                     await db.ref(`users/${user.id}`).update({ balance: nb, inventory: ni });
-                }
-            };
-            
-            const sellIceGift = async () => {
-                 if(!selectedIceGift) return;
-                 const nb = balance + 25;
-                 const ni = inventory.filter(i => i.uniqueId !== selectedIceGift.uniqueId);
-                 setBalance(nb); setInventory(ni);
-                 await db.ref(`users/${user.id}`).update({ balance: nb, inventory: ni });
-                 setShowIceGiftModal(false); setSelectedIceGift(null);
-                 alert('Продано за 25⭐️!');
-            };
-            
-            const exchangeRandomCaseBox = async () => {
-                 const keys = ['cardboard','coal','platinum','diamond','money','gold','elite','collector'];
-                 const rKey = keys[Math.floor(Math.random()*keys.length)];
-                 const ni = inventory.filter(i => i.uniqueId !== randomCaseItem.uniqueId);
-                 const nc = { ...cases, [rKey]: { ...cases[rKey], freeCount: (cases[rKey].freeCount||0)+1 } };
-                 if(rKey === 'collector') nc.collector.locked = false;
-                 setInventory(ni); setCases(nc);
-                 await db.ref(`users/${user.id}`).update({ inventory: ni, cases: nc });
-                 setShowRandomCaseModal(false); setRandomCaseItem(null);
-                 alert(`Выпал кейс: ${cases[rKey].name}!`);
-            };
-            
-            const unlockSlot = async () => {
-                 if(balance < 50) return;
-                 setBalance(b => b - 50); setInventorySlots(s => s + 1);
-                 await db.ref(`users/${user.id}`).update({ balance: balance - 50, inventorySlots: inventorySlots + 1 });
-            };
-            
-            // ===== ADMIN PANEL =====
             if(isAdmin) {
                 const filteredUsers = allUsers.filter(u => !adminUserSearch || (u.name && u.name.toLowerCase().includes(adminUserSearch.toLowerCase())) || (u.username && u.username.toLowerCase().includes(adminUserSearch.toLowerCase())));
                 return (
@@ -1020,120 +1066,98 @@
                 );
             }
             
-            // ===== GERAKL GAME SCREEN =====
-            if(currentScreen === 'games') {
+            if(currentGame?.type === 'hercules') {
                 return (
-                    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-red-900 pb-24">
-                        <div className="max-w-md mx-auto p-4">
-                            <div className="gerakl-game-bg rounded-2xl p-6 mb-4 min-h-[300px] flex items-center justify-center relative overflow-hidden">
-                                <div className="content-overlay text-center">
-                                    <h1 className="text-4xl font-bold mb-2" style={{textShadow: '0 0 20px rgba(255,200,0,0.8)'}}>🪬 13 Подвиг Геракла 🌊</h1>
-                                    <p className="text-gray-300 text-sm mb-4">Одиночная риск-игра с нарастающим множителем</p>
-                                    {!geraklGameActive && !geraklResult && (
-                                        <button onClick={() => setGeraklGameActive(true)} className="bg-gradient-to-r from-yellow-500 to-orange-600 px-8 py-3 rounded-xl font-bold text-lg shadow-lg hover:scale-105 transition">Войти</button>
+                    <div className="min-h-screen bg-gradient-to-b from-orange-950 via-red-950 to-orange-900 pb-4">
+                        <div className="max-w-lg mx-auto p-3">
+                            <div className="flex justify-between items-center mb-3">
+                                <div>
+                                    <h1 className="text-xl font-bold text-white hercules-glow">🪬 13 Подвиг Геракла 🔥</h1>
+                                    <div className="text-xs text-orange-400">Собери 10 раундов и получи сундук!</div>
+                                </div>
+                                <button onClick={leaveHerculesGame} className="bg-red-600/40 hover:bg-red-600 border border-red-500/50 px-3 py-1.5 rounded-xl font-bold transition text-sm">✕ Выйти</button>
+                            </div>
+                            
+                            {herculesResult ? (
+                                <div className="glass rounded-xl p-6 text-center border border-yellow-500/50">
+                                    {herculesResult.type === 'loss' && (
+                                        <>
+                                            <div className="text-6xl mb-4">🧊</div>
+                                            <h2 className="text-3xl font-bold text-red-400 mb-2">ЛЁД!</h2>
+                                            <p className="text-gray-300 mb-2">Вы продержались: {herculesResult.round} раунда</p>
+                                            <p className="text-yellow-400 text-xl font-bold">Ставка: {herculesResult.bet}⭐️</p>
+                                            <p className="text-red-400 text-xl font-bold">Выигрыш: {herculesResult.win}⭐️</p>
+                                        </>
                                     )}
+                                    {herculesResult.type === 'win' && (
+                                        <>
+                                            <div className="text-6xl mb-4">🔮</div>
+                                            <h2 className="text-3xl font-bold text-green-400 mb-2">Вы забрали выигрыш!</h2>
+                                            <p className="text-gray-300 mb-2">Раундов: {herculesResult.rounds}</p>
+                                            <p className="text-yellow-400 text-xl font-bold">Выигрыш: {herculesResult.win}⭐️</p>
+                                            <p className="text-green-400 text-xl font-bold">Чистая прибыль: +{herculesResult.profit}⭐️</p>
+                                        </>
+                                    )}
+                                    {herculesResult.type === 'maxout' && (
+                                        <>
+                                            <div className="text-6xl mb-4">🏆</div>
+                                            <h2 className="text-3xl font-bold text-yellow-400 mb-2">10 РАУНДОВ!</h2>
+                                            <p className="text-gray-300 mb-2">Вы прошли все 10 раундов!</p>
+                                            <p className="text-yellow-400 text-xl font-bold">Выигрыш: {herculesResult.win}⭐️</p>
+                                            <p className="text-green-400 text-xl font-bold">Чистая прибыль: +{herculesResult.profit}⭐️</p>
+                                            <p className="text-cyan-400 text-sm mt-4">🎁 Получен сундук с призами!</p>
+                                        </>
+                                    )}
+                                    <button onClick={() => { setHerculesResult(null); setHerculesGame(null); setCurrentGame(null); }} className="w-full bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 py-3 rounded-xl font-bold mt-4 transition">Играть ещё раз</button>
                                 </div>
-                            </div>
-                            
-                            {/* Возможные награды */}
-                            <div className="glass rounded-xl p-4 mb-4">
-                                <h3 className="font-bold text-center text-yellow-300 text-sm mb-3">🎁 Возможные награды за 10 раундов</h3>
-                                <div className="flex flex-wrap justify-center gap-2">
-                                    {GERAKL_10_ROUND_REWARDS.map((r, i) => (
-                                        <div key={i} className="bg-gray-800/60 p-2 rounded-lg border border-white/10 text-center">
-                                            <div className="text-2xl">{r.emoji}</div>
-                                            <div className="text-xs text-gray-300 mt-1">{r.name}</div>
+                            ) : herculesGame && herculesGame.active ? (
+                                <div className="space-y-4">
+                                    <div className="glass rounded-xl p-4 border border-orange-500/50">
+                                        <div className="grid grid-cols-2 gap-3 mb-4">
+                                            <div className="text-center">
+                                                <div className="text-gray-400 text-xs">Ставка</div>
+                                                <div className="text-2xl font-bold text-yellow-400">{herculesGame.bet}⭐️</div>
+                                            </div>
+                                            <div className="text-center">
+                                                <div className="text-gray-400 text-xs">Множитель</div>
+                                                <div className="text-2xl font-bold text-orange-400">{herculesGame.multiplier.toFixed(1)}x</div>
+                                            </div>
+                                            <div className="text-center">
+                                                <div className="text-gray-400 text-xs">Раунд</div>
+                                                <div className="text-2xl font-bold text-white">{herculesGame.round}/10</div>
+                                            </div>
+                                            <div className="text-center">
+                                                <div className="text-gray-400 text-xs">Потенциал</div>
+                                                <div className="text-2xl font-bold text-green-400">{herculesGame.win}⭐️</div>
+                                            </div>
                                         </div>
-                                    ))}
-                                </div>
-                            </div>
-                            
-                            {geraklGameActive && !geraklResult && (
-                                <div className="gerakl-game-bg rounded-2xl p-6 min-h-[500px] flex items-center justify-center relative">
-                                    <div className="content-overlay w-full">
-                                        {!geraklBetAmount ? (
-                                            <div className="text-center">
-                                                <h2 className="text-2xl font-bold mb-4">🎲 Ваша ставка</h2>
-                                                <div className="flex gap-2 mb-4">
-                                                    <input type="number" min="25" value={geraklBetInput} onChange={e => setGeraklBetInput(Math.max(25, Number(e.target.value)))} className="flex-1 bg-gray-800 border border-yellow-600 rounded-lg p-3 text-center text-lg text-white" />
-                                                    <button onClick={() => setGeraklBetInput(p => p + 25)} className="bg-yellow-700 hover:bg-yellow-600 px-4 rounded-lg font-bold transition text-sm">+25</button>
-                                                    <button onClick={() => setGeraklBetInput(p => p + 100)} className="bg-yellow-700 hover:bg-yellow-600 px-4 rounded-lg font-bold transition text-sm">+100</button>
+                                        <div className="text-center mb-3">
+                                            <div className={`text-4xl font-bold ${herculesTimer <= 5 ? 'text-red-400 animate-pulse' : 'text-orange-400'}`}>{herculesTimer}</div>
+                                            <div className="text-gray-400 text-xs">секунд на выбор</div>
+                                        </div>
+                                        <div className="flex gap-2">
+                                            <button onClick={cashoutHerculesGame} className="flex-1 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 py-3 rounded-xl font-bold transition">🧊 Забрать</button>
+                                            <button onClick={continueHerculesGame} className="flex-1 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-400 hover:to-red-400 py-3 rounded-xl font-bold transition">🔥 Пламя</button>
+                                        </div>
+                                    </div>
+                                    <div className="glass rounded-xl p-4">
+                                        <h3 className="font-bold text-center text-orange-300 text-sm mb-3">📊 Шанс проигрыша</h3>
+                                        <div className="grid grid-cols-5 gap-2">
+                                            {[1,2,3,4,5,6,7,8,9,10].map(r => (
+                                                <div key={r} className={`text-center p-2 rounded-lg ${r <= herculesGame.round ? 'bg-green-600/40' : r === herculesGame.round + 1 ? 'bg-orange-600/60 hercules-glow' : 'bg-gray-700/40'}`}>
+                                                    <div className="text-xs text-gray-400">#{r}</div>
+                                                    <div className={`font-bold text-sm ${r <= herculesGame.round ? 'text-green-400' : r === herculesGame.round + 1 ? 'text-orange-400' : 'text-gray-500'}`}>{getIceChance(r)}%</div>
                                                 </div>
-                                                <button onClick={startGeraklGame} disabled={balance < geraklBetInput || geraklBetInput < 25} className="w-full bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-500 hover:to-orange-500 py-3 rounded-xl font-bold disabled:opacity-50 transition text-lg">Начать игру за {geraklBetInput}⭐️</button>
-                                                <p className="text-center text-xs text-gray-400 mt-2">Баланс: {balance.toFixed(0)}⭐️ | Мин: 25⭐️</p>
-                                                <button onClick={() => setGeraklGameActive(false)} className="w-full mt-2 bg-gray-700 hover:bg-gray-600 py-2 rounded-lg text-sm">Отмена</button>
-                                            </div>
-                                        ) : (
-                                            <div className="text-center">
-                                                <div className="bg-gray-800/80 rounded-xl p-4 mb-4">
-                                                    <div className="text-6xl font-bold text-yellow-400 mb-2">{geraklCurrentMultiplier.toFixed(1)}x</div>
-                                                    <div className="text-3xl font-bold text-green-400 mb-1">{geraklCurrentWin} ⭐️</div>
-                                                    <div className="text-gray-400 text-sm">Раунд: {geraklRoundNumber}/10</div>
-                                                </div>
-                                                <div className="flex justify-center mb-4">
-                                                    <div className={`text-4xl font-bold px-6 py-3 rounded-xl ${geraklTimer <= 5 ? 'bg-red-600 animate-pulse' : 'bg-gray-700'}`}>⏱ {geraklTimer}с</div>
-                                                </div>
-                                                <div className="grid grid-cols-2 gap-4">
-                                                    <button onClick={handleGeraklFire} className="fire-btn bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-500 hover:to-orange-500 py-4 rounded-xl font-bold text-xl shadow-lg">🔥 Пламя</button>
-                                                    <button onClick={handleGeraklIce} className="ice-btn bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 py-4 rounded-xl font-bold text-xl shadow-lg">🧊 Забрать</button>
-                                                </div>
-                                                <p className="text-xs text-gray-400 mt-3">Ставка: {geraklBetAmount}⭐️</p>
-                                            </div>
-                                        )}
+                                            ))}
+                                        </div>
                                     </div>
                                 </div>
-                            )}
-                            
-                            {geraklResult && (
-                                <div className="glass rounded-2xl p-6 text-center border-2">
-                                    {geraklResult.type === 'win' ? (
-                                        <>
-                                            <div className="text-5xl mb-3">🎉</div>
-                                            <h2 className="text-2xl font-bold text-green-400 mb-2">Вы забрали выигрыш!</h2>
-                                            <div className="bg-gray-800/60 rounded-xl p-4 mb-4">
-                                                <p className="text-gray-400 text-sm mb-1">Раундов пройдено:</p>
-                                                <p className="text-3xl font-bold text-yellow-400 mb-2">{geraklResult.rounds}</p>
-                                                <p className="text-gray-400 text-sm mb-1">Выигрыш:</p>
-                                                <p className="text-4xl font-bold text-green-400 mb-2">{geraklResult.win} ⭐️</p>
-                                                <p className="text-gray-400 text-sm mb-1">Чистая прибыль:</p>
-                                                <p className="text-2xl font-bold text-cyan-400">+{geraklResult.profit} ⭐️</p>
-                                            </div>
-                                            {geraklShowChest && !geraklChestOpened && (
-                                                <div className="mb-4">
-                                                    <p className="text-gray-400 text-sm mb-2">Откройте сундук за прохождение 10 раундов!</p>
-                                                    <div className="text-7xl cursor-pointer hover:scale-110 transition-transform active:scale-95 select-none mb-2" onClick={openGeraklChest}>📦</div>
-                                                    <p className="text-yellow-300 text-xs animate-pulse">Нажмите на сундук!</p>
-                                                </div>
-                                            )}
-                                            {geraklChestOpened && geraklChestReward && (
-                                                <div className="bg-gray-800/60 rounded-xl p-4 mb-4">
-                                                    <p className="text-gray-400 text-xs mb-1">Бонусный приз:</p>
-                                                    <p className="text-3xl mb-1">{geraklChestReward.emoji}</p>
-                                                    <p className="text-white font-bold">{geraklChestReward.name}</p>
-                                                </div>
-                                            )}
-                                            <button onClick={closeGeraklGame} className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 py-3 rounded-xl font-bold transition">Вернуться</button>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <div className="text-5xl mb-3">🧊</div>
-                                            <h2 className="text-2xl font-bold text-red-400 mb-2">Лёд!</h2>
-                                            <p className="text-gray-300 mb-2">{geraklResult.reason}</p>
-                                            <div className="bg-gray-800/60 rounded-xl p-4 mb-4">
-                                                <p className="text-gray-400 text-sm mb-1">Ставка:</p>
-                                                <p className="text-2xl font-bold text-yellow-400">{geraklResult.bet} ⭐️</p>
-                                            </div>
-                                            <button onClick={closeGeraklGame} className="w-full bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 py-3 rounded-xl font-bold transition">Попробовать снова</button>
-                                        </>
-                                    )}
-                                </div>
-                            )}
+                            ) : null}
                         </div>
                     </div>
                 );
             }
             
-            // ===== MAIN GAME SCREEN =====
             return (
                 <div className="min-h-screen pb-24">
                     <header className="p-4 flex justify-between items-center glass sticky top-0 z-50">
@@ -1143,7 +1167,20 @@
                     
                     {paymentStatus && <div className="mx-4 mt-2 p-3 rounded-lg text-center text-xs bg-blue-500/20 border border-blue-500">{paymentStatus}</div>}
                     
-                    {/* MODALS */}
+                    {showRewardBoxModal && herculesRewardBox && (
+                        <div className="fixed inset-0 bg-black/95 z-[70] flex items-center justify-center p-4">
+                            <div className="glass rounded-2xl p-6 max-w-sm w-full text-center border border-yellow-500/60 hercules-glow">
+                                <div className="text-7xl mb-4 animate-bounce">📦</div>
+                                <h2 className="text-2xl font-bold text-yellow-400 mb-2">🎁 Сундук Геракла!</h2>
+                                <p className="text-gray-300 text-sm mb-4">За прохождение 10 раундов!</p>
+                                <div className="text-6xl mb-4">{herculesRewardBox.emoji}</div>
+                                <h3 className="text-xl font-bold text-white mb-2">{herculesRewardBox.name}</h3>
+                                <p className="text-gray-400 text-xs mb-4">Откройте сундук для получения награды</p>
+                                <button onClick={claimRewardBox} className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 py-3 rounded-xl font-bold transition">🎉 Открыть</button>
+                            </div>
+                        </div>
+                    )}
+                    
                     {showRandomCaseModal && (
                         <div className="fixed inset-0 bg-black/90 z-[60] flex items-center justify-center p-4">
                             <div className="glass rounded-2xl p-6 max-w-sm w-full text-center">
@@ -1242,7 +1279,6 @@
                                 {cases.elite?.freeCount > 0 && <div className="bg-green-500/20 border border-green-500 rounded-lg p-3 mb-3 text-center text-sm animate-pulse">🎁 Бесплатных кейсов Элита: {cases.elite.freeCount}</div>}
                                 {freeEliteSpin > 0 && <div className="bg-green-500/20 border border-green-500 rounded-lg p-3 mb-3 text-center text-sm animate-pulse">🎁 Бесплатных прокрутов Элита: {freeEliteSpin}</div>}
                                 
-                                {/* SPECIAL CASES */}
                                 <div className="mb-6">
                                     <h3 className="text-lg font-bold text-center mb-3 text-purple-300 special-header">🔮 Особые 🔮</h3>
                                     <div className="grid grid-cols-2 gap-4">
@@ -1264,6 +1300,7 @@
                                                     </div>
                                                 );
                                             }
+
                                             return (
                                                 <div key={c.id} className={`glass rounded-xl p-4 relative overflow-hidden hover:scale-105 transition ${c.id === 'collector' ? 'case-collector' : ''}`}>
                                                     {showTimer && <div className="case-countdown-overlay">⏳ {eventCasesTimeLeft}</div>}
@@ -1282,7 +1319,6 @@
                                     </div>
                                 </div>
                                 
-                                {/* ORDINARY CASES */}
                                 <div className="mb-6">
                                     <h3 className="text-lg font-bold text-center mb-3 text-yellow-300 ordinary-header">🎁 Обычные 🎁</h3>
                                     <div className="grid grid-cols-2 gap-4">
@@ -1315,6 +1351,25 @@
                                         ))}
                                     </div>
                                 )}
+                            </div>
+                        )}
+                        
+                        {currentScreen === 'games' && (
+                            <div>
+                                <h2 className="text-2xl font-bold mb-4 text-center">🎮 Игры</h2>
+                                <div className="space-y-4">
+                                    <div className="glass rounded-xl p-5 border border-orange-500/50 hercules-glow">
+                                        <h3 className="text-xl font-bold mb-1 text-center text-orange-300">🪬 13 Подвиг Геракла 🔥</h3>
+                                        <p className="text-gray-400 mb-1 text-center text-xs">Одиночная риск-игра с нарастающим множителем</p>
+                                        <p className="text-orange-400 text-center text-xs mb-3">Пройди 10 раундов и получи сундук с призами!</p>
+                                        <div className="flex justify-center">
+                                            <button onClick={() => setShowHerculesLobby(true)} className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500 py-3 px-8 rounded-xl font-bold transition text-lg">Войти</button>
+                                        </div>
+                                    </div>
+                                    <div className="glass rounded-xl p-5 opacity-50 text-center">
+                                        <h3 className="text-lg font-bold">В разработке... 👲</h3>
+                                    </div>
+                                </div>
                             </div>
                         )}
                         
@@ -1437,7 +1492,30 @@
                         )}
                     </main>
                     
-                    {/* ROULETTE MODAL */}
+                    {showHerculesLobby && (
+                        <div className="fixed inset-0 bg-black/90 z-[70] flex items-center justify-center p-4">
+                            <div className="glass rounded-2xl p-6 max-w-sm w-full text-center border border-orange-500/50 hercules-glow">
+                                <div className="text-7xl mb-4">🪬</div>
+                                <h2 className="text-2xl font-bold text-orange-400 mb-2">🪬 13 Подвиг Геракла 🔥</h2>
+                                <p className="text-gray-300 text-sm mb-4">Одиночная риск-игра с нарастающим множителем</p>
+                                <div className="mb-4">
+                                    <label className="text-gray-400 text-sm">Ваша ставка (мин 15⭐️)</label>
+                                    <input type="number" min="15" value={herculesBet} onChange={e => setHerculesBet(Math.max(15, Number(e.target.value)))} className="w-full bg-gray-800 border border-orange-600 rounded-lg p-3 text-center text-2xl text-white font-bold mt-2" />
+                                </div>
+                                <div className="flex gap-2 mb-4">
+                                    <button onClick={() => setHerculesBet(b => Math.max(15, b - 25))} className="flex-1 bg-gray-700 hover:bg-gray-600 py-2 rounded-lg font-bold">-25</button>
+                                    <button onClick={() => setHerculesBet(b => b + 25)} className="flex-1 bg-gray-700 hover:bg-gray-600 py-2 rounded-lg font-bold">+25</button>
+                                    <button onClick={() => setHerculesBet(b => b + 100)} className="flex-1 bg-gray-700 hover:bg-gray-600 py-2 rounded-lg font-bold">+100</button>
+                                </div>
+                                <div className="text-center mb-4">
+                                    <p className="text-gray-400 text-xs">Ваш баланс: <span className="text-yellow-400 font-bold">{balance}⭐️</span></p>
+                                </div>
+                                <button onClick={startHerculesGame} disabled={balance < herculesBet || herculesBet < 15} className="w-full bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500 py-3 rounded-xl font-bold disabled:opacity-50 disabled:cursor-not-allowed transition">🔥 Начать игру</button>
+                                <button onClick={() => setShowHerculesLobby(false)} className="w-full bg-gray-700 hover:bg-gray-600 py-2 rounded-xl text-sm mt-2">Отмена</button>
+                            </div>
+                        </div>
+                    )}
+                    
                     {selectedCase && (
                         <div className="fullscreen-modal flex items-center justify-center p-4">
                             <div className="w-full max-w-lg" ref={rouletteContainerRef}>
@@ -1483,7 +1561,6 @@
                         </div>
                     )}
                     
-                    {/* TOP UP MODAL */}
                     {showTopUp && (
                         <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
                             <div className="glass rounded-2xl p-5 max-w-sm w-full">
@@ -1513,7 +1590,6 @@
                         </div>
                     )}
                     
-                    {/* NAVIGATION */}
                     <nav className="fixed bottom-0 left-0 right-0 glass border-t border-white/10 p-2 z-40">
                         <div className="max-w-md mx-auto flex justify-around">
                             {[ { id: 'tasks', emoji: '📋', label: 'Задания' }, { id: 'cases', emoji: '🎁', label: 'Кейсы' }, { id: 'events', emoji: '🏛️', label: 'Ивенты' }, { id: 'games', emoji: '🎮', label: 'Игры' }, { id: 'profile', emoji: '👤', label: 'Профиль' } ].map(s => (
