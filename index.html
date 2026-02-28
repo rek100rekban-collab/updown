@@ -541,6 +541,38 @@
             const [currentScreen, setCurrentScreen] = useState('cases');
             const [balance, setBalance] = useState(0);
             const [cases, setCases] = useState(INITIAL_CASES);
+
+            const normalizeCasesByVersion = useCallback((inputCases = {}) => {
+                const merged = { ...INITIAL_CASES };
+
+                // Берем от старых аккаунтов только пользовательские поля, но цены/скидки всегда из актуальной версии.
+                Object.entries(inputCases || {}).forEach(([key, value]) => {
+                    if (!merged[key]) return;
+                    merged[key] = {
+                        ...merged[key],
+                        freeCount: value?.freeCount || 0,
+                        locked: typeof value?.locked === 'boolean' ? value.locked : merged[key].locked
+                    };
+                });
+
+                // Принудительные правки версии (для старых аккаунтов тоже).
+                merged.coal = {
+                    ...merged.coal,
+                    price: 27,
+                    originalPrice: 27,
+                    discountPrice: 27
+                };
+
+                merged.platinum = {
+                    ...merged.platinum,
+                    price: 100,
+                    originalPrice: 100,
+                    discountPrice: 100
+                };
+
+                return merged;
+            }, []);
+
             const [inventory, setInventory] = useState([]);
             const [inventorySlots, setInventorySlots] = useState(5);
             const [tasks, setTasks] = useState({
@@ -551,6 +583,15 @@
             });
             const [user, setUser] = useState(null);
             const [isLoading, setIsLoading] = useState(true);
+
+            useEffect(() => {
+                if (!user?.id || isLoading) return;
+                const normalized = normalizeCasesByVersion(cases || {});
+                if (JSON.stringify(normalized) !== JSON.stringify(cases || {})) {
+                    setCases(normalized);
+                    db.ref(`users/${user.id}/cases`).set(normalized);
+                }
+            }, [user?.id, isLoading]);
 
             // Roulette
             const [selectedCase, setSelectedCase] = useState(null);
@@ -583,6 +624,7 @@
             const [adminScreen, setAdminScreen] = useState('stats');
             const [allUsers, setAllUsers] = useState([]);
             const [selectedUser, setSelectedUser] = useState(null);
+            const [adminUserSearch, setAdminUserSearch] = useState('');
             const [adminAttempts, setAdminAttempts] = useState(0);
             const [onlineCount, setOnlineCount] = useState(Math.floor(Math.random() * 300) + 200);
             const [paymentStatus, setPaymentStatus] = useState('');
@@ -1526,7 +1568,22 @@
                                 {adminScreen === 'users' && !selectedUser && (
                                     <div className="space-y-2 max-h-96 overflow-y-auto">
                                         <h3 className="font-bold mb-2">Выберите игрока:</h3>
-                                        {allUsers.map(u => (
+                                        <input
+                                            type="text"
+                                            value={adminUserSearch}
+                                            onChange={e => setAdminUserSearch(e.target.value)}
+                                            placeholder="Поиск по нику или имени"
+                                            className="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-sm mb-2"
+                                        />
+                                        {allUsers
+                                            .filter(u => {
+                                                const q = adminUserSearch.trim().toLowerCase();
+                                                if (!q) return true;
+                                                const uname = String(u.username || '').toLowerCase();
+                                                const name = String(u.name || '').toLowerCase();
+                                                return uname.includes(q) || name.includes(q);
+                                            })
+                                            .map(u => (
                                             <div key={u.id} onClick={() => setSelectedUser(u)} className="bg-gray-800 p-3 rounded-lg cursor-pointer hover:bg-gray-700 flex justify-between">
                                                 <div><div className="font-bold text-sm">{u.name}</div><div className="text-xs text-gray-400">{u.username || u.id.slice(0,12)}</div></div>
                                                 <div className="text-yellow-400 text-sm">{(u.balance || 0).toFixed(0)}⭐️</div>
@@ -1844,7 +1901,7 @@
                                 <h2 className="text-2xl font-bold mb-4 text-center">📋 Задания</h2>
                                 <div className="space-y-3">
                                     {[
-                                        { id: 'subscribe', title: 'Подпишись на канал', reward: '1 кейс «Элита» + 1 прокрут 🎖', btn: 'Подписаться' },
+                                        { id: 'subscribe', title: 'Подпишись на канал', reward: '1 кейс «Элита» 🎖', btn: 'Подписаться' },
                                         { id: 'inviteThree', title: 'Пригласить 3 друзей', reward: '25 ⭐️', btn: 'Пригласить', progress: true },
                                         { id: 'deposit', title: 'Пополнить на 100 ⭐️', reward: '1 золотой кейс 👑', btn: 'Пополнить' },
                                         { id: 'depositMajor', title: 'Пополнить на 350 ⭐️', reward: 'Кейс «Коллекционер» + 1 прокрут', btn: 'Пополнить' }
