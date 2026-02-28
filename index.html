@@ -41,8 +41,6 @@
         .glass { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); }
         .line-through { text-decoration: line-through; opacity: 0.6; color: #ef4444; text-decoration-color: #ef4444; text-decoration-thickness: 2px; }
         .fullscreen-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 100; overflow-y: auto; }
-        .ice-circle { width: 300px; height: 300px; border-radius: 50%; border: 4px solid rgba(0,210,255,0.6); position: relative; overflow: hidden; background: rgba(0, 40, 80, 0.6); box-shadow: 0 0 40px rgba(0,210,255,0.4), inset 0 0 60px rgba(0,0,0,0.5); }
-        .ice-ball { position: absolute; width: 32px; height: 32px; background: radial-gradient(circle at 30% 30%, #ffffff, #00d2ff, #0066ff); border-radius: 50%; box-shadow: 0 0 15px rgba(0,210,255,0.9), 0 0 30px rgba(0,150,255,0.5); z-index: 20; transform: translate(-50%, -50%); border: 2px solid rgba(255,255,255,0.8); transition: left 0.025s linear, top 0.025s linear; }
         .player-avatar { position: absolute; width: 36px; height: 36px; border-radius: 50%; border: 3px solid white; overflow: hidden; transform: translate(-50%, -50%); z-index: 10; box-shadow: 0 0 10px rgba(0,0,0,0.5); }
         .case-cardboard { background: linear-gradient(135deg, #8B4513 0%, #D2691E 50%, #8B4513 100%); border: 3px solid #A0522D; }
         .case-collector { background: linear-gradient(135deg, #DC143C 0%, #FF1493 50%, #8B008B 100%); border: 3px solid #FFD700; }
@@ -61,8 +59,38 @@
         .case-countdown-overlay { position: absolute; top: 0; left: 0; right: 0; background: rgba(0,0,0,0.7); padding: 4px; font-size: 10px; color: #fbbf24; text-align: center; font-family: monospace; z-index: 10; text-shadow: 0 0 5px #fbbf24; }
         .olympus-font { font-family: 'Georgia', serif; font-weight: bold; }
         .events-tab-active { background: linear-gradient(135deg, rgba(251,191,36,0.3), rgba(245,158,11,0.2)); border: 2px solid rgba(251,191,36,0.6); box-shadow: 0 0 20px rgba(251,191,36,0.4); }
-        @keyframes herculesPulse { 0%, 100% { box-shadow: 0 0 20px rgba(255,100,50,0.5), 0 0 40px rgba(255,50,0,0.3); } 50% { box-shadow: 0 0 40px rgba(255,100,50,0.8), 0 0 60px rgba(255,50,0,0.6); } }
-        .hercules-glow { animation: herculesPulse 2s ease-in-out infinite; }
+        /* Heraclе Game Styles */
+        .heracles-game-bg {
+            background-image: url('gerakl.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+        .heracles-game-bg.fallback {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+        }
+        .heracles-card {
+            background: linear-gradient(135deg, rgba(26, 26, 46, 0.95) 0%, rgba(22, 33, 62, 0.95) 50%, rgba(15, 52, 96, 0.95) 100%);
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.2);
+        }
+        .heracles-card.fallback {
+            background: linear-gradient(135deg, rgba(26, 26, 46, 0.98) 0%, rgba(22, 33, 62, 0.98) 50%, rgba(15, 52, 96, 0.98) 100%);
+        }
+        .heracles-btn-fire {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 50%, #c0392b 100%);
+            box-shadow: 0 0 20px rgba(255, 107, 107, 0.5);
+        }
+        .heracles-btn-ice {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 50%, #00d2ff 100%);
+            box-shadow: 0 0 20px rgba(79, 172, 254, 0.5);
+        }
+        .heracles-btn-ice:hover {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 50%, #00d2ff 100%);
+        }
+        .heracles-btn-fire:hover {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 50%, #c0392b 100%);
+        }
     </style>
 </head>
 <body class="bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 min-h-screen text-white overflow-x-hidden">
@@ -121,7 +149,7 @@
                 { id: 'stars_0_75', name: '0.75 ⭐️', displayChance: '10%', realChance: 10, type: 'stars', value: 0.75, emoji: '⭐️' },
                 { id: 'stars_1_5', name: '1.5 ⭐️', displayChance: '6%', realChance: 6, type: 'stars', value: 1.5, emoji: '⭐️' },
                 { id: 'stars_5', name: '5 ⭐️', displayChance: '2%', realChance: 2, type: 'stars', value: 5, emoji: '⭐️' },
-                { id: 'bear', name: '🧸', displayChance: '1.5%', realChance: 0, type: 'item', sellPrice: 20, emoji: '🧸' },
+                { id: 'bear', name: '🧸', displayChance: '1.5%', realChance: 1.5, type: 'item', sellPrice: 20, emoji: '🧸' },
                 { id: 'diamond_pro', name: '💎 PRO', displayChance: '0.5%', realChance: 0, type: 'collectible', emoji: '💎' }
             ],
             coal: [
@@ -308,22 +336,20 @@
             ],
         };
         
-        const HERCULES_PRIZES = [
-            { id: 'bear', name: '🧸 Мишка', emoji: '🧸', type: 'item', sellPrice: 20, chance: 35 },
-            { id: 'bear_pro', name: '🧸 PRO', emoji: '🧸', type: 'collectible', chance: 20 },
-            { id: 'material', name: 'Материал 🧱', emoji: '🧱', type: 'item', sellPrice: 80, chance: 15 },
-            { id: 'promo', name: '🔑 Промокод DELLKO', emoji: '🔑', type: 'promo', code: 'DELLKO', chance: 2 },
-            { id: 'bottle', name: '🍾 Бутылка', emoji: '🍾', type: 'collectible', chance: 10 },
-            { id: 'ring', name: '💍 Кольцо', emoji: '💍', type: 'collectible', chance: 8 },
-            { id: 'stars_25', name: '25 ⭐️', emoji: '⭐️', type: 'stars', value: 25, chance: 5 },
-            { id: 'stars_200', name: '200 ⭐️', emoji: '⭐️', type: 'stars', value: 200, chance: 3 },
-            { id: 'stars_350', name: '350 ⭐️', emoji: '⭐️', type: 'stars', value: 350, chance: 2 }
+        const HERACLES_10_ROUND_REWARDS = [
+            { id: 'bear', name: '🧸 Мишка', chance: 35, type: 'item', sellPrice: 20, emoji: '🧸' },
+            { id: 'bear_pro', name: '🧸 PRO', chance: 20, type: 'collectible', emoji: '🧸' },
+            { id: 'material', name: '🧱 Материал', chance: 15, type: 'item', sellPrice: 80, emoji: '🧱' },
+            { id: 'bottle', name: '🍾 Бутылка', chance: 10, type: 'collectible', emoji: '🍾' },
+            { id: 'ring', name: '💍 Кольцо', chance: 8, type: 'collectible', emoji: '💍' },
+            { id: 'stars_25', name: '25 ⭐️', chance: 5, type: 'stars', value: 25, emoji: '⭐️' },
+            { id: 'stars_200', name: '200 ⭐️', chance: 3, type: 'stars', value: 200, emoji: '⭐️' },
+            { id: 'stars_350', name: '350 ⭐️', chance: 2, type: 'stars', value: 350, emoji: '⭐️' },
+            { id: 'dellko', name: '🔑 Промокод DELLKO', chance: 2, type: 'promo', code: 'DELLKO', emoji: '🔑' }
         ];
         
         const TON_RATES = [{ stars: 50, ton: 0.6 }, { stars: 250, ton: 3 }, { stars: 500, ton: 6 }, { stars: 1000, ton: 12 }];
         const STARS_PACKAGES = [ { stars: 50, price: 50 }, { stars: 100, price: 100 }, { stars: 250, price: 250 }, { stars: 500, price: 500 }, { stars: 1000, price: 1000 } ];
-        const DEFAULT_LOBBY = { status: 'waiting', players: {}, presence: {}, readyPlayers: {}, winner: null, prizes: [], wonStars: 0, ballPosition: { x: 50, y: 50, vx: 0, vy: 0 }, countdownEnd: null, prizeClaimed: {}, finalBall: null, gameStartedAt: null };
-        const HERCULES_GAME = { status: 'waiting', player: null, bet: 0, round: 0, multiplier: 1.0, win: 0, active: false, timer: 25 };
         
         function App() {
             const [currentScreen, setCurrentScreen] = useState('cases');
@@ -352,8 +378,6 @@
             const [wonPromos, setWonPromos] = useState([]);
             const [showCollectibleModal, setShowCollectibleModal] = useState(false);
             const [selectedCollectible, setSelectedCollectible] = useState(null);
-            const [showIceGiftModal, setShowIceGiftModal] = useState(false);
-            const [selectedIceGift, setSelectedIceGift] = useState(null);
             const [showManItemModal, setShowManItemModal] = useState(false);
             const [selectedManItem, setSelectedManItem] = useState(null);
             const [showRandomCaseModal, setShowRandomCaseModal] = useState(false);
@@ -373,225 +397,23 @@
             const [paymentStatus, setPaymentStatus] = useState('');
             const [totalDeposits, setTotalDeposits] = useState(0);
             const [freeEliteSpin, setFreeEliteSpin] = useState(0);
-            const [currentGame, setCurrentGame] = useState(null);
-            const [iceLobby, setIceLobby] = useState(null);
-            const [gameStatus, setGameStatus] = useState('waiting');
-            const [ballPos, setBallPos] = useState({ x: 50, y: 50 });
-            const [timerRemaining, setTimerRemaining] = useState(0);
-            const [myBet, setMyBet] = useState(25);
-            const [myBetInput, setMyBetInput] = useState(25);
-            const [hasBet, setHasBet] = useState(false);
-            const [isReady, setIsReady] = useState(false);
-            const [myColor, setMyColor] = useState('');
-            const [presenceCount, setPresenceCount] = useState(0);
-            const [bettingCount, setBettingCount] = useState(0);
-            const [readyCount, setReadyCount] = useState(0);
-            const [showVictoryBox, setShowVictoryBox] = useState(false);
-            const [victoryStars, setVictoryStars] = useState(0);
-            const [victoryPrize, setVictoryPrize] = useState(null);
-            const [boxOpened, setBoxOpened] = useState(false);
-            const [prizeClaimedLocal, setPrizeClaimedLocal] = useState(false);
-            const [herculesGame, setHerculesGame] = useState(null);
-            const [herculesTimer, setHerculesTimer] = useState(25);
-            const [herculesResult, setHerculesResult] = useState(null);
-            const [showHerculesLobby, setShowHerculesLobby] = useState(false);
-            const [herculesBet, setHerculesBet] = useState(50);
-            const [herculesRewardBox, setHerculesRewardBox] = useState(null);
-            const [showRewardBoxModal, setShowRewardBoxModal] = useState(false);
+            const [showIceGiftModal, setShowIceGiftModal] = useState(false);
+            const [selectedIceGift, setSelectedIceGift] = useState(null);
             
-            const getIceChance = (round) => {
-                const chances = [25, 28, 29, 40, 49, 64, 70, 75, 90, 90];
-                return chances[Math.min(round - 1, 9)] || 90;
-            };
+            // Heracles Game State
+            const [inHeraclesGame, setInHeraclesGame] = useState(false);
+            const [heraclesBet, setHeraclesBet] = useState(25);
+            const [heraclesBetInput, setHeraclesBetInput] = useState(25);
+            const [heraclesGameActive, setHeraclesGameActive] = useState(false);
+            const [heraclesRound, setHeraclesRound] = useState(0);
+            const [heraclesMultiplier, setHeraclesMultiplier] = useState(1.0);
+            const [heraclesCurrentWin, setHeraclesCurrentWin] = useState(0);
+            const [heraclesTimer, setHeraclesTimer] = useState(25);
+            const [heraclesResult, setHeraclesResult] = useState(null);
+            const [heraclesChestOpened, setHeraclesChestOpened] = useState(false);
+            const [heraclesChestReward, setHeraclesChestReward] = useState(null);
             
-            const getMultiplierGrowth = (round) => {
-                return 0.8 + (round * 0.2);
-            };
-            
-            const startHerculesGame = async () => {
-                if (!user?.id || balance < herculesBet || herculesBet < 15) {
-                    alert('Недостаточно звезд! Минимальная ставка 15⭐️');
-                    return;
-                }
-                if (herculesGame && herculesGame.active) {
-                    alert('У вас уже активна игра!');
-                    return;
-                }
-                const newBalance = balance - herculesBet;
-                setBalance(newBalance);
-                await db.ref(`users/${user.id}/balance`).set(newBalance);
-                
-                const newGame = {
-                    status: 'playing',
-                    player: user.id,
-                    bet: herculesBet,
-                    round: 0,
-                    multiplier: 1.0,
-                    win: herculesBet,
-                    active: true,
-                    timer: 25,
-                    lastUpdate: Date.now()
-                };
-                setHerculesGame(newGame);
-                setHerculesTimer(25);
-                setHerculesResult(null);
-                setCurrentGame({ type: 'hercules' });
-                setShowHerculesLobby(false);
-                
-                await db.ref(`herculesGames/${user.id}`).set(newGame);
-            };
-            
-            const continueHerculesGame = async () => {
-                if (!herculesGame || !herculesGame.active) return;
-                
-                const newRound = herculesGame.round + 1;
-                const iceChance = getIceChance(newRound);
-                const randomValue = Math.random() * 100;
-                
-                if (randomValue < iceChance) {
-                    const result = {
-                        type: 'loss',
-                        round: newRound,
-                        bet: herculesGame.bet,
-                        win: 0
-                    };
-                    setHerculesResult(result);
-                    setHerculesGame({ ...herculesGame, active: false, round: newRound });
-                    await db.ref(`herculesGames/${user.id}`).remove();
-                } else {
-                    const multiplierGrowth = getMultiplierGrowth(newRound);
-                    const newMultiplier = herculesGame.multiplier + multiplierGrowth;
-                    const newWin = Math.floor(herculesGame.bet * newMultiplier);
-                    const newGame = {
-                        ...herculesGame,
-                        round: newRound,
-                        multiplier: newMultiplier,
-                        win: newWin,
-                        timer: 25,
-                        lastUpdate: Date.now()
-                    };
-                    setHerculesGame(newGame);
-                    setHerculesTimer(25);
-                    await db.ref(`herculesGames/${user.id}`).set(newGame);
-                }
-            };
-            
-            const cashoutHerculesGame = async () => {
-                if (!herculesGame || !herculesGame.active) return;
-                
-                const winAmount = herculesGame.win;
-                const newBalance = balance + winAmount;
-                setBalance(newBalance);
-                await db.ref(`users/${user.id}/balance`).set(newBalance);
-                
-                const result = {
-                    type: 'win',
-                    rounds: herculesGame.round,
-                    win: winAmount,
-                    profit: winAmount - herculesGame.bet
-                };
-                setHerculesResult(result);
-                setHerculesGame({ ...herculesGame, active: false });
-                await db.ref(`herculesGames/${user.id}`).remove();
-            };
-            
-            const maxoutHerculesGame = async () => {
-                if (!herculesGame || !herculesGame.active) return;
-                
-                const winAmount = herculesGame.win;
-                const newBalance = balance + winAmount;
-                setBalance(newBalance);
-                await db.ref(`users/${user.id}/balance`).set(newBalance);
-                
-                const result = {
-                    type: 'maxout',
-                    rounds: 10,
-                    win: winAmount,
-                    profit: winAmount - herculesGame.bet
-                };
-                setHerculesResult(result);
-                setHerculesRewardBox(true);
-                setHerculesGame({ ...herculesGame, active: false });
-                await db.ref(`herculesGames/${user.id}`).remove();
-            };
-            
-            const openRewardBox = async () => {
-                if (!herculesGame) return;
-                
-                const r = Math.random() * 100;
-                let cum = 0;
-                let won = HERCULES_PRIZES[0];
-                for (let prize of HERCULES_PRIZES) {
-                    cum += prize.chance;
-                    if (r <= cum) {
-                        won = prize;
-                        break;
-                    }
-                }
-                
-                setHerculesRewardBox(won);
-                setShowRewardBoxModal(true);
-            };
-            
-            const claimRewardBox = async () => {
-                if (!herculesRewardBox) return;
-                
-                if (herculesRewardBox.type === 'stars') {
-                    const newBalance = balance + herculesRewardBox.value;
-                    setBalance(newBalance);
-                    await db.ref(`users/${user.id}/balance`).set(newBalance);
-                } else if (herculesRewardBox.type === 'item') {
-                    await addToInventory(herculesRewardBox);
-                } else if (herculesRewardBox.type === 'collectible') {
-                    await addToInventory(herculesRewardBox);
-                } else if (herculesRewardBox.type === 'promo') {
-                    if (!wonPromos.includes('DELLKO')) {
-                        const nc = { ...cases, money: { ...cases.money, freeCount: (cases.money.freeCount || 0) + 3 } };
-                        setCases(nc);
-                        await db.ref(`users/${user.id}/cases`).set(nc);
-                        await addToInventory({ name: '🧊 Лёд (1/3)', emoji: '🧊', type: 'ice', part: 1 });
-                        const np = [...usedPromos, 'DELLKO'];
-                        setUsedPromos(np);
-                        await db.ref(`users/${user.id}/usedPromos`).set(np);
-                    }
-                }
-                
-                setShowRewardBoxModal(false);
-                setHerculesRewardBox(null);
-                setHerculesResult(null);
-                setCurrentGame(null);
-                setShowHerculesLobby(false);
-            };
-            
-            const leaveHerculesGame = () => {
-                setHerculesGame(null);
-                setHerculesResult(null);
-                setCurrentGame(null);
-                setShowHerculesLobby(false);
-            };
-            
-            useEffect(() => {
-                if (!user?.id) return;
-                const ref = db.ref('online/' + user.id);
-                ref.set({ name: user.name, timestamp: Date.now() });
-                ref.onDisconnect().remove();
-                db.ref('online').on('value', snap => setOnlineCount(Math.floor(Math.random() * 300) + 200 + snap.numChildren()));
-                return () => ref.remove();
-            }, [user?.id]);
-            
-            useEffect(() => {
-                if (!user?.id || isLoading) return;
-                const iv = setInterval(() => {
-                    const dailyData = cases.daily;
-                    db.ref('users/' + user.id).update({ 
-                        balance, inventory, tasks, inventorySlots, usedPromos, wonPromos, lastActive: Date.now(), totalDeposits, freeEliteSpin,
-                        'cases/daily/lastOpened': dailyData.lastOpened,
-                        'cases/daily/freeCount': dailyData.freeCount
-                    });
-                }, 5000);
-                return () => clearInterval(iv);
-            }, [balance, cases, inventory, tasks, inventorySlots, usedPromos, wonPromos, user?.id, isLoading, totalDeposits, freeEliteSpin]);
-            
+            // Полная инициализация приложения
             useEffect(() => {
                 const initApp = async () => {
                     let userId = null;
@@ -651,6 +473,7 @@
                 initApp();
             }, []);
             
+            // Таймеры ивента
             useEffect(() => {
                 const olympusTarget = new Date('2026-03-01T15:00:00').getTime();
                 const casesTarget = new Date('2026-03-01T12:00:00').getTime();
@@ -670,6 +493,31 @@
                 return () => clearInterval(timer);
             }, []);
             
+            // Онлайн статус
+            useEffect(() => {
+                if (!user?.id) return;
+                const ref = db.ref('online/' + user.id);
+                ref.set({ name: user.name, timestamp: Date.now() });
+                ref.onDisconnect().remove();
+                db.ref('online').on('value', snap => setOnlineCount(Math.floor(Math.random() * 300) + 200 + snap.numChildren()));
+                return () => ref.remove();
+            }, [user?.id]);
+            
+            // Авто-сохранение
+            useEffect(() => {
+                if (!user?.id || isLoading) return;
+                const iv = setInterval(() => {
+                    const dailyData = cases.daily;
+                    db.ref('users/' + user.id).update({ 
+                        balance, inventory, tasks, inventorySlots, usedPromos, wonPromos, lastActive: Date.now(), totalDeposits, freeEliteSpin,
+                        'cases/daily/lastOpened': dailyData.lastOpened,
+                        'cases/daily/freeCount': dailyData.freeCount
+                    });
+                }, 5000);
+                return () => clearInterval(iv);
+            }, [balance, cases, inventory, tasks, inventorySlots, usedPromos, wonPromos, user?.id, isLoading, totalDeposits, freeEliteSpin]);
+            
+            // Таймер ежедневного кейса
             useEffect(() => {
                 if (isLoading || !cases.daily) return;
                 const DAILY_COOLDOWN = 23 * 60 * 60 * 1000;
@@ -693,20 +541,21 @@
                 return () => clearInterval(timer);
             }, [cases.daily, isLoading]);
             
+            // Таймер игры Геракла
             useEffect(() => {
-                if (currentGame?.type === 'hercules' && herculesGame?.active) {
-                    const iv = setInterval(() => {
-                        setHerculesTimer(t => {
-                            if (t <= 1) {
-                                continueHerculesGame();
-                                return 25;
-                            }
-                            return t - 1;
-                        });
-                    }, 1000);
-                    return () => clearInterval(iv);
-                }
-            }, [currentGame?.type, herculesGame?.active]);
+                if (!heraclesGameActive || heraclesResult) return;
+                const timer = setInterval(() => {
+                    setHeraclesTimer(prev => {
+                        if (prev <= 1) {
+                            // Time out - lose
+                            endHeraclesGame(false, 0, 'timeout');
+                            return 0;
+                        }
+                        return prev - 1;
+                    });
+                }, 1000);
+                return () => clearInterval(timer);
+            }, [heraclesGameActive, heraclesResult]);
             
             const getCasePrice = (ct) => {
                 const c = cases[ct];
@@ -822,11 +671,10 @@
                 if(!code) return;
                 if(usedPromos.includes(code)) { setPromoError('Уже использован!'); return; }
                 if(code === 'DELLKO') {
-                     if(!wonPromos.includes('DELLKO')) { setPromoError('Только если выиграли в Ледяном Катке!'); return; }
+                     if(!wonPromos.includes('DELLKO')) { setPromoError('Только если выиграли в 13 Подвиге Геракла!'); return; }
                      const nc = { ...cases, money: { ...cases.money, freeCount: (cases.money.freeCount || 0) + 3 } };
                      setCases(nc);
-                     await addToInventory({ name: '🧊 Лёд (1/3)', emoji: '🧊', type: 'ice', part: 1 });
-                     setPromoSuccess('+3 денежных кейса + 🧊!');
+                     setPromoSuccess('+3 денежных кейса!');
                      const np = [...usedPromos, code];
                      setUsedPromos(np);
                      setPromoCode('');
@@ -986,6 +834,296 @@
                  alert('Награда выдана!');
             };
             
+            // Heracles Game Functions
+            const getIceChance = (round) => {
+                if (round <= 0) return 0.25;
+                if (round === 1) return 0.25;
+                if (round === 2) return 0.28;
+                if (round === 3) return 0.29;
+                if (round === 4) return 0.40;
+                if (round === 5) return 0.49;
+                if (round === 6) return 0.64;
+                if (round === 7) return 0.70;
+                if (round === 8) return 0.75;
+                return 0.90;
+            };
+            
+            const enterHeraclesGame = () => {
+                if (heraclesGameActive) {
+                    alert('У вас уже активная игра! Завершите её перед началом новой.');
+                    return;
+                }
+                setInHeraclesGame(true);
+                setHeraclesBet(25);
+                setHeraclesBetInput(25);
+                setHeraclesGameActive(false);
+                setHeraclesRound(0);
+                setHeraclesMultiplier(1.0);
+                setHeraclesCurrentWin(0);
+                setHeraclesTimer(25);
+                setHeraclesResult(null);
+                setHeraclesChestOpened(false);
+                setHeraclesChestReward(null);
+            };
+            
+            const leaveHeraclesGame = () => {
+                if (heraclesGameActive) {
+                    alert('Завершите текущую игру перед выходом!');
+                    return;
+                }
+                setInHeraclesGame(false);
+            };
+            
+            const startHeraclesGame = async () => {
+                if (heraclesGameActive) return;
+                if (balance < heraclesBetInput) {
+                    alert('Недостаточно звёзд!');
+                    return;
+                }
+                if (heraclesBetInput < 25) {
+                    alert('Минимальная ставка 25 ⭐️!');
+                    return;
+                }
+                
+                setBalance(prev => prev - heraclesBetInput);
+                await db.ref(`users/${user.id}/balance`).set(balance - heraclesBetInput);
+                
+                setHeraclesBet(heraclesBetInput);
+                setHeraclesGameActive(true);
+                setHeraclesRound(0);
+                setHeraclesMultiplier(1.0);
+                setHeraclesCurrentWin(heraclesBetInput);
+                setHeraclesTimer(25);
+                setHeraclesResult(null);
+            };
+            
+            const heraclesFire = () => {
+                if (!heraclesGameActive) return;
+                
+                const nextRound = heraclesRound + 1;
+                const iceChance = getIceChance(heraclesRound);
+                const randomValue = Math.random();
+                
+                if (randomValue < iceChance) {
+                    // Ice - lose
+                    endHeraclesGame(false, 0, 'ice');
+                } else {
+                    // Success - continue
+                    const multiplierGrowth = 0.8 + (heraclesRound * 0.2);
+                    const newMultiplier = heraclesMultiplier + multiplierGrowth;
+                    const newWin = Math.floor(heraclesBet * newMultiplier);
+                    
+                    setHeraclesRound(nextRound);
+                    setHeraclesMultiplier(newMultiplier);
+                    setHeraclesCurrentWin(newWin);
+                    setHeraclesTimer(25);
+                    
+                    // Check if reached 10 rounds
+                    if (nextRound >= 10) {
+                        // Auto cashout at 10 rounds
+                        setTimeout(() => endHeraclesGame(true, newWin, 'max_round'), 500);
+                    }
+                }
+            };
+            
+            const heraclesIce = () => {
+                if (!heraclesGameActive) return;
+                endHeraclesGame(true, heraclesCurrentWin, 'cashout');
+            };
+            
+            const endHeraclesGame = async (success, winAmount, reason) => {
+                setHeraclesGameActive(false);
+                setHeraclesTimer(0);
+                
+                if (success && winAmount > 0) {
+                    const newBalance = balance + winAmount;
+                    setBalance(newBalance);
+                    await db.ref(`users/${user.id}/balance`).set(newBalance);
+                    
+                    if (reason === 'max_round' || heraclesRound >= 10) {
+                        // Award chest
+                        setHeraclesResult({ success: true, winAmount, rounds: heraclesRound, reason: 'max_round', hasChest: true });
+                    } else {
+                        setHeraclesResult({ success: true, winAmount, rounds: heraclesRound, reason: 'cashout', hasChest: false });
+                    }
+                } else {
+                    setHeraclesResult({ success: false, winAmount: 0, rounds: heraclesRound, reason: reason === 'ice' ? 'ice' : 'timeout', hasChest: false });
+                }
+            };
+            
+            const openHeraclesChest = () => {
+                if (heraclesChestOpened || !heraclesResult?.hasChest) return;
+                
+                const rewards = HERACLES_10_ROUND_REWARDS;
+                let won = rewards[0], r = Math.random() * 100, cum = 0;
+                for (let item of rewards) {
+                    cum += item.chance;
+                    if (r <= cum) {
+                        won = item;
+                        break;
+                    }
+                }
+                
+                setHeraclesChestReward(won);
+                setHeraclesChestOpened(true);
+                
+                // Award the reward
+                if (won.type === 'stars') {
+                    const newBalance = balance + won.value;
+                    setBalance(newBalance);
+                    db.ref(`users/${user.id}/balance`).set(newBalance);
+                } else if (won.type === 'promo') {
+                    db.ref(`users/${user.id}/wonPromos`).push(won.code);
+                } else {
+                    addToInventory(won);
+                }
+            };
+            
+            const closeHeraclesChest = () => {
+                setInHeraclesGame(false);
+                setHeraclesResult(null);
+                setHeraclesChestOpened(false);
+                setHeraclesChestReward(null);
+            };
+            
+            // ===== РЕНДЕР ВСЕХ ЭКРАНОВ =====
+            // Heracles Game
+            if (inHeraclesGame) {
+                // Check if image exists
+                const imgCheck = new Image();
+                imgCheck.src = 'gerakl.jpg';
+                const hasHeraclesImage = true; // We'll use fallback if not loaded
+                
+                return (
+                    <div className={`min-h-screen ${hasHeraclesImage ? 'heracles-game-bg' : 'heracles-game-bg fallback'} p-4 pb-24`}>
+                        <div className="max-w-lg mx-auto">
+                            <div className="flex justify-between items-center mb-4">
+                                <h1 className="text-2xl font-bold text-white">🪬 13 Подвиг Геракла 🌊</h1>
+                                <button onClick={leaveHeraclesGame} className="bg-red-600/60 hover:bg-red-600 border border-red-500/50 px-4 py-2 rounded-xl font-bold transition text-sm">✕ Выйти</button>
+                            </div>
+                            
+                            {!heraclesGameActive && !heraclesResult && (
+                                <div className="heracles-card fallback rounded-2xl p-6">
+                                    <h2 className="text-xl font-bold mb-4 text-center text-yellow-400">🎮 Начало игры</h2>
+                                    <div className="mb-4">
+                                        <p className="text-center text-gray-300 font-bold mb-2 text-sm">💰 Ваша ставка</p>
+                                        <div className="flex gap-2 mb-2">
+                                            <input type="number" min="25" value={heraclesBetInput} onChange={e => setHeraclesBetInput(Math.max(25, Number(e.target.value)))} className="flex-1 bg-gray-800 border border-yellow-600 rounded-lg p-3 text-center text-xl text-white font-bold" />
+                                            <button onClick={() => setHeraclesBetInput(p => p + 25)} className="bg-yellow-700 hover:bg-yellow-600 px-4 rounded-lg font-bold transition text-sm">+25</button>
+                                            <button onClick={() => setHeraclesBetInput(p => p + 100)} className="bg-yellow-700 hover:bg-yellow-600 px-4 rounded-lg font-bold transition text-sm">+100</button>
+                                        </div>
+                                        <button onClick={startHeraclesGame} disabled={balance < heraclesBetInput || heraclesBetInput < 25} className="w-full bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-400 hover:to-orange-500 py-4 rounded-xl font-bold text-lg disabled:opacity-50 transition shadow-lg">🎮 Начать игру</button>
+                                        <p className="text-center text-xs text-gray-500 mt-2">Баланс: {balance.toFixed(0)}⭐️ | Мин: 25⭐️</p>
+                                    </div>
+                                    
+                                    <div className="mt-6">
+                                        <h3 className="font-bold text-center text-yellow-300 text-sm mb-3">🎁 Возможные награды за 10 раундов</h3>
+                                        <div className="flex flex-wrap justify-center gap-2">
+                                            {HERACLES_10_ROUND_REWARDS.map((r, i) => (
+                                                <span key={i} className="bg-gray-800/80 px-3 py-2 rounded-lg border border-yellow-500/30 text-sm">{r.emoji} {r.name.split(' ')[0]}</span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                            
+                            {heraclesGameActive && !heraclesResult && (
+                                <div className="heracles-card fallback rounded-2xl p-6">
+                                    <div className="text-center mb-6">
+                                        <div className="text-6xl font-bold text-yellow-400 mb-2">{heraclesTimer}s</div>
+                                        <div className="text-gray-400 text-xs">до конца хода</div>
+                                    </div>
+                                    
+                                    <div className="grid grid-cols-2 gap-4 mb-6">
+                                        <div className="bg-gray-800/60 rounded-xl p-4 text-center">
+                                            <div className="text-gray-400 text-xs mb-1">Ставка</div>
+                                            <div className="text-2xl font-bold text-yellow-400">{heraclesBet}⭐️</div>
+                                        </div>
+                                        <div className="bg-gray-800/60 rounded-xl p-4 text-center">
+                                            <div className="text-gray-400 text-xs mb-1">Раунд</div>
+                                            <div className="text-2xl font-bold text-blue-400">{heraclesRound}/10</div>
+                                        </div>
+                                        <div className="bg-gray-800/60 rounded-xl p-4 text-center">
+                                            <div className="text-gray-400 text-xs mb-1">Множитель</div>
+                                            <div className="text-2xl font-bold text-green-400">{heraclesMultiplier.toFixed(1)}x</div>
+                                        </div>
+                                        <div className="bg-gray-800/60 rounded-xl p-4 text-center">
+                                            <div className="text-gray-400 text-xs mb-1">Выигрыш</div>
+                                            <div className="text-2xl font-bold text-yellow-400">{heraclesCurrentWin}⭐️</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <button onClick={heraclesFire} className="heracles-btn-fire py-6 rounded-xl font-bold text-lg transition shadow-lg">🔥 Пламя</button>
+                                        <button onClick={heraclesIce} className="heracles-btn-ice py-6 rounded-xl font-bold text-lg transition shadow-lg">🧊 Забрать</button>
+                                    </div>
+                                    
+                                    <div className="mt-6">
+                                        <h3 className="font-bold text-center text-yellow-300 text-sm mb-3">🎁 Возможные награды за 10 раундов</h3>
+                                        <div className="flex flex-wrap justify-center gap-2">
+                                            {HERACLES_10_ROUND_REWARDS.map((r, i) => (
+                                                <span key={i} className="bg-gray-800/80 px-3 py-2 rounded-lg border border-yellow-500/30 text-sm">{r.emoji} {r.name.split(' ')[0]}</span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                            
+                            {heraclesResult && (
+                                <div className="heracles-card fallback rounded-2xl p-6">
+                                    {heraclesResult.success ? (
+                                        <>
+                                            <div className="text-center mb-6">
+                                                <div className="text-6xl mb-4">🎉</div>
+                                                <h2 className="text-2xl font-bold text-yellow-400 mb-2">Вы забрали выигрыш!</h2>
+                                                <div className="text-4xl font-bold text-yellow-400 mb-2">{heraclesResult.winAmount} ⭐️</div>
+                                                <div className="text-gray-400 text-sm">Раундов: {heraclesResult.rounds}</div>
+                                                <div className="text-green-400 text-sm mt-1">Чистая прибыль: +{(heraclesResult.winAmount - heraclesBet)}⭐️</div>
+                                            </div>
+                                            
+                                            {heraclesResult.hasChest && (
+                                                <>
+                                                    {!heraclesChestOpened ? (
+                                                        <div className="text-center">
+                                                            <p className="text-gray-400 text-sm mb-3">Откройте сундук для бонусного приза</p>
+                                                            <div className="text-8xl mb-3 cursor-pointer hover:scale-110 transition-transform active:scale-95 select-none" onClick={openHeraclesChest}>📦</div>
+                                                            <p className="text-yellow-400 text-xs animate-pulse">Нажмите на сундук!</p>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="bg-gray-800/60 rounded-xl p-4 mb-4">
+                                                            <p className="text-gray-400 text-xs mb-1">Бонусный приз:</p>
+                                                            <p className="text-4xl mb-2">{heraclesChestReward?.emoji}</p>
+                                                            <p className="text-white font-bold">{heraclesChestReward?.name}</p>
+                                                            {heraclesChestReward?.type === 'promo' && (
+                                                                <p className="text-yellow-400 text-xs mt-2">Используйте промокод: {heraclesChestReward?.code}</p>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                </>
+                                            )}
+                                            
+                                            <button onClick={closeHeraclesChest} className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 py-3 rounded-xl font-bold transition">✅ Вернуться в игры</button>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <div className="text-center mb-6">
+                                                <div className="text-6xl mb-4">🧊</div>
+                                                <h2 className="text-2xl font-bold text-red-400 mb-2">ЛЁД!</h2>
+                                                <div className="text-gray-400 text-sm mb-1">Вы продержались: {heraclesResult.rounds} раундов</div>
+                                                <div className="text-gray-400 text-sm">Ставка: {heraclesBet}⭐️</div>
+                                                <div className="text-red-400 text-sm mt-1">Выигрыш: 0 ⭐️</div>
+                                            </div>
+                                            <button onClick={closeHeraclesChest} className="w-full bg-gray-600 hover:bg-gray-500 py-3 rounded-xl font-bold transition">🔄 Попробовать снова</button>
+                                        </>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                );
+            }
+            
+            // Admin Panel
             if(isAdmin) {
                 const filteredUsers = allUsers.filter(u => !adminUserSearch || (u.name && u.name.toLowerCase().includes(adminUserSearch.toLowerCase())) || (u.username && u.username.toLowerCase().includes(adminUserSearch.toLowerCase())));
                 return (
@@ -1066,98 +1204,7 @@
                 );
             }
             
-            if(currentGame?.type === 'hercules') {
-                return (
-                    <div className="min-h-screen bg-gradient-to-b from-orange-950 via-red-950 to-orange-900 pb-4">
-                        <div className="max-w-lg mx-auto p-3">
-                            <div className="flex justify-between items-center mb-3">
-                                <div>
-                                    <h1 className="text-xl font-bold text-white hercules-glow">🪬 13 Подвиг Геракла 🔥</h1>
-                                    <div className="text-xs text-orange-400">Собери 10 раундов и получи сундук!</div>
-                                </div>
-                                <button onClick={leaveHerculesGame} className="bg-red-600/40 hover:bg-red-600 border border-red-500/50 px-3 py-1.5 rounded-xl font-bold transition text-sm">✕ Выйти</button>
-                            </div>
-                            
-                            {herculesResult ? (
-                                <div className="glass rounded-xl p-6 text-center border border-yellow-500/50">
-                                    {herculesResult.type === 'loss' && (
-                                        <>
-                                            <div className="text-6xl mb-4">🧊</div>
-                                            <h2 className="text-3xl font-bold text-red-400 mb-2">ЛЁД!</h2>
-                                            <p className="text-gray-300 mb-2">Вы продержались: {herculesResult.round} раунда</p>
-                                            <p className="text-yellow-400 text-xl font-bold">Ставка: {herculesResult.bet}⭐️</p>
-                                            <p className="text-red-400 text-xl font-bold">Выигрыш: {herculesResult.win}⭐️</p>
-                                        </>
-                                    )}
-                                    {herculesResult.type === 'win' && (
-                                        <>
-                                            <div className="text-6xl mb-4">🔮</div>
-                                            <h2 className="text-3xl font-bold text-green-400 mb-2">Вы забрали выигрыш!</h2>
-                                            <p className="text-gray-300 mb-2">Раундов: {herculesResult.rounds}</p>
-                                            <p className="text-yellow-400 text-xl font-bold">Выигрыш: {herculesResult.win}⭐️</p>
-                                            <p className="text-green-400 text-xl font-bold">Чистая прибыль: +{herculesResult.profit}⭐️</p>
-                                        </>
-                                    )}
-                                    {herculesResult.type === 'maxout' && (
-                                        <>
-                                            <div className="text-6xl mb-4">🏆</div>
-                                            <h2 className="text-3xl font-bold text-yellow-400 mb-2">10 РАУНДОВ!</h2>
-                                            <p className="text-gray-300 mb-2">Вы прошли все 10 раундов!</p>
-                                            <p className="text-yellow-400 text-xl font-bold">Выигрыш: {herculesResult.win}⭐️</p>
-                                            <p className="text-green-400 text-xl font-bold">Чистая прибыль: +{herculesResult.profit}⭐️</p>
-                                            <p className="text-cyan-400 text-sm mt-4">🎁 Получен сундук с призами!</p>
-                                        </>
-                                    )}
-                                    <button onClick={() => { setHerculesResult(null); setHerculesGame(null); setCurrentGame(null); }} className="w-full bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 py-3 rounded-xl font-bold mt-4 transition">Играть ещё раз</button>
-                                </div>
-                            ) : herculesGame && herculesGame.active ? (
-                                <div className="space-y-4">
-                                    <div className="glass rounded-xl p-4 border border-orange-500/50">
-                                        <div className="grid grid-cols-2 gap-3 mb-4">
-                                            <div className="text-center">
-                                                <div className="text-gray-400 text-xs">Ставка</div>
-                                                <div className="text-2xl font-bold text-yellow-400">{herculesGame.bet}⭐️</div>
-                                            </div>
-                                            <div className="text-center">
-                                                <div className="text-gray-400 text-xs">Множитель</div>
-                                                <div className="text-2xl font-bold text-orange-400">{herculesGame.multiplier.toFixed(1)}x</div>
-                                            </div>
-                                            <div className="text-center">
-                                                <div className="text-gray-400 text-xs">Раунд</div>
-                                                <div className="text-2xl font-bold text-white">{herculesGame.round}/10</div>
-                                            </div>
-                                            <div className="text-center">
-                                                <div className="text-gray-400 text-xs">Потенциал</div>
-                                                <div className="text-2xl font-bold text-green-400">{herculesGame.win}⭐️</div>
-                                            </div>
-                                        </div>
-                                        <div className="text-center mb-3">
-                                            <div className={`text-4xl font-bold ${herculesTimer <= 5 ? 'text-red-400 animate-pulse' : 'text-orange-400'}`}>{herculesTimer}</div>
-                                            <div className="text-gray-400 text-xs">секунд на выбор</div>
-                                        </div>
-                                        <div className="flex gap-2">
-                                            <button onClick={cashoutHerculesGame} className="flex-1 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 py-3 rounded-xl font-bold transition">🧊 Забрать</button>
-                                            <button onClick={continueHerculesGame} className="flex-1 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-400 hover:to-red-400 py-3 rounded-xl font-bold transition">🔥 Пламя</button>
-                                        </div>
-                                    </div>
-                                    <div className="glass rounded-xl p-4">
-                                        <h3 className="font-bold text-center text-orange-300 text-sm mb-3">📊 Шанс проигрыша</h3>
-                                        <div className="grid grid-cols-5 gap-2">
-                                            {[1,2,3,4,5,6,7,8,9,10].map(r => (
-                                                <div key={r} className={`text-center p-2 rounded-lg ${r <= herculesGame.round ? 'bg-green-600/40' : r === herculesGame.round + 1 ? 'bg-orange-600/60 hercules-glow' : 'bg-gray-700/40'}`}>
-                                                    <div className="text-xs text-gray-400">#{r}</div>
-                                                    <div className={`font-bold text-sm ${r <= herculesGame.round ? 'text-green-400' : r === herculesGame.round + 1 ? 'text-orange-400' : 'text-gray-500'}`}>{getIceChance(r)}%</div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </div>
-                            ) : null}
-                        </div>
-                    </div>
-                );
-            }
-            
+            // ===== MAIN GAME SCREEN =====
             return (
                 <div className="min-h-screen pb-24">
                     <header className="p-4 flex justify-between items-center glass sticky top-0 z-50">
@@ -1167,20 +1214,7 @@
                     
                     {paymentStatus && <div className="mx-4 mt-2 p-3 rounded-lg text-center text-xs bg-blue-500/20 border border-blue-500">{paymentStatus}</div>}
                     
-                    {showRewardBoxModal && herculesRewardBox && (
-                        <div className="fixed inset-0 bg-black/95 z-[70] flex items-center justify-center p-4">
-                            <div className="glass rounded-2xl p-6 max-w-sm w-full text-center border border-yellow-500/60 hercules-glow">
-                                <div className="text-7xl mb-4 animate-bounce">📦</div>
-                                <h2 className="text-2xl font-bold text-yellow-400 mb-2">🎁 Сундук Геракла!</h2>
-                                <p className="text-gray-300 text-sm mb-4">За прохождение 10 раундов!</p>
-                                <div className="text-6xl mb-4">{herculesRewardBox.emoji}</div>
-                                <h3 className="text-xl font-bold text-white mb-2">{herculesRewardBox.name}</h3>
-                                <p className="text-gray-400 text-xs mb-4">Откройте сундук для получения награды</p>
-                                <button onClick={claimRewardBox} className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 py-3 rounded-xl font-bold transition">🎉 Открыть</button>
-                            </div>
-                        </div>
-                    )}
-                    
+                    {/* MODALS */}
                     {showRandomCaseModal && (
                         <div className="fixed inset-0 bg-black/90 z-[60] flex items-center justify-center p-4">
                             <div className="glass rounded-2xl p-6 max-w-sm w-full text-center">
@@ -1279,6 +1313,7 @@
                                 {cases.elite?.freeCount > 0 && <div className="bg-green-500/20 border border-green-500 rounded-lg p-3 mb-3 text-center text-sm animate-pulse">🎁 Бесплатных кейсов Элита: {cases.elite.freeCount}</div>}
                                 {freeEliteSpin > 0 && <div className="bg-green-500/20 border border-green-500 rounded-lg p-3 mb-3 text-center text-sm animate-pulse">🎁 Бесплатных прокрутов Элита: {freeEliteSpin}</div>}
                                 
+                                {/* SPECIAL CASES */}
                                 <div className="mb-6">
                                     <h3 className="text-lg font-bold text-center mb-3 text-purple-300 special-header">🔮 Особые 🔮</h3>
                                     <div className="grid grid-cols-2 gap-4">
@@ -1319,6 +1354,7 @@
                                     </div>
                                 </div>
                                 
+                                {/* ORDINARY CASES */}
                                 <div className="mb-6">
                                     <h3 className="text-lg font-bold text-center mb-3 text-yellow-300 ordinary-header">🎁 Обычные 🎁</h3>
                                     <div className="grid grid-cols-2 gap-4">
@@ -1358,12 +1394,12 @@
                             <div>
                                 <h2 className="text-2xl font-bold mb-4 text-center">🎮 Игры</h2>
                                 <div className="space-y-4">
-                                    <div className="glass rounded-xl p-5 border border-orange-500/50 hercules-glow">
-                                        <h3 className="text-xl font-bold mb-1 text-center text-orange-300">🪬 13 Подвиг Геракла 🔥</h3>
-                                        <p className="text-gray-400 mb-1 text-center text-xs">Одиночная риск-игра с нарастающим множителем</p>
-                                        <p className="text-orange-400 text-center text-xs mb-3">Пройди 10 раундов и получи сундук с призами!</p>
-                                        <div className="flex justify-center">
-                                            <button onClick={() => setShowHerculesLobby(true)} className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500 py-3 px-8 rounded-xl font-bold transition text-lg">Войти</button>
+                                    <div className="heracles-card fallback rounded-xl p-5 relative overflow-hidden">
+                                        <div className="absolute inset-0 opacity-20 heracles-game-bg"></div>
+                                        <div className="relative z-10">
+                                            <h3 className="text-xl font-bold mb-1 text-center text-yellow-400">🪬 13 Подвиг Геракла 🌊</h3>
+                                            <p className="text-gray-300 mb-3 text-center text-xs">Риск-игра с нарастающим множителем</p>
+                                            <button onClick={enterHeraclesGame} className="w-full bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-400 hover:to-orange-500 py-3 rounded-xl font-bold transition text-sm">Войти</button>
                                         </div>
                                     </div>
                                     <div className="glass rounded-xl p-5 opacity-50 text-center">
@@ -1492,30 +1528,7 @@
                         )}
                     </main>
                     
-                    {showHerculesLobby && (
-                        <div className="fixed inset-0 bg-black/90 z-[70] flex items-center justify-center p-4">
-                            <div className="glass rounded-2xl p-6 max-w-sm w-full text-center border border-orange-500/50 hercules-glow">
-                                <div className="text-7xl mb-4">🪬</div>
-                                <h2 className="text-2xl font-bold text-orange-400 mb-2">🪬 13 Подвиг Геракла 🔥</h2>
-                                <p className="text-gray-300 text-sm mb-4">Одиночная риск-игра с нарастающим множителем</p>
-                                <div className="mb-4">
-                                    <label className="text-gray-400 text-sm">Ваша ставка (мин 15⭐️)</label>
-                                    <input type="number" min="15" value={herculesBet} onChange={e => setHerculesBet(Math.max(15, Number(e.target.value)))} className="w-full bg-gray-800 border border-orange-600 rounded-lg p-3 text-center text-2xl text-white font-bold mt-2" />
-                                </div>
-                                <div className="flex gap-2 mb-4">
-                                    <button onClick={() => setHerculesBet(b => Math.max(15, b - 25))} className="flex-1 bg-gray-700 hover:bg-gray-600 py-2 rounded-lg font-bold">-25</button>
-                                    <button onClick={() => setHerculesBet(b => b + 25)} className="flex-1 bg-gray-700 hover:bg-gray-600 py-2 rounded-lg font-bold">+25</button>
-                                    <button onClick={() => setHerculesBet(b => b + 100)} className="flex-1 bg-gray-700 hover:bg-gray-600 py-2 rounded-lg font-bold">+100</button>
-                                </div>
-                                <div className="text-center mb-4">
-                                    <p className="text-gray-400 text-xs">Ваш баланс: <span className="text-yellow-400 font-bold">{balance}⭐️</span></p>
-                                </div>
-                                <button onClick={startHerculesGame} disabled={balance < herculesBet || herculesBet < 15} className="w-full bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500 py-3 rounded-xl font-bold disabled:opacity-50 disabled:cursor-not-allowed transition">🔥 Начать игру</button>
-                                <button onClick={() => setShowHerculesLobby(false)} className="w-full bg-gray-700 hover:bg-gray-600 py-2 rounded-xl text-sm mt-2">Отмена</button>
-                            </div>
-                        </div>
-                    )}
-                    
+                    {/* ROULETTE MODAL */}
                     {selectedCase && (
                         <div className="fullscreen-modal flex items-center justify-center p-4">
                             <div className="w-full max-w-lg" ref={rouletteContainerRef}>
@@ -1561,6 +1574,7 @@
                         </div>
                     )}
                     
+                    {/* TOP UP MODAL */}
                     {showTopUp && (
                         <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
                             <div className="glass rounded-2xl p-5 max-w-sm w-full">
@@ -1590,6 +1604,7 @@
                         </div>
                     )}
                     
+                    {/* NAVIGATION */}
                     <nav className="fixed bottom-0 left-0 right-0 glass border-t border-white/10 p-2 z-40">
                         <div className="max-w-md mx-auto flex justify-around">
                             {[ { id: 'tasks', emoji: '📋', label: 'Задания' }, { id: 'cases', emoji: '🎁', label: 'Кейсы' }, { id: 'events', emoji: '🏛️', label: 'Ивенты' }, { id: 'games', emoji: '🎮', label: 'Игры' }, { id: 'profile', emoji: '👤', label: 'Профиль' } ].map(s => (
