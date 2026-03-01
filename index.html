@@ -9,6 +9,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&display=swap" rel="stylesheet">
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -25,12 +26,29 @@
         }
     </script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap');
         @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
         @keyframes pulseGlow { 0%, 100% { box-shadow: 0 0 10px rgba(0,210,255,0.3); } 50% { box-shadow: 0 0 30px rgba(0,210,255,0.8); } }
         @keyframes readyPulse { 0%, 100% { box-shadow: 0 0 10px rgba(0,255,100,0.3); } 50% { box-shadow: 0 0 30px rgba(0,255,100,0.8); } }
+        @keyframes goldGlow { 0%, 100% { text-shadow: 0 0 5px #facc15, 0 0 10px #facc15; } 50% { text-shadow: 0 0 20px #facc15, 0 0 30px #eab308; } }
+        @keyframes purpleGlow { 0%, 100% { text-shadow: 0 0 5px #a855f7, 0 0 10px #a855f7; } 50% { text-shadow: 0 0 20px #a855f7, 0 0 30px #9333ea; } }
+        @keyframes greenGlow { 0%, 100% { box-shadow: 0 0 5px #22c55e, 0 0 10px #22c55e; } 50% { box-shadow: 0 0 15px #22c55e, 0 0 25px #16a34a; } }
+        @keyframes yellowGlow { 0%, 100% { text-shadow: 0 0 5px #fbbf24, 0 0 10px #fbbf24; } 50% { text-shadow: 0 0 20px #fbbf24, 0 0 30px #f59e0b; } }
+        @keyframes neonPulse { 0%, 100% { text-shadow: 0 0 10px #ffd700, 0 0 20px #ffd700, 0 0 30px #ffd700; } 50% { text-shadow: 0 0 20px #ff6b6b, 0 0 40px #ff6b6b, 0 0 60px #ff6b6b; } }
+        @keyframes brightPulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.8; transform: scale(1.02); } }
         .pulse-glow { animation: pulseGlow 2s ease-in-out infinite; }
         .ready-glow { animation: readyPulse 1.5s ease-in-out infinite; }
+        .special-header { animation: purpleGlow 3s infinite; }
+        .ordinary-header { animation: goldGlow 3s infinite; }
+        .daily-timer { color: #4ade80; font-family: monospace; font-weight: bold; font-size: 14px; background: rgba(0,0,0,0.6); padding: 2px 8px; border-radius: 6px; border: 1px solid #22c55e; animation: greenGlow 2s infinite; display: inline-block; }
+        .event-timer { color: #ffffff; font-family: monospace; text-shadow: 0 0 10px #ffffff, 0 0 20px #ffffff; }
+        .cases-timer { color: #fbbf24; font-family: monospace; text-shadow: 0 0 5px #fbbf24, 0 0 10px #fbbf24; animation: yellowGlow 2s infinite; }
+        .case-countdown-overlay { position: absolute; top: 0; left: 0; right: 0; background: rgba(0,0,0,0.7); padding: 4px; font-size: 10px; color: #fbbf24; text-align: center; font-family: monospace; z-index: 10; text-shadow: 0 0 5px #fbbf24; }
+        .olympus-font { font-family: 'Cinzel', serif; font-weight: bold; }
+        .events-tab-active { background: linear-gradient(135deg, rgba(251,191,36,0.3), rgba(245,158,11,0.2)); border: 2px solid rgba(251,191,36,0.6); box-shadow: 0 0 20px rgba(251,191,36,0.4); }
+        .round-box { width: 30px; height: 30px; border-radius: 6px; border: 2px solid rgba(255,255,255,0.3); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; margin: 0 3px; transition: all 0.3s; }
+        .round-box.completed { background: linear-gradient(135deg, #22c55e, #16a34a); border-color: #22c55e; box-shadow: 0 0 10px #22c55e; }
+        .round-box.current { background: linear-gradient(135deg, #fbbf24, #f59e0b); border-color: #fbbf24; box-shadow: 0 0 10px #fbbf24; animation: pulse 1s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
         .roulette-container { position: relative; width: 100%; height: 160px; overflow: hidden; background: rgba(0,0,0,0.4); border-radius: 16px; border: 2px solid rgba(255,255,255,0.1); margin: 20px 0; }
         .roulette-inner { display: flex; position: absolute; left: 0; top: 20px; transition: transform 6.5s cubic-bezier(0.1, 0, 0.1, 1); will-change: transform; }
         .roulette-item { width: 120px; height: 120px; flex-shrink: 0; margin: 0 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05)); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); }
@@ -44,30 +62,13 @@
         .fullscreen-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 100; overflow-y: auto; }
         .case-cardboard { background: linear-gradient(135deg, #8B4513 0%, #D2691E 50%, #8B4513 100%); border: 3px solid #A0522D; }
         .case-collector { background: linear-gradient(135deg, #DC143C 0%, #FF1493 50%, #8B008B 100%); border: 3px solid #FFD700; }
-        @keyframes goldGlow { 0%, 100% { text-shadow: 0 0 5px #facc15, 0 0 10px #facc15; } 50% { text-shadow: 0 0 20px #facc15, 0 0 30px #eab308; } }
-        @keyframes purpleGlow { 0%, 100% { text-shadow: 0 0 5px #a855f7, 0 0 10px #a855f7; } 50% { text-shadow: 0 0 20px #a855f7, 0 0 30px #9333ea; } }
-        @keyframes greenGlow { 0%, 100% { box-shadow: 0 0 5px #22c55e, 0 0 10px #22c55e; } 50% { box-shadow: 0 0 15px #22c55e, 0 0 25px #16a34a; } }
-        @keyframes yellowGlow { 0%, 100% { text-shadow: 0 0 5px #fbbf24, 0 0 10px #fbbf24; } 50% { text-shadow: 0 0 20px #fbbf24, 0 0 30px #f59e0b; } }
-        .special-header { animation: purpleGlow 3s infinite; }
-        .ordinary-header { animation: goldGlow 3s infinite; }
-        .daily-timer { color: #4ade80; font-family: monospace; font-weight: bold; font-size: 14px; background: rgba(0,0,0,0.6); padding: 2px 8px; border-radius: 6px; border: 1px solid #22c55e; animation: greenGlow 2s infinite; display: inline-block; }
-        .event-timer { color: #ffffff; font-family: monospace; text-shadow: 0 0 10px #ffffff, 0 0 20px #ffffff; }
-        .cases-timer { color: #fbbf24; font-family: monospace; text-shadow: 0 0 5px #fbbf24, 0 0 10px #fbbf24; animation: yellowGlow 2s infinite; }
-        .case-countdown-overlay { position: absolute; top: 0; left: 0; right: 0; background: rgba(0,0,0,0.7); padding: 4px; font-size: 10px; color: #fbbf24; text-align: center; font-family: monospace; z-index: 10; text-shadow: 0 0 5px #fbbf24; }
-        .olympus-font { font-family: 'Cinzel', serif; font-weight: bold; }
-        .events-tab-active { background: linear-gradient(135deg, rgba(251,191,36,0.3), rgba(245,158,11,0.2)); border: 2px solid rgba(251,191,36,0.6); box-shadow: 0 0 20px rgba(251,191,36,0.4); }
-        .round-box { width: 30px; height: 30px; border-radius: 6px; border: 2px solid rgba(255,255,255,0.3); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; margin: 0 3px; transition: all 0.3s; }
-        .round-box.completed { background: linear-gradient(135deg, #22c55e, #16a34a); border-color: #22c55e; box-shadow: 0 0 10px #22c55e; }
-        .round-box.current { background: linear-gradient(135deg, #fbbf24, #f59e0b); border-color: #fbbf24; box-shadow: 0 0 10px #fbbf24; animation: pulse 1s infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
-        .olympus-button { position: absolute; background: linear-gradient(135deg, rgba(255,214,10,0.35), rgba(245,158,11,0.28)); border: 2px solid rgba(255, 237, 74, 0.95); border-radius: 14px; padding: 12px 20px; font-weight: 900; color: #fff7c2; text-shadow: 0 0 8px #fff7c2, 0 0 18px #f59e0b, 0 2px 0 #000; cursor: pointer; transition: all 0.3s; backdrop-filter: blur(6px); box-shadow: 0 8px 25px rgba(245,158,11,0.45); letter-spacing: 0.3px; }
-        .olympus-button:hover { background: linear-gradient(135deg, rgba(255,214,10,0.5), rgba(245,158,11,0.4)); box-shadow: 0 0 28px rgba(251, 191, 36, 0.75); transform: scale(1.06); }
-        .olympus-title { color: #fff7b0; text-shadow: 0 0 10px #fff7b0, 0 0 22px #fbbf24, 0 0 38px #f59e0b, 0 3px 0 #000; font-weight: 900; }
-        .olympus-label { color: #ffffff; text-shadow: 0 0 10px #fff, 0 0 24px #fbbf24, 0 0 38px rgba(251,191,36,0.9), 0 3px 0 #000; font-weight: 900; }
-        .hephaestus-text { color: #ffffff; text-shadow: 0 0 10px #fff, 0 0 20px #fb923c, 0 0 34px rgba(249,115,22,0.9), 0 3px 0 #000; font-weight: 900; }
-        .progress-step { position: relative; padding: 12px; border-radius: 8px; border: 2px solid rgba(251, 191, 36, 0.3); background: rgba(0, 0, 0, 0.5); margin-bottom: 8px; transition: all 0.3s; }
-        .progress-step.completed { border-color: #22c55e; background: rgba(34, 197, 94, 0.2); }
-        .progress-step.active { border-color: #fbbf24; background: rgba(251, 191, 36, 0.2); animation: pulse 2s infinite; }
+        .neon-text { text-shadow: 0 0 10px #ffd700, 0 0 20px #ffd700, 0 0 30px #ffd700, 0 0 40px #ffd700; animation: neonPulse 2s ease-in-out infinite; }
+        .bright-text { text-shadow: 0 0 5px #ffffff, 0 0 10px #ffffff, 0 0 15px #ffffff; font-weight: 900; font-size: 1.2em; }
+        .bright-text-lg { text-shadow: 0 0 8px #ffffff, 0 0 16px #ffffff, 0 0 24px #ffffff; font-weight: 900; font-size: 1.5em; }
+        .bright-text-xl { text-shadow: 0 0 10px #ffffff, 0 0 20px #ffffff, 0 0 30px #ffffff; font-weight: 900; font-size: 1.8em; }
+        .bright-text-2xl { text-shadow: 0 0 12px #ffffff, 0 0 24px #ffffff, 0 0 36px #ffffff; font-weight: 900; font-size: 2em; }
+        .bright-text-3xl { text-shadow: 0 0 15px #ffffff, 0 0 30px #ffffff, 0 0 45px #ffffff; font-weight: 900; font-size: 2.5em; }
+        .case-olympus-bg { background-image: url('case.jpg'); background-size: cover; background-position: center; }
     </style>
 </head>
 <body class="bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 min-h-screen text-white overflow-x-hidden">
@@ -292,45 +293,19 @@
                 {id: 'stars_99', name: '99 ⭐️', displayChance: '0.006%', realChance: 0.006, type: 'stars', value: 99, emoji: '⭐️'},
                 {id: 'stars_125', name: '125 ⭐️', displayChance: '0.005%', realChance: 0.005, type: 'stars', value: 125, emoji: '⭐️'}
             ],
-            olympus: [
-                { id: 'persephone', name: 'Персефона🌺', displayChance: '40%', realChance: 40, type: 'olympus_item', sellPrice: 20, emoji: '🌺' },
-                { id: 'ares', name: 'Арес🗡️', displayChance: '20%', realChance: 20, type: 'olympus_item', sellPrice: 28, emoji: '🗡️' },
-                { id: 'hermes', name: 'Гермес📈', displayChance: '15%', realChance: 15, type: 'olympus_slot', emoji: '📈' },
-                { id: 'dionysus', name: 'Дионис🍷', displayChance: '10%', realChance: 10, type: 'olympus_exchange_stars', value: 80, emoji: '🍷' },
-                { id: 'apollo', name: 'Аполлон☀️', displayChance: '8%', realChance: 8, type: 'olympus_star_cases', count: 5, emoji: '☀️' },
-                { id: 'poseidon', name: 'Посейдон🔱', displayChance: '5%', realChance: 5, type: 'olympus_choice', emoji: '🔱' },
-                { id: 'hades', name: 'Аид🔥', displayChance: '1.9%', realChance: 1.9, type: 'olympus_hades_choice', emoji: '🔥' },
-                { id: 'zeus', name: 'Зевс⚡️', displayChance: '0.1%', realChance: 0.1, type: 'olympus_zeus', emoji: '⚡️' }
-            ]
         };
         
-        const OLYMPUS_PROGRESS = [
-            { opens: 3, reward: { type: 'star_cases', count: 3 }, name: '3 кейса «Звездный⭐️»' },
-            { opens: 7, reward: { type: 'case', caseId: 'gold', count: 1 }, name: '1 кейс «Золотой👑»' },
-            { opens: 15, reward: { type: 'case', caseId: 'elite', count: 1 }, name: '1 кейс «Элита🎖️»' },
-            { opens: 20, reward: { type: 'stars', value: 150 }, name: '150⭐️' },
-            { opens: 25, reward: { type: 'case', caseId: 'money', count: 3 }, name: '3 кейса «Денежный💵»' },
-            { opens: 30, reward: { type: 'special_item', item: 'hades_gift' }, name: 'Подарок Аид🔥' },
-            { opens: 50, reward: { type: 'special_item', item: 'zeus_gift' }, name: 'Подарок Зевс⚡️' },
-            { opens: 150, reward: { type: 'mega', starCases: 25, stars: 1000 }, name: '25 кейсов «Звездный⭐️» + 1000⭐️' }
+        const OLYMPUS_CASE_REWARDS = [
+            { id: 'persephone', name: 'Персефона🌺', emoji: '🌺', type: 'item', sellPrice: 20, realChance: 40, displayChance: '40%' },
+            { id: 'ares', name: 'Арес🗡️', emoji: '🗡️', type: 'item', sellPrice: 28, realChance: 20, displayChance: '20%' },
+            { id: 'hermes', name: 'Гермес📈', emoji: '📈', type: 'hermes', realChance: 15, displayChance: '15%' },
+            { id: 'dionysus', name: 'Дионис🍷', emoji: '🍷', type: 'dionysus', realChance: 10, displayChance: '10%' },
+            { id: 'apollo', name: 'Аполлон☀️', emoji: '☀️', type: 'apollo', realChance: 8, displayChance: '8%' },
+            { id: 'poseidon', name: 'Посейдон🔱', emoji: '🔱', type: 'poseidon', realChance: 5, displayChance: '5%' },
+            { id: 'hades', name: 'Аид🔥', emoji: '🔥', type: 'hades', realChance: 1.9, displayChance: '1.9%' },
+            { id: 'zeus', name: 'Зевс⚡️', emoji: '⚡️', type: 'zeus', realChance: 0.1, displayChance: '0.1%' }
         ];
         
-        const GEFEST_EXCHANGES = {
-            'gold_ball': { name: '⚽️ Золотой мяч', reward: { type: 'case', caseId: 'coal', count: 1 }, rewardText: '1 кейс «Уголек»' },
-            'mikhaylov_ball': { name: '🏐 Мяч Максима Михайлова', reward: { type: 'case', caseId: 'star', count: 1 }, rewardText: '1 кейс «Звездный⭐️»' },
-            'tyson_gloves': { name: '🥊 Перчатки Майка Тайсона', reward: { type: 'slot' }, rewardText: '+1 слот' },
-            'steak': { name: '🥩 Стейк', reward: { type: 'stars', value: 100 }, rewardText: '100⭐️' },
-            'simba': { name: '🦁 Симба', reward: { type: 'case', caseId: 'gold', count: 2 }, rewardText: '2 кейса «Золотой👑»' },
-            'wolf_wallstreet': { name: '🐺 Волк с Уолл-стрит', reward: { type: 'collector_unlock' }, rewardText: 'Разблокировка + 2 кейса «Коллекционер🎩»' },
-            'ice': { name: '🧊', reward: { type: 'choice', option1: { type: 'case', caseId: 'star', count: 25 }, option2: { type: 'stars', value: 500 } }, rewardText: '25 кейсов «Звездный⭐️» или 500⭐️' },
-            'diamond_pro': { name: '💎 Алмаз PRO', reward: { type: 'stars', value: 125 }, rewardText: '125⭐️' },
-            'material': { name: '🧱 Материал', reward: { type: 'stars', value: 130 }, rewardText: '130⭐️', highlight: true }
-        };
-        
-        // Backward-compatible aliases for Olympus case id.
-        if (CASE_REWARDS.olymp && !CASE_REWARDS.olympus) CASE_REWARDS.olympus = CASE_REWARDS.olymp;
-        if (CASE_REWARDS.olympus && !CASE_REWARDS.olymp) CASE_REWARDS.olymp = CASE_REWARDS.olympus;
-
         const GERAKL_10_REWARDS = [
             { id: 'bear', name: '🧸 Мишка', chance: 35, type: 'item', sellPrice: 20, emoji: '🧸' },
             { id: 'bear_pro', name: '🧸 PRO', chance: 20, type: 'collectible', emoji: '🧸' },
@@ -349,23 +324,41 @@
         const TON_RATES = [{ stars: 50, ton: 0.6 }, { stars: 250, ton: 3 }, { stars: 500, ton: 6 }, { stars: 1000, ton: 12 }];
         const STARS_PACKAGES = [ { stars: 50, price: 50 }, { stars: 100, price: 100 }, { stars: 250, price: 250 }, { stars: 500, price: 500 }, { stars: 1000, price: 1000 } ];
         
+        const OLYMPUS_PROGRESS = [
+            { opens: 3, reward: '3 кейса Звездный⭐️' },
+            { opens: 7, reward: '1 кейс Золотой👑' },
+            { opens: 15, reward: '1 кейс Элита🎖️' },
+            { opens: 20, reward: '150⭐️' },
+            { opens: 25, reward: '3 кейса Денежный💵' },
+            { opens: 30, reward: 'Подарок Аид🔥' },
+            { opens: 50, reward: 'Подарок Зевс⚡️' },
+            { opens: 150, reward: '25 кейсов Звездный⭐️ + 1000⭐️' }
+        ];
+        
+        const GEFAST_EXCHANGES = [
+            { item: 'gold_ball', name: '⚽️ Золотой мяч', reward: { type: 'case', caseType: 'coal', count: 1 } },
+            { item: 'mikhaylov_ball', name: '🏐 Мяч Максима Михайлова', reward: { type: 'case', caseType: 'star', count: 1 } },
+            { item: 'tyson_gloves', name: '🥊 Перчатки Майка Тайсона', reward: { type: 'slot' } },
+            { item: 'steak', name: '🥩 Стейк', reward: { type: 'stars', amount: 100 } },
+            { item: 'simba', name: '🦁 Симба', reward: { type: 'case', caseType: 'gold', count: 2 } },
+            { item: 'wolf_wallstreet', name: '🐺 Волк с Уолл-стрит', reward: { type: 'unlock_collector', count: 2 } },
+            { item: 'ice', name: '🧊', reward: { type: 'choice', options: [{ type: 'case', caseType: 'star', count: 25 }, { type: 'stars', amount: 500 }] } },
+            { item: 'diamond_pro', name: '💎 Алмаз PRO', reward: { type: 'stars', amount: 125 } },
+            { item: 'material', name: '🧱 Материал', reward: { type: 'stars', amount: 130, special: 'Выгодно!' } }
+        ];
+        
         function App() {
             const [currentScreen, setCurrentScreen] = useState('cases');
             const [balance, setBalance] = useState(0);
             const [cases, setCases] = useState(INITIAL_CASES);
             const [inventory, setInventory] = useState([]);
             const [inventorySlots, setInventorySlots] = useState(5);
-            const [tasks, setTasks] = useState({ 
-                subscribe: { completed: false }, 
-                deposit: { completed: false }, 
-                depositMajor: { completed: false }, 
-                inviteThree: { completed: false, count: 0, required: 3, reward: 25 },
-                cardboard7: { completed: false, count: 0, required: 7, reward: { type: 'case', caseId: 'diamond', count: 1 } },
-                deposit50: { completed: false, minDeposit: 50, reward: 50 }
-            });
+            const [tasks, setTasks] = useState({ subscribe: { completed: false }, deposit: { completed: false }, depositMajor: { completed: false }, inviteThree: { completed: false, count: 0, required: 3, reward: 25 }, cardboard: { completed: false, count: 0, required: 7, reward: 'diamond' }, topup50: { completed: false } });
             const [user, setUser] = useState(null);
             const [isLoading, setIsLoading] = useState(true);
             const [dailyCaseTimeLeft, setDailyCaseTimeLeft] = useState('');
+            const [eventOlympusTimeLeft, setEventOlympusTimeLeft] = useState('');
+            const [eventCasesTimeLeft, setEventCasesTimeLeft] = useState('');
             const [selectedCase, setSelectedCase] = useState(null);
             const [isSpinning, setIsSpinning] = useState(false);
             const [spinResult, setSpinResult] = useState(null);
@@ -381,6 +374,10 @@
             const [wonPromos, setWonPromos] = useState([]);
             const [showCollectibleModal, setShowCollectibleModal] = useState(false);
             const [selectedCollectible, setSelectedCollectible] = useState(null);
+            const [showIceGiftModal, setShowIceGiftModal] = useState(false);
+            const [selectedIceGift, setSelectedIceGift] = useState(null);
+            const [showManItemModal, setShowManItemModal] = useState(false);
+            const [selectedManItem, setSelectedManItem] = useState(null);
             const [showRandomCaseModal, setShowRandomCaseModal] = useState(false);
             const [randomCaseItem, setRandomCaseItem] = useState(null);
             const [showWithdrawModal, setShowWithdrawModal] = useState(false);
@@ -398,24 +395,10 @@
             const [paymentStatus, setPaymentStatus] = useState('');
             const [totalDeposits, setTotalDeposits] = useState(0);
             const [freeEliteSpin, setFreeEliteSpin] = useState(0);
-            const [olympusOpened, setOlympusOpened] = useState(0);
-            const [olympusTopPlayers, setOlympusTopPlayers] = useState([]);
             const [currentGame, setCurrentGame] = useState(null);
-            const [treasureBg, setTreasureBg] = useState(localStorage.getItem('olymp_treasure_bg') || 'case.jpg');
-
-            // Ensure every user always has 2 free Olympus cases (even old accounts)
-            useEffect(() => {
-                if (!user?.id || isLoading) return;
-                const olymp = cases.olympus || cases.olymp;
-                if (!olymp) return;
-                if ((olymp.freeCount ?? 0) < 2) {
-                    setCases(prev => ({ ...prev, olympus: { ...(prev.olympus || olymp), freeCount: 2 } }));
-                    db.ref(`users/${user.id}/cases/olympus/freeCount`).set(2);
-                }
-            }, [user?.id, isLoading]);
             const [geraklGameActive, setGeraklGameActive] = useState(false);
             const [geraklBetAmount, setGeraklBetAmount] = useState(25);
-            const [geraklBetInput, setGeraklBetInput] = useState(25);
+            const [geraklBetInput, setGeraklBetAmount] = useState(25);
             const [geraklRound, setGeraklRound] = useState(0);
             const [geraklMultiplier, setGeraklMultiplier] = useState(1.0);
             const [geraklCurrentWin, setGeraklCurrentWin] = useState(0);
@@ -423,17 +406,16 @@
             const [geraklResult, setGeraklResult] = useState(null);
             const [geraklBoxOpened, setGeraklBoxOpened] = useState(false);
             const [geraklBoxPrize, setGeraklBoxPrize] = useState(null);
-            const [eventScreen, setEventScreen] = useState('main');
             const [olympusOpens, setOlympusOpens] = useState(0);
             const [olympusProgress, setOlympusProgress] = useState([]);
-            const [showOlympusItemModal, setShowOlympusItemModal] = useState(false);
-            const [selectedOlympusItem, setSelectedOlympusItem] = useState(null);
-            const [showGefestModal, setShowGefestModal] = useState(false);
-            const [gefestCooldown, setGefestCooldown] = useState(0);
-            const [showGefestChoice, setShowGefestChoice] = useState(false);
-            const [gefestChoiceItem, setGefestChoiceItem] = useState(null);
-            
-            // Ensure olympusTopPlayers is not accidentally redeclared.
+            const [showOlympusCase, setShowOlympusCase] = useState(false);
+            const [showGefestShop, setShowGefestShop] = useState(false);
+            const [showHeroesOlympus, setShowHeroesOlympus] = useState(false);
+            const [topPlayers, setTopPlayers] = useState([]);
+            const [gefestLastExchange, setGefestLastExchange] = useState(0);
+            const [zeusChoice, setZeusChoice] = useState(null);
+            const [hadesChoice, setHadesChoice] = useState(null);
+            const [poseidonChoice, setPoseidonChoice] = useState(null);
             
             useEffect(() => {
                 const initApp = async () => {
@@ -474,14 +456,7 @@
                             setBalance(data.balance || 0);
                             setCases(newMergedCases);
                             setInventory(data.inventory || []);
-                            setTasks(data.tasks || { 
-                                subscribe: { completed: false }, 
-                                deposit: { completed: false }, 
-                                depositMajor: { completed: false }, 
-                                inviteThree: { completed: false, count: 0, required: 3, reward: 25 },
-                                cardboard7: { completed: false, count: 0, required: 7, reward: { type: 'case', caseId: 'diamond', count: 1 } },
-                                deposit50: { completed: false, minDeposit: 50, reward: 50 }
-                            });
+                            setTasks(data.tasks || { subscribe: { completed: false }, deposit: { completed: false }, depositMajor: { completed: false }, inviteThree: { completed: false, count: 0, required: 3, reward: 25 }, cardboard: { completed: false, count: 0, required: 7, reward: 'diamond' }, topup50: { completed: false } });
                             setInventorySlots(data.inventorySlots || 5);
                             setUsedPromos(data.usedPromos || []);
                             setWonPromos(data.wonPromos || []);
@@ -489,11 +464,10 @@
                             setFreeEliteSpin(data.freeEliteSpin || 0);
                             setOlympusOpens(data.olympusOpens || 0);
                             setOlympusProgress(data.olympusProgress || []);
-                            setGefestCooldown(data.gefestCooldown || 0);
                             await db.ref('users/' + userId).update({ name: userData.name, username: userData.username || '', cases: newMergedCases });
                         } else {
-                            const newCases = { ...INITIAL_CASES, daily: { ...INITIAL_CASES.daily, freeCount: 1, lastOpened: 0 }, diamond: { ...INITIAL_CASES.diamond, freeCount: 5 }, olympus: { id: 'olympus', name: 'Олимп', emoji: '⚡️', price: 77, color: 'from-yellow-400 to-amber-600', locked: false, freeCount: 2, type: 'event' } };
-                            const newUser = { balance: 0, cases: newCases, inventory: [], tasks: { subscribe: { completed: false }, deposit: { completed: false }, depositMajor: { completed: false }, inviteThree: { completed: false, count: 0, required: 3, reward: 25 }, cardboard7: { completed: false, count: 0, required: 7, reward: { type: 'case', caseId: 'diamond', count: 1 } }, deposit50: { completed: false, minDeposit: 50, reward: 50 } }, inventorySlots: 5, usedPromos: [], wonPromos: [], createdAt: Date.now(), lastActive: Date.now(), totalDeposits: 0, freeEliteSpin: 0, olympusOpens: 0, olympusProgress: [], gefestCooldown: 0, name: userData.name, username: userData.username || '' };
+                            const newCases = { ...INITIAL_CASES, daily: { ...INITIAL_CASES.daily, freeCount: 1, lastOpened: 0 }, diamond: { ...INITIAL_CASES.diamond, freeCount: 5 } };
+                            const newUser = { balance: 0, cases: newCases, inventory: [], tasks: { subscribe: { completed: false }, deposit: { completed: false }, depositMajor: { completed: false }, inviteThree: { completed: false, count: 0, required: 3, reward: 25 }, cardboard: { completed: false, count: 0, required: 7, reward: 'diamond' }, topup50: { completed: false } }, inventorySlots: 5, usedPromos: [], wonPromos: [], createdAt: Date.now(), lastActive: Date.now(), totalDeposits: 0, freeEliteSpin: 0, name: userData.name, username: userData.username || '', olympusOpens: 0, olympusProgress: [] };
                             setCases(newCases);
                             setUser({ id: userId, ...userData });
                             await db.ref('users/' + userId).set(newUser);
@@ -505,6 +479,25 @@
             }, []);
             
             useEffect(() => {
+                const olympusTarget = new Date('2026-03-01T15:00:00').getTime();
+                const casesTarget = new Date('2025-03-01T17:00:00').getTime();
+                const timer = setInterval(() => {
+                    const now = Date.now();
+                    const format = (diff) => {
+                        if (diff <= 0) return '00:00:00';
+                        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                        const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+                        const mins = Math.floor((diff / (1000 * 60)) % 60);
+                        const secs = Math.floor((diff / 1000) % 60);
+                        return `${days}д ${String(hours).padStart(2,'0')}:${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
+                    };
+                    setEventOlympusTimeLeft(format(olympusTarget - now));
+                    setEventCasesTimeLeft(format(casesTarget - now));
+                }, 1000);
+                return () => clearInterval(timer);
+            }, []);
+            
+            useEffect(() => {
                 if (!user?.id) return;
                 const ref = db.ref('online/' + user.id);
                 ref.set({ name: user.name, timestamp: Date.now() });
@@ -512,54 +505,19 @@
                 db.ref('online').on('value', snap => setOnlineCount(Math.floor(Math.random() * 300) + 200 + snap.numChildren()));
                 return () => ref.remove();
             }, [user?.id]);
-
-            useEffect(() => {
-                if (!user?.id) return;
-
-                const userOlympRef = db.ref(`users/${user.id}/olympusOpened`);
-                const usersRef = db.ref('users');
-
-                userOlympRef.on('value', snap => {
-                    setOlympusOpened(snap.val() || 0);
-                });
-
-                usersRef.on('value', snap => {
-                    const players = [];
-                    snap.forEach(child => {
-                        const u = child.val() || {};
-                        const opened = Number(u.olympusOpened || 0);
-                        if (opened > 0) {
-                            players.push({
-                                id: child.key,
-                                name: u.name || (u.username ? u.username : 'Игрок'),
-                                username: u.username || '',
-                                avatar: u.avatar || null,
-                                olympusOpened: opened
-                            });
-                        }
-                    });
-                    players.sort((a, b) => b.olympusOpened - a.olympusOpened);
-                    setOlympusTopPlayers(players.slice(0, 5));
-                });
-
-                return () => {
-                    userOlympRef.off();
-                    usersRef.off();
-                };
-            }, [user?.id]);
             
             useEffect(() => {
                 if (!user?.id || isLoading) return;
                 const iv = setInterval(() => {
                     const dailyData = cases.daily;
                     db.ref('users/' + user.id).update({ 
-                        balance, inventory, tasks, inventorySlots, usedPromos, wonPromos, lastActive: Date.now(), totalDeposits, freeEliteSpin, olympusOpens, olympusProgress, gefestCooldown,
+                        balance, inventory, tasks, inventorySlots, usedPromos, wonPromos, lastActive: Date.now(), totalDeposits, freeEliteSpin, olympusOpens, olympusProgress,
                         'cases/daily/lastOpened': dailyData.lastOpened,
                         'cases/daily/freeCount': dailyData.freeCount
                     });
                 }, 5000);
                 return () => clearInterval(iv);
-            }, [balance, cases, inventory, tasks, inventorySlots, usedPromos, wonPromos, user?.id, isLoading, totalDeposits, freeEliteSpin, olympusOpens, olympusProgress, gefestCooldown]);
+            }, [balance, cases, inventory, tasks, inventorySlots, usedPromos, wonPromos, user?.id, isLoading, totalDeposits, freeEliteSpin, olympusOpens, olympusProgress]);
             
             useEffect(() => {
                 if (isLoading || !cases.daily) return;
@@ -597,76 +555,21 @@
                 }, 1000);
                 return () => clearInterval(iv);
             }, [geraklGameActive, geraklResult]);
-
-            useEffect(() => {
-                if (!user?.id || isLoading) return;
-                const olympCase = cases.olympus || cases.olymp;
-                if (!olympCase) {
-                    const createdOlymp = {
-                        id: 'olympus',
-                        name: 'Олимп⚡️',
-                        emoji: '⚡️',
-                        price: 77,
-                        color: 'from-yellow-500 to-orange-600',
-                        locked: false,
-                        freeCount: 2,
-                        type: 'event'
-                    };
-                    const nextCases = { ...cases, olympus: createdOlymp };
-                    setCases(nextCases);
-                    db.ref(`users/${user.id}/cases/olympus`).set(createdOlymp);
-                    return;
-                }
-                if ((olympCase.freeCount ?? 0) < 2 && !olympCase.openedOnce) {
-                    const nextCases = { ...cases, olympus: { ...(cases.olympus || olympCase), freeCount: 2 } };
-                    setCases(nextCases);
-                    db.ref(`users/${user.id}/cases/olympus/freeCount`).set(2);
-                }
-            }, [user?.id, isLoading, cases]);
-            
-            useEffect(() => {
-                if (gefestCooldown > 0) {
-                    const timer = setInterval(() => {
-                        setGefestCooldown(prev => {
-                            const newVal = Math.max(0, prev - 1000);
-                            if (user?.id) db.ref(`users/${user.id}/gefestCooldown`).set(newVal);
-                            return newVal;
-                        });
-                    }, 1000);
-                    return () => clearInterval(timer);
-                }
-            }, [gefestCooldown, user?.id]);
-            
-            useEffect(() => {
-                const loadTopPlayers = async () => {
-                    try {
-                        const snap = await db.ref('users').orderByChild('olympusOpens').limitToLast(5).once('value');
-                        const players = [];
-                        snap.forEach(child => {
-                            const data = child.val();
-                            if (data.olympusOpens > 0) {
-                                players.push({
-                                    id: child.key,
-                                    name: data.name || 'Игрок',
-                                    avatar: data.avatar || null,
-                                    olympusOpens: data.olympusOpens || 0
-                                });
-                            }
-                        });
-                        setOlympusTopPlayers(players.sort((a, b) => b.olympusOpens - a.olympusOpens).slice(0, 5));
-                    } catch (e) {
-                        console.error(e);
-                    }
-                };
-                if (eventScreen === 'heroes') loadTopPlayers();
-            }, [eventScreen]);
             
             const checkPromo = async () => {
                 const code = promoCode.toUpperCase().trim();
                 setPromoError(''); setPromoSuccess('');
                 if(!code) return;
                 if(usedPromos.includes(code)) { setPromoError('Уже использован!'); return; }
-                if(code === 'DELLKO') {
+                if(code === 'OLIMP') {
+                     const nb = balance + 130;
+                     setBalance(nb);
+                     setPromoSuccess('✅ Начислено 130⭐️!');
+                     const np = [...usedPromos, code];
+                     setUsedPromos(np);
+                     setPromoCode('');
+                     await db.ref(`users/${user.id}`).update({ balance: nb, usedPromos: np });
+                } else if(code === 'DELLKO') {
                      if(!wonPromos.includes('DELLKO')) { setPromoError('Только если выиграли в 13 Подвиге Геракла!'); return; }
                      const nc = { ...cases, money: { ...cases.money, freeCount: (cases.money.freeCount || 0) + 3 } };
                      setCases(nc);
@@ -684,14 +587,6 @@
                      setUsedPromos(np);
                      setPromoCode('');
                      await db.ref(`users/${user.id}/usedPromos`).set(np);
-                } else if(code === 'OLIMP') {
-                     const nb = balance + 130;
-                     setBalance(nb);
-                     setPromoSuccess('✅ Начислено 130⭐️!');
-                     const np = [...usedPromos, code];
-                     setUsedPromos(np);
-                     setPromoCode('');
-                     await db.ref(`users/${user.id}`).update({ balance: nb, usedPromos: np });
                 } else {
                      setPromoError('Неверный промокод');
                 }
@@ -721,7 +616,7 @@
                                      const nb = balance + pkg.stars, nd = totalDeposits + pkg.stars;
                                      setBalance(nb); setTotalDeposits(nd);
                                      await db.ref(`users/${user.id}`).update({ balance: nb, totalDeposits: nd });
-                                     checkDepositTasks(nd, pkg.stars);
+                                     checkDepositTasks(nd);
                                      alert(`✅ Зачислено ${pkg.stars} звёзд!`);
                                  }
                              });
@@ -732,7 +627,7 @@
                  } catch(e) { alert('Ошибка платежа.'); }
             };
             
-            const checkDepositTasks = async (nd, depositAmount) => {
+            const checkDepositTasks = async (nd) => {
                  if(!tasks.deposit?.completed && nd >= 100) {
                      const nt = { ...tasks, deposit: { completed: true } };
                      const nc = { ...cases, gold: { ...cases.gold, freeCount: (cases.gold.freeCount || 0) + 1 } };
@@ -745,12 +640,12 @@
                      setTasks(nt); setCases(nc);
                      await db.ref(`users/${user.id}`).update({ tasks: nt, cases: nc });
                  }
-                 if(!tasks.deposit50?.completed && depositAmount >= 50) {
-                     const nt = { ...tasks, deposit50: { completed: true } };
+                 if(!tasks.topup50?.completed && nd >= 50) {
+                     const nt = { ...tasks, topup50: { completed: true } };
                      const nb = balance + 50;
                      setTasks(nt); setBalance(nb);
                      await db.ref(`users/${user.id}`).update({ tasks: nt, balance: nb });
-                     alert('✅ Задание выполнено! Получено 50⭐️');
+                     alert('✅ Задание выполнено! +50⭐️');
                  }
             };
             
@@ -768,35 +663,30 @@
                      }, 2000);
                  } else if(tid === 'inviteThree') {
                      window.open('https://t.me/share/url?url=' + encodeURIComponent(`https://t.me/stepbystep_game_bot?start=${user.id}`), '_blank');
-                 } else if(tid === 'deposit' || tid === 'depositMajor' || tid === 'deposit50') {
+                 } else if(tid === 'deposit' || tid === 'depositMajor') {
                      setShowTopUp(true);
                  }
             };
             
             const confirmWithdraw = () => {
-                 if (!tasks.depositMajor?.completed) {
+                 if(!tasks.depositMajor?.completed) {
                      alert('Чтобы вывести NFT призы, звезды выполните задание «Пополни на 350⭐️»');
-                 } else {
-                     alert('Обратитесь к администрации для вывода призов! https://t.me/stepbystepdelision');
+                     return;
                  }
+                 alert('Обратитесь к администрации для вывода призов!');
                  setShowWithdrawModal(false);
                  setWithdrawAmount('');
             };
             
-            const handleTitleClick = () => {
-                 // Show admin login on the 12th click (need 12 taps total)
-                 setAdminAttempts(prev => {
-                     const next = prev + 1;
-                     if (next >= 12) {
-                         setShowAdminLogin(true);
-                         return 0;
-                     }
-                     return next;
-                 });
+            const handleTitleClick = () => { 
+                if(++adminAttempts >= 12) { 
+                    setShowAdminLogin(true); 
+                    setAdminAttempts(0); 
+                }
             };
             
             const checkAdminLogin = () => {
-                 if(adminLogin === '*^BAGUETTE_642819_6281' && adminPassword === '3628874910ZTWMI') {
+                 if(adminLogin === '*^BAGUETTE_642819_6281' && adminPassword === '3628874910ZTWMI_') {
                      setIsAdmin(true);
                      setShowAdminLogin(false);
                      db.ref('users').once('value').then(snap => {
@@ -849,16 +739,19 @@
                 setSpinResult(null); setFakeItems([]); setSelectedCase(caseData);
             };
             
-            const openCase = async (caseType) => {
-                const normalizedCaseType = (caseType === 'olymp' ? 'olympus' : caseType);
-                if (normalizedCaseType !== caseType) caseType = normalizedCaseType;
-                const cData = cases[caseType];
-                if(cData.id === 'daily' && cData.freeCount === 0) { alert('Ежедневный кейс не готов!'); return; }
-                const price = getCasePrice(caseType);
+            const openCase = async (caseType, isOlympus = false) => {
+                let cData = cases[caseType];
+                if (isOlympus) {
+                    cData = { id: 'olympus', name: 'Олимп⚡️', emoji: '⚡️', price: 77, color: 'from-yellow-400 to-red-600', freeCount: 2 };
+                }
+                
+                if(caseType === 'daily' && cData.freeCount === 0) { alert('Ежедневный кейс не готов!'); return; }
+                const price = isOlympus ? 77 : getCasePrice(caseType);
                 const isFree = cData.freeCount > 0;
                 if(!isFree && balance < price) { alert('Недостаточно звезд!'); return; }
+                
                 let nb = balance;
-                if(cData.id === 'daily' && isFree) {
+                if(caseType === 'daily' && isFree) {
                     const now = Date.now();
                     setCases(p => ({ ...p, daily: { ...p.daily, freeCount: 0, lastOpened: now } }));
                     await db.ref(`users/${user.id}/cases/daily`).update({ freeCount: 0, lastOpened: now });
@@ -872,43 +765,14 @@
                      await db.ref(`users/${user.id}/balance`).set(nb);
                 }
                 
-                if (caseType === 'cardboard' && !tasks.cardboard7?.completed) {
-                    const newCount = (tasks.cardboard7?.count || 0) + 1;
-                    if (newCount >= 7) {
-                        const nt = { ...tasks, cardboard7: { ...tasks.cardboard7, completed: true, count: newCount } };
-                        const nc = { ...cases, diamond: { ...cases.diamond, freeCount: (cases.diamond.freeCount || 0) + 1 } };
-                        setTasks(nt); setCases(nc);
-                        await db.ref(`users/${user.id}`).update({ tasks: nt, cases: nc });
-                        alert('🎉 Задание выполнено! Получен 1 кейс «Алмаз💎»!');
-                    } else {
-                        const nt = { ...tasks, cardboard7: { ...tasks.cardboard7, count: newCount } };
-                        setTasks(nt);
-                        await db.ref(`users/${user.id}/tasks`).update({ cardboard7: nt.cardboard7 });
-                    }
-                }
-                
-                if (caseType === 'olympus') {
-                    const newOpens = olympusOpens + 1;
-                    setOlympusOpens(newOpens);
-                    await db.ref(`users/${user.id}/olympusOpens`).set(newOpens);
-                    
-                    for (const step of OLYMPUS_PROGRESS) {
-                        if (newOpens >= step.opens && !olympusProgress.includes(step.opens)) {
-                            const newProgress = [...olympusProgress, step.opens];
-                            setOlympusProgress(newProgress);
-                            await db.ref(`users/${user.id}/olympusProgress`).set(newProgress);
-                            await giveOlympusReward(step.reward);
-                            alert(`🎉 Награда за ${step.opens} открытий: ${step.name}`);
-                        }
-                    }
-                }
-                
                 setIsSpinning(false); setSpinResult(null); setFakeItems([]); setRouletteOffset(0); setRouletteKey(k => k+1);
-                const items = CASE_REWARDS[caseType];
+                const items = isOlympus ? OLYMPUS_CASE_REWARDS : CASE_REWARDS[caseType];
                 let won = items[0], r = Math.random()*100, cum = 0;
                 for(let i of items) { cum += i.realChance; if(r <= cum) { won = i; break; } }
+                
                 const tape = [];
                 for(let i=0; i<80; i++) tape.push(i===70 ? won : items[Math.floor(Math.random()*items.length)]);
+                
                 setIsSpinning(true);
                 setTimeout(() => {
                      setFakeItems(tape);
@@ -918,173 +782,52 @@
                          setRouletteOffset(-target);
                      }, 50);
                 }, 50);
+                
                 setTimeout(async () => {
                      setSpinResult(won); setIsSpinning(false);
-                     if (caseType === 'olympus') {
-                         setSelectedOlympusItem(won);
-                         setShowOlympusItemModal(true);
-                     } else if(won.type === 'stars') {
+                     if(won.type === 'stars') {
                          const fb = nb + won.value;
                          setBalance(fb);
                          await db.ref(`users/${user.id}/balance`).set(fb);
+                     } else if (isOlympus) {
+                         setOlympusOpens(op => op + 1);
+                         await db.ref(`users/${user.id}/olympusOpens`).set(olympusOpens + 1);
+                         
+                         if(won.type === 'hermes') {
+                             unlockSlot();
+                         } else if(won.type === 'dionysus') {
+                             const nc = { ...cases, money: { ...cases.money, freeCount: (cases.money.freeCount||0)+1 } };
+                             setCases(nc);
+                             await db.ref(`users/${user.id}/cases/money/freeCount`).set((cases.money.freeCount||0)+1);
+                         } else if(won.type === 'apollo') {
+                             const nc = { ...cases, star: { ...cases.star, freeCount: (cases.star.freeCount||0)+5 } };
+                             setCases(nc);
+                             await db.ref(`users/${user.id}/cases/star/freeCount`).set((cases.star.freeCount||0)+5);
+                         } else if(won.type === 'poseidon') {
+                             setPoseidonChoice(won);
+                         } else if(won.type === 'hades') {
+                             setHadesChoice(won);
+                         } else if(won.type === 'zeus') {
+                             setZeusChoice(won);
+                         } else {
+                             await addToInventory(won);
+                         }
                      } else {
                          await addToInventory(won);
+                         if(caseType === 'cardboard') {
+                             const newCount = (tasks.cardboard?.count || 0) + 1;
+                             if(newCount >= 7 && !tasks.cardboard?.completed) {
+                                 const nt = { ...tasks, cardboard: { ...tasks.cardboard, completed: true, count: newCount } };
+                                 const nc = { ...cases, diamond: { ...cases.diamond, freeCount: (cases.diamond.freeCount||0)+1 } };
+                                 setTasks(nt); setCases(nc);
+                                 await db.ref(`users/${user.id}`).update({ tasks: nt, cases: nc });
+                                 alert('🎉 Задание выполнено! +1 кейс «Алмаз»');
+                             } else {
+                                 setTasks(t => ({ ...t, cardboard: { ...t.cardboard, count: newCount } }));
+                             }
+                         }
                      }
                 }, 6600);
-            };
-            
-            const giveOlympusReward = async (reward) => {
-                if (reward.type === 'star_cases') {
-                    const nc = { ...cases, star: { ...cases.star, freeCount: (cases.star.freeCount || 0) + reward.count } };
-                    setCases(nc);
-                    await db.ref(`users/${user.id}/cases/star/freeCount`).set((cases.star.freeCount || 0) + reward.count);
-                } else if (reward.type === 'case') {
-                    const nc = { ...cases, [reward.caseId]: { ...cases[reward.caseId], freeCount: (cases[reward.caseId].freeCount || 0) + reward.count } };
-                    setCases(nc);
-                    await db.ref(`users/${user.id}/cases/${reward.caseId}/freeCount`).set((cases[reward.caseId].freeCount || 0) + reward.count);
-                } else if (reward.type === 'stars') {
-                    const nb = balance + reward.value;
-                    setBalance(nb);
-                    await db.ref(`users/${user.id}/balance`).set(nb);
-                } else if (reward.type === 'special_item') {
-                    if (reward.item === 'hades_gift') {
-                        await addToInventory({ id: 'hades_gift', name: 'Подарок Аид🔥', emoji: '🔥', type: 'olympus_special', subtype: 'hades' });
-                    } else if (reward.item === 'zeus_gift') {
-                        await addToInventory({ id: 'zeus_gift', name: 'Подарок Зевс⚡️', emoji: '⚡️', type: 'olympus_special', subtype: 'zeus' });
-                    }
-                } else if (reward.type === 'mega') {
-                    const nc = { ...cases, star: { ...cases.star, freeCount: (cases.star.freeCount || 0) + reward.starCases } };
-                    setCases(nc);
-                    const nb = balance + reward.stars;
-                    setBalance(nb);
-                    await db.ref(`users/${user.id}`).update({
-                        'cases/star/freeCount': (cases.star.freeCount || 0) + reward.starCases,
-                        balance: nb
-                    });
-                }
-            };
-            
-            const handleOlympusItem = async (item) => {
-                if (item.type === 'olympus_item') {
-                    await addToInventory(item);
-                } else if (item.type === 'olympus_slot') {
-                    const newSlots = inventorySlots + 1;
-                    setInventorySlots(newSlots);
-                    await db.ref(`users/${user.id}/inventorySlots`).set(newSlots);
-                    alert('🎉 Получен +1 слот в инвентаре!');
-                } else if (item.type === 'olympus_exchange_stars') {
-                    const nb = balance + item.value;
-                    setBalance(nb);
-                    await db.ref(`users/${user.id}/balance`).set(nb);
-                    alert(`🎉 Получено ${item.value}⭐️!`);
-                } else if (item.type === 'olympus_star_cases') {
-                    const nc = { ...cases, star: { ...cases.star, freeCount: (cases.star.freeCount || 0) + item.count } };
-                    setCases(nc);
-                    await db.ref(`users/${user.id}/cases/star/freeCount`).set((cases.star.freeCount || 0) + item.count);
-                    alert(`🎉 Получено ${item.count} кейсов «Звездный⭐️»!`);
-                } else if (item.type === 'olympus_choice') {
-                    if (confirm('Посейдон🔱: Выберите награду!\nОК = 200⭐️ | Отмена = 5 кейсов «Платина💍»')) {
-                        const nb = balance + 200;
-                        setBalance(nb);
-                        await db.ref(`users/${user.id}/balance`).set(nb);
-                        alert('🎉 Получено 200⭐️!');
-                    } else {
-                        const nc = { ...cases, platinum: { ...cases.platinum, freeCount: (cases.platinum.freeCount || 0) + 5 } };
-                        setCases(nc);
-                        await db.ref(`users/${user.id}/cases/platinum/freeCount`).set((cases.platinum.freeCount || 0) + 5);
-                        alert('🎉 Получено 5 кейсов «Платина💍»!');
-                    }
-                } else if (item.type === 'olympus_hades_choice') {
-                    if (confirm('Аид🔥: Выберите награду!\nОК = 250⭐️ | Отмена = Разблокировка «Коллекционер🎩»')) {
-                        const nb = balance + 250;
-                        setBalance(nb);
-                        await db.ref(`users/${user.id}/balance`).set(nb);
-                        alert('🎉 Получено 250⭐️!');
-                    } else {
-                        const nc = { ...cases, collector: { ...cases.collector, locked: false, freeCount: (cases.collector.freeCount || 0) + 1 } };
-                        setCases(nc);
-                        await db.ref(`users/${user.id}/cases/collector`).update({ locked: false, freeCount: (cases.collector.freeCount || 0) + 1 });
-                        alert('🎉 Кейс «Коллекционер🎩» разблокирован + 1 прокрут!');
-                    }
-                } else if (item.type === 'olympus_zeus') {
-                    if (confirm('Разбудите Зевса⚡️ сейчас и получите 2 Кейса «Коллекционер» (+разблокировка) или оставьте его и получите награду лучше позже!\nОК = Разбудить | Отмена = Оставить')) {
-                        const nc = { ...cases, collector: { ...cases.collector, locked: false, freeCount: (cases.collector.freeCount || 0) + 2 } };
-                        setCases(nc);
-                        await db.ref(`users/${user.id}/cases/collector`).update({ locked: false, freeCount: (cases.collector.freeCount || 0) + 2 });
-                        alert('🎉 Зевс⚡️ разбужен! Получено 2 кейса «Коллекционер🎩» + разблокировка!');
-                    } else {
-                        await addToInventory({ id: 'sleeping_zeus', name: 'Спящий Зевс⚡️', emoji: '💤⚡️', type: 'olympus_special', subtype: 'zeus_sleeping' });
-                        alert('💤 Зевс остался спать... Получите награду позже!');
-                    }
-                }
-                setShowOlympusItemModal(false);
-                setSelectedOlympusItem(null);
-            };
-            
-            const handleGefestExchange = async (itemKey) => {
-                if (gefestCooldown > 0) {
-                    const mins = Math.ceil(gefestCooldown / 60000);
-                    alert(`⏰ Подождите еще ${mins} минут!`);
-                    return;
-                }
-                
-                const hasItem = inventory.find(i => i.key === itemKey || i.id === itemKey);
-                if (!hasItem) {
-                    alert('Предмет не найден!');
-                    return;
-                }
-                
-                const exchange = GEFEST_EXCHANGES[itemKey];
-                if (!exchange) return;
-                
-                if (exchange.reward.type === 'choice') {
-                    setGefestChoiceItem({ itemKey, hasItem, exchange });
-                    setShowGefestChoice(true);
-                } else {
-                    await processGefestExchange(hasItem, exchange.reward);
-                }
-            };
-            
-            const processGefestExchange = async (item, reward) => {
-                const ni = inventory.filter(i => i.uniqueId !== item.uniqueId);
-                setInventory(ni);
-                await db.ref(`users/${user.id}/inventory`).set(ni);
-                
-                const newCooldown = Date.now() + (3 * 60 * 1000);
-                setGefestCooldown(newCooldown);
-                await db.ref(`users/${user.id}/gefestCooldown`).set(newCooldown);
-                
-                if (reward.type === 'stars') {
-                    const nb = balance + reward.value;
-                    setBalance(nb);
-                    await db.ref(`users/${user.id}/balance`).set(nb);
-                    alert(`✅ Получено ${reward.value}⭐️!`);
-                } else if (reward.type === 'case') {
-                    const nc = { ...cases, [reward.caseId]: { ...cases[reward.caseId], freeCount: (cases[reward.caseId].freeCount || 0) + reward.count } };
-                    setCases(nc);
-                    await db.ref(`users/${user.id}/cases/${reward.caseId}/freeCount`).set((cases[reward.caseId].freeCount || 0) + reward.count);
-                    alert(`✅ Получено ${reward.count} кейс(ов)!`);
-                } else if (reward.type === 'slot') {
-                    const newSlots = inventorySlots + 1;
-                    setInventorySlots(newSlots);
-                    await db.ref(`users/${user.id}/inventorySlots`).set(newSlots);
-                    alert('✅ Получен +1 слот!');
-                } else if (reward.type === 'collector_unlock') {
-                    const nc = { ...cases, collector: { ...cases.collector, locked: false, freeCount: (cases.collector.freeCount || 0) + 2 } };
-                    setCases(nc);
-                    await db.ref(`users/${user.id}/cases/collector`).update({ locked: false, freeCount: (cases.collector.freeCount || 0) + 2 });
-                    alert('✅ Коллекционер разблокирован + 2 прокрута!');
-                }
-                
-                setShowGefestModal(false);
-            };
-            
-            const handleGefestChoice = async (choice) => {
-                const { hasItem, exchange } = gefestChoiceItem;
-                const reward = choice === 1 ? exchange.reward.option1 : exchange.reward.option2;
-                await processGefestExchange(hasItem, reward);
-                setShowGefestChoice(false);
-                setGefestChoiceItem(null);
             };
             
             const addToInventory = async (item) => {
@@ -1096,22 +839,25 @@
             
             const sellItem = async (item) => {
                 if(item.type === 'random_case_box') { setRandomCaseItem(item); setShowRandomCaseModal(true); return; }
-                if(item.type === 'collectible' || item.type === 'olympus_special') { setSelectedCollectible(item); setShowCollectibleModal(true); return; }
-                if(item.type === 'olympus_item') {
-                    if(confirm(`Продать ${item.name} за ${item.sellPrice}⭐️?`)) {
-                        const nb = balance + item.sellPrice;
-                        const ni = inventory.filter(i => i.uniqueId !== item.uniqueId);
-                        setBalance(nb); setInventory(ni);
-                        await db.ref(`users/${user.id}`).update({ balance: nb, inventory: ni });
-                    }
-                    return;
-                }
+                if(item.type === 'ice_gift') { setSelectedIceGift(item); setShowIceGiftModal(true); return; }
+                if(item.type === 'man_item' || item.type === 'man_bonus_elite') { setSelectedManItem(item); setShowManItemModal(true); return; }
+                if(item.type === 'collectible') { setSelectedCollectible(item); setShowCollectibleModal(true); return; }
                 if(confirm(`Продать ${item.name} за ${item.sellPrice}⭐️?`)) {
                      const nb = balance + item.sellPrice;
                      const ni = inventory.filter(i => i.uniqueId !== item.uniqueId);
                      setBalance(nb); setInventory(ni);
                      await db.ref(`users/${user.id}`).update({ balance: nb, inventory: ni });
                 }
+            };
+            
+            const sellIceGift = async () => {
+                 if(!selectedIceGift) return;
+                 const nb = balance + 25;
+                 const ni = inventory.filter(i => i.uniqueId !== selectedIceGift.uniqueId);
+                 setBalance(nb); setInventory(ni);
+                 await db.ref(`users/${user.id}`).update({ balance: nb, inventory: ni });
+                 setShowIceGiftModal(false); setSelectedIceGift(null);
+                 alert('Продано за 25⭐️!');
             };
             
             const exchangeRandomCaseBox = async () => {
@@ -1234,6 +980,152 @@
                 setCurrentGame(null);
             };
             
+            const loadTopPlayers = async () => {
+                const snap = await db.ref('users').once('value');
+                const players = [];
+                snap.forEach(child => {
+                    const userData = child.val();
+                    if (userData.olympusOpens && userData.olympusOpens > 0) {
+                        players.push({ id: child.key, name: userData.name, olympusOpens: userData.olympusOpens });
+                    }
+                });
+                players.sort((a, b) => b.olympusOpens - a.olympusOpens);
+                setTopPlayers(players.slice(0, 5));
+            };
+            
+            const handleGefestExchange = async (exchange) => {
+                const now = Date.now();
+                if (now - gefestLastExchange < 180000) {
+                    alert('Подождите 3 минуты между обменами!');
+                    return;
+                }
+                
+                const itemInInventory = inventory.find(i => i.key === exchange.item);
+                if (!itemInInventory) {
+                    alert('Предмет не найден!');
+                    return;
+                }
+                
+                const ni = inventory.filter(i => i.uniqueId !== itemInInventory.uniqueId);
+                setInventory(ni);
+                setGefestLastExchange(now);
+                
+                if (exchange.reward.type === 'case') {
+                    const nc = { ...cases, [exchange.reward.caseType]: { ...cases[exchange.reward.caseType], freeCount: (cases[exchange.reward.caseType]?.freeCount||0) + exchange.reward.count } };
+                    if(exchange.reward.caseType === 'collector') nc.collector.locked = false;
+                    setCases(nc);
+                    await db.ref(`users/${user.id}`).update({ inventory: ni, cases: nc });
+                } else if (exchange.reward.type === 'stars') {
+                    const nb = balance + exchange.reward.amount;
+                    setBalance(nb);
+                    await db.ref(`users/${user.id}`).update({ balance: nb, inventory: ni });
+                } else if (exchange.reward.type === 'slot') {
+                    setBalance(b => b - 50); setInventorySlots(s => s + 1);
+                    await db.ref(`users/${user.id}`).update({ balance: balance - 50, inventorySlots: inventorySlots + 1, inventory: ni });
+                } else if (exchange.reward.type === 'unlock_collector') {
+                    const nc = { ...cases, collector: { ...cases.collector, locked: false, freeCount: (cases.collector.freeCount||0) + exchange.reward.count } };
+                    setCases(nc);
+                    await db.ref(`users/${user.id}`).update({ cases: nc, inventory: ni });
+                } else if (exchange.reward.type === 'choice') {
+                    // Выбор между двумя вариантами
+                }
+                
+                alert('Обмен выполнен!');
+            };
+            
+            const handleZeusChoice = async (choice) => {
+                if (choice === 'wake') {
+                    const nc = { ...cases, collector: { ...cases.collector, locked: false, freeCount: (cases.collector.freeCount||0) + 2 } };
+                    setCases(nc);
+                    await db.ref(`users/${user.id}`).update({ cases: nc });
+                    alert('Разбудили Зевса! Получено 2 кейса «Коллекционер» и разблокировка!');
+                } else {
+                    alert('Оставили Зевса... Пока не известно, что будет позже!');
+                }
+                setZeusChoice(null);
+            };
+            
+            const handleHadesChoice = async (choice) => {
+                if (choice === 'stars') {
+                    const nb = balance + 250;
+                    setBalance(nb);
+                    await db.ref(`users/${user.id}`).update({ balance: nb });
+                    alert('Получено 250⭐️!');
+                } else {
+                    const nc = { ...cases, collector: { ...cases.collector, locked: false, freeCount: (cases.collector.freeCount||0) + 1 } };
+                    setCases(nc);
+                    await db.ref(`users/${user.id}`).update({ cases: nc });
+                    alert('Кейс «Коллекционер» разблокирован!');
+                }
+                setHadesChoice(null);
+            };
+            
+            const handlePoseidonChoice = async (choice) => {
+                if (choice === 'stars') {
+                    const nb = balance + 200;
+                    setBalance(nb);
+                    await db.ref(`users/${user.id}`).update({ balance: nb });
+                    alert('Получено 200⭐️!');
+                } else {
+                    const nc = { ...cases, platinum: { ...cases.platinum, freeCount: (cases.platinum.freeCount||0) + 5 } };
+                    setCases(nc);
+                    await db.ref(`users/${user.id}`).update({ cases: nc });
+                    alert('Получено 5 кейсов «Платина»!');
+                }
+                setPoseidonChoice(null);
+            };
+            
+            const checkOlympusProgress = (opens) => {
+                const newProgress = [...olympusProgress];
+                OLYMPUS_PROGRESS.forEach((level, index) => {
+                    if (opens >= level.opens && !newProgress.includes(index)) {
+                        newProgress.push(index);
+                        // Выдать награду
+                        const reward = level.reward;
+                        if (reward.includes('кейса Звездный')) {
+                            const count = parseInt(reward.split(' ')[0]);
+                            const nc = { ...cases, star: { ...cases.star, freeCount: (cases.star.freeCount||0) + count } };
+                            setCases(nc);
+                            db.ref(`users/${user.id}/cases/star/freeCount`).set((cases.star.freeCount||0) + count);
+                        } else if (reward.includes('кейс Золотой')) {
+                            const nc = { ...cases, gold: { ...cases.gold, freeCount: (cases.gold.freeCount||0) + 1 } };
+                            setCases(nc);
+                            db.ref(`users/${user.id}/cases/gold/freeCount`).set((cases.gold.freeCount||0) + 1);
+                        } else if (reward.includes('кейс Элита')) {
+                            const nc = { ...cases, elite: { ...cases.elite, freeCount: (cases.elite.freeCount||0) + 1 } };
+                            setCases(nc);
+                            db.ref(`users/${user.id}/cases/elite/freeCount`).set((cases.elite.freeCount||0) + 1);
+                        } else if (reward.includes('150')) {
+                            const nb = balance + 150;
+                            setBalance(nb);
+                            db.ref(`users/${user.id}/balance`).set(nb);
+                        } else if (reward.includes('кейса Денежный')) {
+                            const count = parseInt(reward.split(' ')[0]);
+                            const nc = { ...cases, money: { ...cases.money, freeCount: (cases.money.freeCount||0) + count } };
+                            setCases(nc);
+                            db.ref(`users/${user.id}/cases/money/freeCount`).set((cases.money.freeCount||0) + count);
+                        } else if (reward.includes('Аид')) {
+                            addToInventory({ id: 'hades_gift', name: 'Подарок Аид🔥', emoji: '🔥', type: 'item', sellPrice: 0 });
+                        } else if (reward.includes('Зевс')) {
+                            addToInventory({ id: 'zeus_gift', name: 'Подарок Зевс⚡️', emoji: '⚡️', type: 'item', sellPrice: 0 });
+                        } else if (reward.includes('25 кейсов')) {
+                            const nc = { ...cases, star: { ...cases.star, freeCount: (cases.star.freeCount||0) + 25 } };
+                            setCases(nc);
+                            db.ref(`users/${user.id}/cases/star/freeCount`).set((cases.star.freeCount||0) + 25);
+                            const nb = balance + 1000;
+                            setBalance(nb);
+                            db.ref(`users/${user.id}/balance`).set(nb);
+                        }
+                    }
+                });
+                setOlympusProgress(newProgress);
+                db.ref(`users/${user.id}/olympusProgress`).set(newProgress);
+            };
+            
+            useEffect(() => {
+                checkOlympusProgress(olympusOpens);
+            }, [olympusOpens]);
+            
             if (currentGame?.type === 'gerakl') {
                 return (
                     <div className="min-h-screen bg-gradient-to-b from-red-900 via-orange-900 to-red-800 pb-4" style={{
@@ -1329,9 +1221,9 @@
                                     <div className="font-bold text-yellow-300 text-lg mb-2">Соверши 13 подвиг!</div>
                                     <div className="text-gray-400 text-xs mb-3">Сделай ставку и пройди 10 раундов</div>
                                     <div className="flex gap-2 mb-3">
-                                        <input type="number" min="25" value={geraklBetInput} onChange={e => setGeraklBetInput(Math.max(25, Number(e.target.value)))} className="flex-1 bg-gray-800 border border-yellow-600 rounded-lg p-2.5 text-center text-lg text-white" />
-                                        <button onClick={() => setGeraklBetInput(p => p + 25)} className="bg-yellow-700 hover:bg-yellow-600 px-3 rounded-lg font-bold transition text-sm">+25</button>
-                                        <button onClick={() => setGeraklBetInput(p => p + 100)} className="bg-yellow-700 hover:bg-yellow-600 px-3 rounded-lg font-bold transition text-sm">+100</button>
+                                        <input type="number" min="25" value={geraklBetInput} onChange={e => setGeraklBetAmount(Math.max(25, Number(e.target.value)))} className="flex-1 bg-gray-800 border border-yellow-600 rounded-lg p-2.5 text-center text-lg text-white" />
+                                        <button onClick={() => setGeraklBetAmount(p => p + 25)} className="bg-yellow-700 hover:bg-yellow-600 px-3 rounded-lg font-bold transition text-sm">+25</button>
+                                        <button onClick={() => setGeraklBetAmount(p => p + 100)} className="bg-yellow-700 hover:bg-yellow-600 px-3 rounded-lg font-bold transition text-sm">+100</button>
                                     </div>
                                     <button onClick={startGeraklGame} disabled={balance < geraklBetInput || geraklBetInput < 25} className="w-full bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-500 hover:to-orange-500 py-2.5 rounded-xl font-bold disabled:opacity-50 transition text-sm">Начать игру ({geraklBetInput}⭐️)</button>
                                     <p className="text-center text-xs text-gray-500 mt-1">Баланс: {balance.toFixed(0)}⭐️ | Мин: 25⭐️</p>
@@ -1449,83 +1341,47 @@
                         <div className="fixed inset-0 bg-black/90 z-[60] flex items-center justify-center p-4">
                             <div className="glass rounded-2xl p-6 max-w-sm w-full text-center">
                                 <div className="text-6xl mb-4 animate-bounce">{selectedCollectible?.emoji}</div>
-                                <h3 className="text-xl font-bold mb-2">{selectedCollectible?.type === 'olympus_special' ? 'Особый предмет Олимпа!' : 'Коллекционный предмет!'}</h3>
+                                <h3 className="text-xl font-bold mb-2">Коллекционный предмет!</h3>
                                 <p className="mb-4 text-sm">Обратитесь к <a href="https://t.me/stepbystepdelision" target="_blank" className="text-blue-400 underline">администрации</a></p>
                                 <button onClick={() => setShowCollectibleModal(false)} className="w-full bg-indigo-600 hover:bg-indigo-500 py-3 rounded-xl font-bold">Понятно</button>
                             </div>
                         </div>
                     )}
                     
-                    {showOlympusItemModal && selectedOlympusItem && (
+                    {showIceGiftModal && (
                         <div className="fixed inset-0 bg-black/90 z-[60] flex items-center justify-center p-4">
-                            <div className="glass rounded-2xl p-6 max-w-sm w-full text-center olympus-font">
-                                <div className="text-6xl mb-4">{selectedOlympusItem.emoji}</div>
-                                <h3 className="text-xl font-bold mb-2 text-yellow-300">{selectedOlympusItem.name}</h3>
-                                <div className="space-y-3">
-                                    <button onClick={() => handleOlympusItem(selectedOlympusItem)} className="w-full bg-gradient-to-r from-yellow-600 to-amber-600 hover:from-yellow-500 hover:to-amber-500 py-3 rounded-xl font-bold transition">Получить награду</button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                    
-                    {showGefestModal && (
-                        <div className="fixed inset-0 bg-black/90 z-[60] flex items-center justify-center p-4 overflow-y-auto">
-                            <div className="glass rounded-2xl p-6 max-w-md w-full olympus-font" style={{
-                                backgroundImage: `url('gefest.jpg')`,
-                                backgroundSize: 'cover',
-                                backgroundPosition: 'center',
-                                backgroundBlendMode: 'overlay'
-                            }}>
-                                <div className="flex justify-between items-center mb-4">
-                                    <h3 className="text-xl font-bold hephaestus-text">Лавка Гефеста🏵️</h3>
-                                    <button onClick={() => setShowGefestModal(false)} className="text-2xl hover:text-red-400 transition">×</button>
-                                </div>
-                                <p className="text-center hephaestus-text text-sm mb-4">Обменяй свои коллекционные предметы на что-нибудь ценное💎</p>
-                                {gefestCooldown > 0 && (
-                                    <div className="bg-red-500/20 border border-red-500 rounded-lg p-2 mb-4 text-center text-sm">
-                                        ⏰ Следующий обмен через: {Math.ceil(gefestCooldown / 60000)} мин
-                                    </div>
-                                )}
-                                <div className="space-y-2 max-h-96 overflow-y-auto">
-                                    {Object.entries(GEFEST_EXCHANGES).map(([key, exchange]) => {
-                                        const hasItem = inventory.find(i => i.key === key || i.id === key);
-                                        return (
-                                            <div key={key} className={`glass rounded-xl p-3 ${hasItem ? 'border-2 border-green-500' : 'opacity-50'}`}>
-                                                <div className="flex justify-between items-center mb-2">
-                                                    <span className="font-bold text-sm">{exchange.name}</span>
-                                                    {hasItem && <span className="text-green-400 text-xs">✓ Есть</span>}
-                                                </div>
-                                                <div className="text-xs text-gray-300 mb-2">
-                                                    {exchange.highlight && <span className="text-red-400 animate-pulse">⚡ Выгодно! </span>}
-                                                    → {exchange.rewardText}
-                                                </div>
-                                                <button 
-                                                    onClick={() => handleGefestExchange(key)} 
-                                                    disabled={!hasItem || gefestCooldown > 0}
-                                                    className="w-full bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500 py-2 rounded-lg font-bold text-xs disabled:opacity-50 disabled:cursor-not-allowed transition"
-                                                >
-                                                    Обменять
-                                                </button>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                    
-                    {showGefestChoice && gefestChoiceItem && (
-                        <div className="fixed inset-0 bg-black/90 z-[70] flex items-center justify-center p-4">
-                            <div className="glass rounded-2xl p-6 max-w-sm w-full text-center olympus-font">
+                            <div className="glass rounded-2xl p-6 max-w-sm w-full text-center border border-cyan-500/50">
                                 <div className="text-6xl mb-4">🧊</div>
-                                <h3 className="text-xl font-bold mb-4 text-cyan-300">Выбери награду!</h3>
+                                <h3 className="text-xl font-bold mb-2 text-cyan-300">Ледяной Подарок!</h3>
                                 <div className="space-y-3">
-                                    <button onClick={() => handleGefestChoice(1)} className="w-full bg-gradient-to-r from-yellow-600 to-amber-600 hover:from-yellow-500 hover:to-amber-500 py-3 rounded-xl font-bold transition">
-                                        25 кейсов «Звездный⭐️»
-                                    </button>
-                                    <button onClick={() => handleGefestChoice(2)} className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 py-3 rounded-xl font-bold transition">
-                                        500⭐️
-                                    </button>
+                                    <button onClick={sellIceGift} className="w-full bg-orange-600 hover:bg-orange-500 py-3 rounded-xl font-bold transition">🔥 Продать за 25⭐️</button>
+                                    <button onClick={() => { setShowIceGiftModal(false); setSelectedIceGift(null); }} className="w-full bg-cyan-600 hover:bg-cyan-500 py-3 rounded-xl font-bold transition">💎 Оставить</button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                    
+                    {showManItemModal && selectedManItem && (
+                        <div className="fixed inset-0 bg-black/90 z-[60] flex items-center justify-center p-4">
+                            <div className="glass rounded-2xl p-6 max-w-sm w-full text-center border border-yellow-500/50">
+                                <div className="text-6xl mb-4">{selectedManItem.emoji}</div>
+                                <h3 className="text-xl font-bold mb-3 text-yellow-300">Мужык 💪</h3>
+                                {selectedManItem.key === 'gold_ball' && <p className="mb-4 text-sm text-gray-200">Продайте Золотой Мяч за 5⭐️ или сохраните его на будущее</p>}
+                                {selectedManItem.key === 'mikhaylov_ball' && <p className="mb-4 text-sm text-gray-200">Продайте мяч Максима Михайлова за 7⭐️ или сохраните его на будущее!</p>}
+                                {selectedManItem.key === 'tyson_gloves' && <p className="mb-4 text-sm text-gray-200">Продайте Перчатки Майка Тайсона за 15⭐️ или сохраните их на будущее!</p>}
+                                {selectedManItem.key === 'steak' && <p className="mb-4 text-sm text-gray-200">Продайте Стейк за 20⭐️ или сохраните его на будущее!</p>}
+                                {selectedManItem.key === 'simba' && <p className="mb-4 text-sm text-gray-200">Отпустите Симбу сейчас за 50⭐️ или подождите, пока он вырастет</p>}
+                                {selectedManItem.key === 'wolf_wallstreet' && <p className="mb-4 text-sm text-gray-200">Обменяйте Волка с Уолл-стрит на кейс «Коллекционер» сейчас или оставьте его у себя!</p>}
+                                <div className="space-y-3">
+                                    {selectedManItem.type === 'man_item' && (
+                                        <>
+                                            <button onClick={async () => { const nb = balance + (selectedManItem.sellPrice || 0); const ni = inventory.filter(i => i.uniqueId !== selectedManItem.uniqueId); setBalance(nb); setInventory(ni); await db.ref(`users/${user.id}`).update({ balance: nb, inventory: ni }); setShowManItemModal(false); setSelectedManItem(null); }} className="w-full bg-orange-600 hover:bg-orange-500 py-3 rounded-xl font-bold transition">Продать за {selectedManItem.sellPrice || 0}⭐️</button>
+                                            <button onClick={() => { setShowManItemModal(false); setSelectedManItem(null); }} className="w-full bg-gray-600 hover:bg-gray-500 py-3 rounded-xl font-bold transition">Оставить</button>
+                                        </>
+                                    )}
+                                    {selectedManItem.key === 'wolf_wallstreet' && (
+                                        <button onClick={async () => { const curFree = cases.collector?.freeCount || 0; const nc = { ...cases, collector: { ...cases.collector, locked: false, freeCount: curFree + 1 } }; const ni = inventory.filter(i => i.uniqueId !== selectedManItem.uniqueId); setCases(nc); setInventory(ni); await db.ref(`users/${user.id}`).update({ cases: nc, inventory: ni }); setShowManItemModal(false); setSelectedManItem(null); }} className="w-full bg-green-600 hover:bg-green-500 py-3 rounded-xl font-bold transition">Обменять на кейс «Коллекционер»</button>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -1553,6 +1409,128 @@
                                     <button onClick={confirmWithdraw} className="bg-purple-600 hover:bg-purple-500 py-3 rounded-xl font-bold">В подарках</button>
                                 </div>
                                 <button onClick={() => setShowWithdrawModal(false)} className="w-full bg-gray-700 hover:bg-gray-600 py-2 rounded-xl text-sm">Отмена</button>
+                            </div>
+                        </div>
+                    )}
+                    
+                    {showOlympusCase && (
+                        <div className="fullscreen-modal case-olympus-bg flex items-center justify-center p-4">
+                            <div className="glass rounded-2xl p-6 max-w-4xl w-full text-center relative z-10">
+                                <div className="flex justify-between items-center mb-4">
+                                    <h2 className="text-3xl font-bold olympus-font neon-text">Сокровище Олимпа⚡️</h2>
+                                    <button onClick={() => setShowOlympusCase(false)} className="text-3xl hover:text-red-400 transition">×</button>
+                                </div>
+                                <div className="grid grid-cols-2 gap-6">
+                                    <div className="glass rounded-xl p-4">
+                                        <div className="w-32 h-32 mx-auto rounded-lg bg-gradient-to-br from-yellow-400 to-red-600 flex items-center justify-center text-6xl mb-3 shadow-lg">{cases.olympus?.emoji || '⚡️'}</div>
+                                        <h3 className="font-bold text-xl mb-2 olympus-font bright-text">Олимп⚡️</h3>
+                                        <p className="text-gray-300 mb-3">Цена: 77⭐️ | Бесплатно: {cases.olympus?.freeCount || 2}</p>
+                                        <button onClick={() => openCase('olympus', true)} disabled={isSpinning} className="w-full bg-gradient-to-r from-yellow-500 to-red-600 hover:from-yellow-400 hover:to-red-500 py-3 rounded-xl font-bold transition">Открыть⭐️</button>
+                                    </div>
+                                    <div className="glass rounded-xl p-4">
+                                        <h3 className="font-bold text-xl mb-4 olympus-font neon-text">Лестница прогресса</h3>
+                                        <div className="space-y-2 max-h-96 overflow-y-auto">
+                                            {OLYMPUS_PROGRESS.map((level, index) => {
+                                                const isUnlocked = olympusProgress.includes(index);
+                                                return (
+                                                    <div key={index} className={`p-3 rounded-lg border-2 ${isUnlocked ? 'bg-green-500/30 border-green-500' : 'bg-gray-800/60 border-gray-600'}`}>
+                                                        <div className="font-bold olympus-font bright-text-sm">{level.opens} открытий</div>
+                                                        <div className="text-xs text-gray-300">{level.reward}</div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                    
+                    {showGefestShop && (
+                        <div className="fullscreen-modal" style={{backgroundImage: `url('gefest.jpg')`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundBlendMode: 'overlay'}}>
+                            <div className="glass rounded-2xl p-6 max-w-4xl w-full text-center relative z-10">
+                                <h2 className="text-3xl font-bold olympus-font neon-text mb-4">Лавка Гефеста🏵️</h2>
+                                <p className="text-xl olympus-font bright-text mb-4">Обменяй свои коллекционные предметы на что-нибудь ценное💎</p>
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                    {GEFAST_EXCHANGES.map((exchange, index) => {
+                                        const itemInInventory = inventory.find(i => i.key === exchange.item);
+                                        const canExchange = itemInInventory && (Date.now() - gefestLastExchange >= 180000);
+                                        return (
+                                            <div key={index} className={`glass rounded-xl p-4 ${canExchange ? 'opacity-100' : 'opacity-50'}`}>
+                                                <div className="text-4xl mb-2">{exchange.item === 'gold_ball' ? '⚽️' : exchange.item === 'mikhaylov_ball' ? '🏐' : exchange.item === 'tyson_gloves' ? '🥊' : exchange.item === 'steak' ? '🥩' : exchange.item === 'simba' ? '🦁' : exchange.item === 'wolf_wallstreet' ? '🐺' : exchange.item === 'ice' ? '🧊' : '💎'}</div>
+                                                <h3 className="font-bold text-sm mb-2 olympus-font bright-text">{exchange.name}</h3>
+                                                {exchange.reward.special && <p className="text-xs text-red-400 font-bold mb-1">{exchange.reward.special}</p>}
+                                                <p className="text-xs text-gray-300 mb-2">Награда: {exchange.reward.type === 'case' ? exchange.reward.count + ' кейс ' + cases[exchange.reward.caseType]?.name : exchange.reward.type === 'stars' ? exchange.reward.amount + '⭐️' : exchange.reward.type === 'slot' ? '+1 слот' : exchange.reward.type === 'unlock_collector' ? 'Разблокировка + ' + exchange.reward.count + ' кейса' : 'Выбор'}</p>
+                                                <button onClick={() => canExchange && handleGefestExchange(exchange)} disabled={!canExchange} className="w-full bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-500 hover:to-orange-500 py-2 rounded-lg font-bold text-xs transition">Обменять</button>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                    
+                    {showHeroesOlympus && (
+                        <div className="fullscreen-modal" style={{backgroundImage: `url('hero.jpg')`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundBlendMode: 'overlay'}}>
+                            <div className="glass rounded-2xl p-6 max-w-2xl w-full text-center relative z-10">
+                                <h2 className="text-3xl font-bold olympus-font neon-text mb-2">Герои Олимпа🏆</h2>
+                                <p className="text-xl olympus-font bright-text mb-4">Топ 5 игроков по открытиям кейса Олимп</p>
+                                <div className="space-y-3">
+                                    {topPlayers.map((player, index) => (
+                                        <div key={player.id} className={`glass rounded-xl p-4 flex items-center justify-between ${index < 3 ? 'border-2 ' + (index === 0 ? 'border-yellow-500' : index === 1 ? 'border-gray-400' : 'border-amber-600') : ''}`}>
+                                            <div className="flex items-center gap-3">
+                                                <span className="text-2xl">{index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : (index + 1)}</span>
+                                                <div>
+                                                    <div className="font-bold olympus-font bright-text-sm">{player.name}</div>
+                                                    <div className="text-xs text-gray-400">{player.olympusOpens} открытий</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                                <p className="text-sm text-gray-400 mt-4">Топ 3 получат дополнительные награды в конце ивента!</p>
+                            </div>
+                        </div>
+                    )}
+                    
+                    {zeusChoice && (
+                        <div className="fixed inset-0 bg-black/90 z-[70] flex items-center justify-center p-4">
+                            <div className="glass rounded-2xl p-6 max-w-sm w-full text-center">
+                                <div className="text-6xl mb-4">⚡️</div>
+                                <h3 className="text-xl font-bold mb-3 olympus-font neon-text">Зевс⚡️</h3>
+                                <p className="mb-4 text-sm">Разбудите Зевса⚡️ сейчас и получите 2 Кейса «Коллекционер» (+разблокировка) или оставьте его и получите награду лучше позже!</p>
+                                <div className="space-y-3">
+                                    <button onClick={() => handleZeusChoice('wake')} className="w-full bg-red-600 hover:bg-red-500 py-3 rounded-xl font-bold transition">Разбудить</button>
+                                    <button onClick={() => handleZeusChoice('sleep')} className="w-full bg-gray-600 hover:bg-gray-500 py-3 rounded-xl font-bold transition">Оставить</button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                    
+                    {hadesChoice && (
+                        <div className="fixed inset-0 bg-black/90 z-[70] flex items-center justify-center p-4">
+                            <div className="glass rounded-2xl p-6 max-w-sm w-full text-center">
+                                <div className="text-6xl mb-4">🔥</div>
+                                <h3 className="text-xl font-bold mb-3 olympus-font neon-text">Аид🔥</h3>
+                                <p className="mb-4 text-sm">Выберите награду:</p>
+                                <div className="space-y-3">
+                                    <button onClick={() => handleHadesChoice('stars')} className="w-full bg-yellow-600 hover:bg-yellow-500 py-3 rounded-xl font-bold transition">250⭐️</button>
+                                    <button onClick={() => handleHadesChoice('collector')} className="w-full bg-pink-600 hover:bg-pink-500 py-3 rounded-xl font-bold transition">Разблокировка «Коллекционер»</button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                    
+                    {poseidonChoice && (
+                        <div className="fixed inset-0 bg-black/90 z-[70] flex items-center justify-center p-4">
+                            <div className="glass rounded-2xl p-6 max-w-sm w-full text-center">
+                                <div className="text-6xl mb-4">🔱</div>
+                                <h3 className="text-xl font-bold mb-3 olympus-font neon-text">Посейдон🔱</h3>
+                                <p className="mb-4 text-sm">Выберите награду:</p>
+                                <div className="space-y-3">
+                                    <button onClick={() => handlePoseidonChoice('stars')} className="w-full bg-yellow-600 hover:bg-yellow-500 py-3 rounded-xl font-bold transition">200⭐️</button>
+                                    <button onClick={() => handlePoseidonChoice('platinum')} className="w-full bg-gray-400 hover:bg-gray-300 py-3 rounded-xl font-bold transition">5 кейсов «Платина»</button>
+                                </div>
                             </div>
                         </div>
                     )}
@@ -1669,141 +1647,21 @@
                         )}
                         
                         {currentScreen === 'events' && (
-                            <div>
-                                {eventScreen === 'main' && (
-                                    <div className="relative rounded-xl overflow-hidden" style={{
-                                        backgroundImage: `url('event.jpg')`,
-                                        backgroundSize: 'cover',
-                                        backgroundPosition: 'center',
-                                        minHeight: '500px'
-                                    }}>
-                                        <div className="absolute inset-0 bg-black/30"></div>
-                                        <div className="relative z-10 p-4">
-                                            <h2 className="text-3xl font-bold text-center mb-4 olympus-font olympus-title">🏛️ ИВЕНТ ОЛИМП ⚡️</h2>
-                                            
-                                            {/* Герои Олимпа — вверху */}
-                                            <button onClick={() => setEventScreen('heroes')} className="olympus-button olympus-label" style={{top: '12%', left: '50%', transform: 'translateX(-50%)', width: '220px'}}>
-                                                Герои Олимпа🏆
-                                            </button>
-
-                                            {/* Сокровище — слева */}
-                                            <button onClick={() => setEventScreen('treasure')} className="olympus-button olympus-label" style={{top: '45%', left: '8%', width: '240px'}}>
-                                                Сокровище Олимпа⚡️
-                                            </button>
-                                            
-                                            {/* Лавка Гефеста — тоже слева (ниже) */}
-                                            <button onClick={() => setShowGefestModal(true)} className="olympus-button olympus-label" style={{top: '62%', left: '8%', width: '240px'}}>
-                                                Лавка Гефеста🏵️
-                                            </button>
-                                        </div>
+                            <div className="fullscreen-modal" style={{backgroundImage: `url('event.jpg')`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundBlendMode: 'overlay'}}>
+                                <div className="glass rounded-2xl p-6 max-w-4xl w-full relative z-10">
+                                    <h1 className="text-4xl font-bold olympus-font neon-text mb-6 text-center">🏛️ ИВЕНТ ОЛИМП⚡️</h1>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <button onClick={() => setShowHeroesOlympus(true)} className="absolute top-4 left-1/2 transform -translate-x-1/2 glass rounded-xl p-4 px-8 border-2 border-yellow-500 hover:border-yellow-400 transition">
+                                            <span className="olympus-font bright-text-2xl">Герои Олимпа🏆</span>
+                                        </button>
+                                        <button onClick={() => setShowOlympusCase(true)} className="absolute top-1/2 left-4 transform -translate-y-1/2 glass rounded-xl p-4 px-6 border-2 border-yellow-500 hover:border-yellow-400 transition">
+                                            <span className="olympus-font bright-text-xl">Сокровище Олимпа⚡️</span>
+                                        </button>
+                                        <button onClick={() => setShowGefestShop(true)} className="absolute top-1/2 right-4 transform -translate-y-1/2 glass rounded-xl p-4 px-6 border-2 border-yellow-500 hover:border-yellow-400 transition">
+                                            <span className="olympus-font bright-text-xl">Лавка Гефеста🏵️</span>
+                                        </button>
                                     </div>
-                                )}
-                                
-                                {eventScreen === 'treasure' && (
-                                    <div className="olympus-font">
-                                        <button onClick={() => setEventScreen('main')} className="mb-4 text-yellow-300 hover:text-yellow-400 transition">← Назад к Олимпу</button>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <div className="glass rounded-xl p-4" style={{
-                                                backgroundImage: `url('${treasureBg}')`,
-                                                backgroundSize: 'cover',
-                                                backgroundPosition: 'center',
-                                                backgroundBlendMode: 'overlay'
-                                            }}>
-                                                <h3 className="text-xl font-bold text-center mb-3 olympus-title">Кейс «Олимп⚡️»</h3>
-                                                <div className="glass rounded-xl p-3 mb-4">
-                                                    <p className="text-center text-xs olympus-label mb-2">Загрузить фон (картинка будет сохранена в этом браузере)</p>
-                                                    <input
-                                                        type="file"
-                                                        accept="image/*"
-                                                        className="w-full text-xs"
-                                                        onChange={(e) => {
-                                                            const f = e.target.files?.[0];
-                                                            if (!f) return;
-                                                            const reader = new FileReader();
-                                                            reader.onload = () => {
-                                                                const dataUrl = String(reader.result || '');
-                                                                localStorage.setItem('olymp_treasure_bg', dataUrl);
-                                                                setTreasureBg(dataUrl);
-                                                            };
-                                                            reader.readAsDataURL(f);
-                                                        }}
-                                                    />
-                                                    <button
-                                                        className="mt-2 w-full bg-gray-800/60 hover:bg-gray-800 py-2 rounded-lg text-xs font-bold"
-                                                        onClick={() => {
-                                                            localStorage.removeItem('olymp_treasure_bg');
-                                                            setTreasureBg('case.jpg');
-                                                        }}
-                                                    >
-                                                        Сбросить на case.jpg
-                                                    </button>
-                                                </div>
-                                                <div className="w-32 h-32 mx-auto mb-4 rounded-lg bg-gradient-to-br from-yellow-400 to-amber-600 flex items-center justify-center text-6xl shadow-xl">⚡️</div>
-                                                <p className="text-center text-sm mb-2">Цена: <span className="font-bold text-yellow-400">77⭐️</span></p>
-                                                {cases.olympus?.freeCount > 0 && <p className="text-center text-green-400 text-sm mb-2">Бесплатных: {cases.olympus.freeCount}</p>}
-                                                <button onClick={() => handleSelectCase(cases.olympus || { id: 'olympus', name: 'Олимп', emoji: '⚡️', price: 77, freeCount: 2 })} className="w-full bg-gradient-to-r from-yellow-600 to-amber-600 hover:from-yellow-500 hover:to-amber-500 py-3 rounded-xl font-bold transition">
-                                                    Открыть⭐️
-                                                </button>
-                                            </div>
-                                            
-                                            <div className="glass rounded-xl p-4">
-                                                <h3 className="text-lg font-bold text-center mb-3 olympus-title">Лестница прогресса</h3>
-                                                <p className="text-center text-xs olympus-label mb-3">Открыто кейсов: {olympusOpens}</p>
-                                                <div className="w-full h-2 bg-black/50 rounded-full overflow-hidden mb-3 border border-yellow-400/40">
-                                                    <div className="h-full bg-gradient-to-r from-yellow-400 to-amber-500" style={{ width: `${Math.min(100, (olympusOpens / 150) * 100)}%` }} />
-                                                </div>
-                                                <div className="space-y-2 max-h-96 overflow-y-auto">
-                                                    {OLYMPUS_PROGRESS.map((step, idx) => {
-                                                        const isCompleted = olympusProgress.includes(step.opens);
-                                                        const isActive = olympusOpens >= step.opens && !isCompleted;
-                                                        return (
-                                                            <div key={idx} className={`progress-step ${isCompleted ? 'completed' : ''} ${isActive ? 'active' : ''}`}>
-                                                                <div className="flex justify-between items-center">
-                                                                    <span className="text-xs font-bold">{step.opens} открытий</span>
-                                                                    {isCompleted && <span className="text-green-400">✓</span>}
-                                                                </div>
-                                                                <p className="text-xs text-gray-300 mt-1">{step.name}</p>
-                                                            </div>
-                                                        );
-                                                    })}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-                                
-                                {eventScreen === 'heroes' && (
-                                    <div className="olympus-font">
-                                        <button onClick={() => setEventScreen('main')} className="mb-4 text-yellow-300 hover:text-yellow-400 transition">← Назад к Олимпу</button>
-                                        <div className="glass rounded-xl p-4" style={{
-                                            backgroundImage: `url('hero.jpg')`,
-                                            backgroundSize: 'cover',
-                                            backgroundPosition: 'center',
-                                            backgroundBlendMode: 'overlay'
-                                        }}>
-                                            <h2 className="text-2xl font-bold text-center mb-4 olympus-title">🏆 Герои Олимпа 🏆</h2>
-                                            <div className="space-y-3 mb-4">
-                                                {olympusTopPlayers.map((player, idx) => (
-                                                    <div key={player.id} className="glass rounded-lg p-3 flex items-center gap-3">
-                                                        <span className="text-2xl">{idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}.`}</span>
-                                                        {player.avatar ? (
-                                                            <img src={player.avatar} alt="" className="w-10 h-10 rounded-full" />
-                                                        ) : (
-                                                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center text-white font-bold">
-                                                                {player.name.charAt(0)}
-                                                            </div>
-                                                        )}
-                                                        <div className="flex-1">
-                                                            <div className="font-bold text-sm">{player.name}</div>
-                                                            <div className="text-xs text-gray-400">Открыто: {player.olympusOpens}</div>
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                            <p className="text-center olympus-label text-sm">Топ 3 получат дополнительные награды в конце ивента!</p>
-                                        </div>
-                                    </div>
-                                )}
+                                </div>
                             </div>
                         )}
                         
@@ -1832,27 +1690,6 @@
                                         </div>
                                         <button onClick={() => completeTask('inviteThree')} disabled={tasks.inviteThree?.completed} className={`w-full py-2 rounded-lg text-sm ${tasks.inviteThree?.completed ? 'bg-green-600' : 'bg-blue-600 hover:bg-blue-500'} transition`}>{tasks.inviteThree?.completed ? 'Выполнено' : 'Пригласить'}</button>
                                     </div>
-                                    <div className={`glass rounded-xl p-4 ${tasks.cardboard7?.completed ? 'bg-green-500/20' : ''}`}>
-                                        <div className="flex justify-between items-start mb-2">
-                                            <div>
-                                                <h3 className="font-bold text-sm">Прокрути кейс «Картон📦» 7 раз</h3>
-                                                <p className="text-xs opacity-75">Награда: 1 кейс «Алмаз💎»</p>
-                                                {!tasks.cardboard7?.completed && <p className="text-xs text-cyan-400 mt-0.5">Прогресс: {tasks.cardboard7?.count || 0}/7</p>}
-                                            </div>
-                                            {tasks.cardboard7?.completed && <span className="text-green-400 text-xl">✅</span>}
-                                        </div>
-                                        {tasks.cardboard7?.completed && <div className="w-full py-2 rounded-lg text-sm bg-green-600 text-center font-bold">Выполнено</div>}
-                                    </div>
-                                    <div className={`glass rounded-xl p-4 ${tasks.deposit50?.completed ? 'bg-green-500/20' : ''}`}>
-                                        <div className="flex justify-between items-start mb-2">
-                                            <div>
-                                                <h3 className="font-bold text-sm">Пополни баланс на 50⭐️</h3>
-                                                <p className="text-xs opacity-75">Награда: 50⭐️</p>
-                                            </div>
-                                            {tasks.deposit50?.completed && <span className="text-green-400 text-xl">✅</span>}
-                                        </div>
-                                        <button onClick={() => completeTask('deposit50')} disabled={tasks.deposit50?.completed} className={`w-full py-2 rounded-lg text-sm ${tasks.deposit50?.completed ? 'bg-green-600' : 'bg-blue-600 hover:bg-blue-500'} transition`}>{tasks.deposit50?.completed ? 'Выполнено' : 'Пополнить'}</button>
-                                    </div>
                                     <div className={`glass rounded-xl p-4 ${tasks.deposit?.completed ? 'bg-green-500/20' : ''}`}>
                                         <div className="flex justify-between items-start mb-2">
                                             <div>
@@ -1872,6 +1709,27 @@
                                             {tasks.depositMajor?.completed && <span className="text-green-400 text-xl">✅</span>}
                                         </div>
                                         <button onClick={() => completeTask('depositMajor')} disabled={tasks.depositMajor?.completed} className={`w-full py-2 rounded-lg text-sm ${tasks.depositMajor?.completed ? 'bg-green-600' : 'bg-blue-600 hover:bg-blue-500'} transition`}>{tasks.depositMajor?.completed ? 'Выполнено' : 'Пополнить'}</button>
+                                    </div>
+                                    <div className={`glass rounded-xl p-4 ${tasks.cardboard?.completed ? 'bg-green-500/20' : ''}`}>
+                                        <div className="flex justify-between items-start mb-2">
+                                            <div>
+                                                <h3 className="font-bold text-sm">Прокрути кейс «Картон📦» 7 раз</h3>
+                                                <p className="text-xs opacity-75">Награда: 1 кейс «Алмаз💎»</p>
+                                                {!tasks.cardboard?.completed && <p className="text-xs text-cyan-400 mt-0.5">Прогресс: {tasks.cardboard?.count || 0}/7</p>}
+                                            </div>
+                                            {tasks.cardboard?.completed && <span className="text-green-400 text-xl">✅</span>}
+                                        </div>
+                                        <button disabled={tasks.cardboard?.completed} className="w-full py-2 rounded-lg text-sm bg-blue-600 hover:bg-blue-500 transition">В процессе</button>
+                                    </div>
+                                    <div className={`glass rounded-xl p-4 ${tasks.topup50?.completed ? 'bg-green-500/20' : ''}`}>
+                                        <div className="flex justify-between items-start mb-2">
+                                            <div>
+                                                <h3 className="font-bold text-sm">Пополни баланс на 50⭐️</h3>
+                                                <p className="text-xs opacity-75">Награда: 50⭐️</p>
+                                            </div>
+                                            {tasks.topup50?.completed && <span className="text-green-400 text-xl">✅</span>}
+                                        </div>
+                                        <button onClick={() => completeTask('deposit')} disabled={tasks.topup50?.completed} className={`w-full py-2 rounded-lg text-sm ${tasks.topup50?.completed ? 'bg-green-600' : 'bg-blue-600 hover:bg-blue-500'} transition`}>{tasks.topup50?.completed ? 'Выполнено' : 'Пополнить'}</button>
                                     </div>
                                 </div>
                             </div>
@@ -1895,7 +1753,7 @@
                                     <button onClick={() => setShowTopUp(true)} className="flex-1 bg-gradient-to-r from-yellow-400 to-orange-500 text-gray-900 font-bold py-3 rounded-xl shadow-lg transition text-sm">💎 Пополнить</button>
                                 </div>
                                 <div className="mb-4">
-                                    <button onClick={() => setShowWithdrawModal(true)} className="w-full bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-bold py-3 rounded-xl shadow-lg transition text-sm">🏆 Вывести призы 🏆</button>
+                                    <button onClick={() => setShowWithdrawModal(true)} disabled={!tasks.depositMajor?.completed} className="w-full bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-bold py-3 rounded-xl shadow-lg transition text-sm disabled:opacity-50 disabled:cursor-not-allowed">{tasks.depositMajor?.completed ? '🏆 Вывести призы 🏆' : '🔒 Вывести призы (нужно 350⭐️)'}</button>
                                 </div>
                                 <div className="glass rounded-xl p-4 mb-4">
                                     <h3 className="font-bold mb-2 text-sm">🎁 Промокод</h3>
@@ -1960,11 +1818,11 @@
                                         <button onClick={() => { setSpinResult(null); openCase(selectedCase.id); }} className="w-full bg-green-600 hover:bg-green-500 py-3 rounded-xl font-bold mb-2 transition">Забрать и открыть ещё</button>
                                         <button onClick={() => { setSelectedCase(null); setSpinResult(null); setFakeItems([]); }} className="w-full bg-gray-600 hover:bg-gray-500 py-2.5 rounded-xl font-bold transition text-sm">К кейсам</button>
                                     </div>
-                                ) : !spinResult ? (
+                                ) : (
                                     <button onClick={() => openCase(selectedCase.id)} disabled={isSpinning || (selectedCase.id === 'daily' && selectedCase.freeCount === 0)} className="w-full bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 py-4 rounded-xl font-bold text-lg disabled:opacity-50 shadow-lg transition">
                                         {isSpinning ? '🌀 Крутим...' : (selectedCase.id === 'daily' && selectedCase.freeCount === 0 ? dailyCaseTimeLeft : `Открыть за ${getCasePrice(selectedCase.id) === 0 ? 'Бесплатно' : getCasePrice(selectedCase.id) + '⭐️'}`)}
                                     </button>
-                                ) : null}
+                                )}
                             </div>
                         </div>
                     )}
@@ -2001,7 +1859,7 @@
                     <nav className="fixed bottom-0 left-0 right-0 glass border-t border-white/10 p-2 z-40">
                         <div className="max-w-md mx-auto flex justify-around">
                             {[ { id: 'tasks', emoji: '📋', label: 'Задания' }, { id: 'cases', emoji: '🎁', label: 'Кейсы' }, { id: 'events', emoji: '🏛️', label: 'Ивенты' }, { id: 'games', emoji: '🎮', label: 'Игры' }, { id: 'profile', emoji: '👤', label: 'Профиль' } ].map(s => (
-                                <button key={s.id} onClick={() => { setCurrentScreen(s.id); if (s.id === 'events') setEventScreen('main'); }} className={`flex flex-col items-center p-2 rounded-lg transition ${currentScreen === s.id ? 'events-tab-active text-yellow-400 scale-110' : 'text-gray-400 hover:text-white'}`}>
+                                <button key={s.id} onClick={() => setCurrentScreen(s.id)} className={`flex flex-col items-center p-2 rounded-lg transition ${currentScreen === s.id ? 'events-tab-active text-yellow-400 scale-110' : 'text-gray-400 hover:text-white'}`}>
                                     <span className="text-2xl">{s.emoji}</span>
                                     <span className="text-xs font-bold">{s.label}</span>
                                 </button>
