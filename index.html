@@ -48,15 +48,15 @@
         @keyframes purpleGlow { 0%, 100% { text-shadow: 0 0 5px #a855f7, 0 0 10px #a855f7; } 50% { text-shadow: 0 0 20px #a855f7, 0 0 30px #9333ea; } }
         @keyframes greenGlow { 0%, 100% { box-shadow: 0 0 5px #22c55e, 0 0 10px #22c55e; } 50% { box-shadow: 0 0 15px #22c55e, 0 0 25px #16a34a; } }
         @keyframes yellowGlow { 0%, 100% { text-shadow: 0 0 5px #fbbf24, 0 0 10px #fbbf24; } 50% { text-shadow: 0 0 20px #fbbf24, 0 0 30px #f59e0b; } }
-        @keyframes olympGlow { 0%, 100% { text-shadow: 0 0 10px #fbbf24, 0 0 20px #fbbf24, 0 0 30px #f59e0b; } 50% { text-shadow: 0 0 20px #fbbf24, 0 0 30px #f59e0b, 0 0 40px #d97706; } }
-        @keyframes btnGlow { 0%, 100% { box-shadow: 0 0 10px rgba(251,191,36,0.5); } 50% { box-shadow: 0 0 20px rgba(251,191,36,0.8), 0 0 30px rgba(251,191,36,0.6); } }
+        @keyframes olympGlow { 0%, 100% { text-shadow: 0 0 15px #fbbf24, 0 0 25px #fbbf24, 0 0 35px #f59e0b; color: #fff; } 50% { text-shadow: 0 0 25px #fbbf24, 0 0 35px #f59e0b, 0 0 50px #d97706; color: #fbbf24; } }
+        @keyframes btnOlympGlow { 0%, 100% { box-shadow: 0 0 15px rgba(251,191,36,0.6), 0 0 30px rgba(251,191,36,0.3); } 50% { box-shadow: 0 0 30px rgba(251,191,36,0.9), 0 0 50px rgba(251,191,36,0.6); } }
         .special-header { animation: purpleGlow 3s infinite; }
         .ordinary-header { animation: goldGlow 3s infinite; }
+        .olympus-header { animation: olympGlow 2.5s infinite; font-family: 'Cinzel', serif; font-weight: 900; font-size: 2.5rem; }
+        .olympus-btn { animation: btnOlympGlow 2s infinite; font-family: 'Cinzel', serif; font-weight: 700; border: 2px solid #fbbf24; background: linear-gradient(135deg, #b8860b 0%, #daa520 50%, #b8860b 100%); }
         .daily-timer { color: #4ade80; font-family: monospace; font-weight: bold; font-size: 14px; background: rgba(0,0,0,0.6); padding: 2px 8px; border-radius: 6px; border: 1px solid #22c55e; animation: greenGlow 2s infinite; display: inline-block; }
         .event-timer { color: #ffffff; font-family: monospace; text-shadow: 0 0 10px #ffffff, 0 0 20px #ffffff; }
-        .cases-timer { color: #fbbf24; font-family: monospace; text-shadow: 0 0 5px #fbbf24, 0 0 10px #fbbf24; animation: yellowGlow 2s infinite; }
-        .olympus-header { animation: olympGlow 3s infinite; font-family: 'Cinzel', serif; font-weight: 900; }
-        .olympus-btn { animation: btnGlow 2s infinite; font-family: 'Cinzel', serif; font-weight: 700; }
+        .case-countdown-overlay { position: absolute; top: 0; left: 0; right: 0; background: rgba(0,0,0,0.7); padding: 4px; font-size: 10px; color: #fbbf24; text-align: center; font-family: monospace; z-index: 10; text-shadow: 0 0 5px #fbbf24; }
         .olympus-font { font-family: 'Cinzel', serif; }
         .events-tab-active { background: linear-gradient(135deg, rgba(251,191,36,0.3), rgba(245,158,11,0.2)); border: 2px solid rgba(251,191,36,0.6); box-shadow: 0 0 20px rgba(251,191,36,0.4); }
         .round-box { width: 30px; height: 30px; border-radius: 6px; border: 2px solid rgba(255,255,255,0.3); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; margin: 0 3px; transition: all 0.3s; }
@@ -70,7 +70,7 @@
 <body class="bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 min-h-screen text-white overflow-x-hidden">
     <div id="root"></div>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
@@ -150,7 +150,7 @@
                 { id: 'stars_150', name: '150 ⭐️', displayChance: '45%', realChance: 45, type: 'stars', value: 150, emoji: '⭐️' },
                 { id: 'stars_75', name: '75 ⭐️', displayChance: '40%', realChance: 40, type: 'stars', value: 75, emoji: '⭐️' },
                 { id: 'trophy', name: '🏆', displayChance: '5%', realChance: 0, type: 'collectible', emoji: '🏆' },
-                { id: 'gem', name: '💎', displayChance: 5, realChance: 0, type: 'collectible', emoji: '💎' },
+                { id: 'gem', name: '💎', displayChance: '5%', realChance: 0, type: 'collectible', emoji: '💎' },
                 { id: 'bday_happy', name: 'Happy B-day 💈', displayChance: '4%', realChance: 4, type: 'collectible', emoji: '💈' },
                 { id: 'cigar', name: 'Snoop Cigar 🚬', displayChance: '1%', realChance: 0, type: 'collectible', emoji: '🚬' }
             ],
@@ -204,101 +204,21 @@
                 {id: 'stars_13', name: '13 ⭐️', displayChance: '1.70%', realChance: 1.70, type: 'stars', value: 13, emoji: '⭐️'},
                 {id: 'stars_14', name: '14 ⭐️', displayChance: '1.60%', realChance: 1.60, type: 'stars', value: 14, emoji: '⭐️'},
                 {id: 'stars_15', name: '15 ⭐️', displayChance: '1.50%', realChance: 1.50, type: 'stars', value: 15, emoji: '⭐️'},
-                {id: 'stars_16', name: '16 ⭐️', displayChance: '1.40%', realChance: 1.40, type: 'stars', value: 16, emoji: '⭐️'},
-                {id: 'stars_17', name: '17 ⭐️', displayChance: '1.32%', realChance: 1.32, type: 'stars', value: 17, emoji: '⭐️'},
-                {id: 'stars_18', name: '18 ⭐️', displayChance: '1.24%', realChance: 1.24, type: 'stars', value: 18, emoji: '⭐️'},
-                {id: 'stars_19', name: '19 ⭐️', displayChance: '1.17%', realChance: 1.17, type: 'stars', value: 19, emoji: '⭐️'},
                 {id: 'stars_20', name: '20 ⭐️', displayChance: '1.10%', realChance: 1.10, type: 'stars', value: 20, emoji: '⭐️'},
-                {id: 'stars_21', name: '21 ⭐️', displayChance: '1.04%', realChance: 1.04, type: 'stars', value: 21, emoji: '⭐️'},
-                {id: 'stars_22', name: '22 ⭐️', displayChance: '0.98%', realChance: 0.98, type: 'stars', value: 22, emoji: '⭐️'},
-                {id: 'stars_23', name: '23 ⭐️', displayChance: '0.93%', realChance: 0.93, type: 'stars', value: 23, emoji: '⭐️'},
-                {id: 'stars_24', name: '24 ⭐️', displayChance: '0.88%', realChance: 0.88, type: 'stars', value: 24, emoji: '⭐️'},
                 {id: 'stars_25', name: '25 ⭐️', displayChance: '0.84%', realChance: 0.84, type: 'stars', value: 25, emoji: '⭐️'},
-                {id: 'stars_26', name: '26 ⭐️', displayChance: '0.80%', realChance: 0.80, type: 'stars', value: 26, emoji: '⭐️'},
-                {id: 'stars_27', name: '27 ⭐️', displayChance: '0.77%', realChance: 0.77, type: 'stars', value: 27, emoji: '⭐️'},
-                {id: 'stars_28', name: '28 ⭐️', displayChance: '0.74%', realChance: 0.74, type: 'stars', value: 28, emoji: '⭐️'},
-                {id: 'stars_29', name: '29 ⭐️', displayChance: '0.71%', realChance: 0.71, type: 'stars', value: 29, emoji: '⭐️'},
-                {id: 'stars_30', name: '30 ⭐️', displayChance: '0.68%', realChance: 0.68, type: 'stars', value: 30, emoji: '⭐️'},
-                {id: 'stars_31', name: '31 ⭐️', displayChance: '0.66%', realChance: 0.66, type: 'stars', value: 31, emoji: '⭐️'},
-                {id: 'stars_32', name: '32 ⭐️', displayChance: '0.64%', realChance: 0.64, type: 'stars', value: 32, emoji: '⭐️'},
-                {id: 'stars_33', name: '33 ⭐️', displayChance: '0.62%', realChance: 0.62, type: 'stars', value: 33, emoji: '⭐️'},
-                {id: 'stars_34', name: '34 ⭐️', displayChance: '0.60%', realChance: 0.60, type: 'stars', value: 34, emoji: '⭐️'},
-                {id: 'stars_35', name: '35 ⭐️', displayChance: '0.58%', realChance: 0.58, type: 'stars', value: 35, emoji: '⭐️'},
-                {id: 'stars_36', name: '36 ⭐️', displayChance: '0.56%', realChance: 0.56, type: 'stars', value: 36, emoji: '⭐️'},
-                {id: 'stars_37', name: '37 ⭐️', displayChance: '0.55%', realChance: 0.55, type: 'stars', value: 37, emoji: '⭐️'},
-                {id: 'stars_38', name: '38 ⭐️', displayChance: '0.54%', realChance: 0.54, type: 'stars', value: 38, emoji: '⭐️'},
-                {id: 'stars_39', name: '39 ⭐️', displayChance: '0.53%', realChance: 0.53, type: 'stars', value: 39, emoji: '⭐️'},
-                {id: 'stars_40', name: '40 ⭐️', displayChance: '0.52%', realChance: 0.52, type: 'stars', value: 40, emoji: '⭐️'},
-                {id: 'stars_41', name: '41 ⭐️', displayChance: '0.51%', realChance: 0.51, type: 'stars', value: 41, emoji: '⭐️'},
-                {id: 'stars_42', name: '42 ⭐️', displayChance: '0.50%', realChance: 0.50, type: 'stars', value: 42, emoji: '⭐️'},
-                {id: 'stars_43', name: '43 ⭐️', displayChance: '0.49%', realChance: 0.49, type: 'stars', value: 43, emoji: '⭐️'},
-                {id: 'stars_44', name: '44 ⭐️', displayChance: '0.48%', realChance: 0.48, type: 'stars', value: 44, emoji: '⭐️'},
-                {id: 'stars_45', name: '45 ⭐️', displayChance: '0.47%', realChance: 0.47, type: 'stars', value: 45, emoji: '⭐️'},
-                {id: 'stars_46', name: '46 ⭐️', displayChance: '0.46%', realChance: 0.46, type: 'stars', value: 46, emoji: '⭐️'},
-                {id: 'stars_47', name: '47 ⭐️', displayChance: '0.45%', realChance: 0.45, type: 'stars', value: 47, emoji: '⭐️'},
-                {id: 'stars_48', name: '48 ⭐️', displayChance: '0.44%', realChance: 0.44, type: 'stars', value: 48, emoji: '⭐️'},
-                {id: 'stars_49', name: '49 ⭐️', displayChance: '0.43%', realChance: 0.43, type: 'stars', value: 49, emoji: '⭐️'},
                 {id: 'stars_50', name: '50 ⭐️', displayChance: '0.42%', realChance: 0.42, type: 'stars', value: 50, emoji: '⭐️'},
-                {id: 'stars_51', name: '51 ⭐️', displayChance: '0.45%', realChance: 0.45, type: 'stars', value: 51, emoji: '⭐️'},
-                {id: 'stars_52', name: '52 ⭐️', displayChance: '0.44%', realChance: 0.44, type: 'stars', value: 52, emoji: '⭐️'},
-                {id: 'stars_53', name: '53 ⭐️', displayChance: '0.43%', realChance: 0.43, type: 'stars', value: 53, emoji: '⭐️'},
-                {id: 'stars_54', name: '54 ⭐️', displayChance: '0.42%', realChance: 0.42, type: 'stars', value: 54, emoji: '⭐️'},
-                {id: 'stars_55', name: '55 ⭐️', displayChance: '0.41%', realChance: 0.41, type: 'stars', value: 55, emoji: '⭐️'},
-                {id: 'stars_56', name: '56 ⭐️', displayChance: '0.40%', realChance: 0.40, type: 'stars', value: 56, emoji: '⭐️'},
-                {id: 'stars_57', name: '57 ⭐️', displayChance: '0.39%', realChance: 0.39, type: 'stars', value: 57, emoji: '⭐️'},
-                {id: 'stars_58', name: '58 ⭐️', displayChance: '0.38%', realChance: 0.38, type: 'stars', value: 58, emoji: '⭐️'},
-                {id: 'stars_59', name: '59 ⭐️', displayChance: '0.37%', realChance: 0.37, type: 'stars', value: 59, emoji: '⭐️'},
-                {id: 'stars_60', name: '60 ⭐️', displayChance: '0.36%', realChance: 0.36, type: 'stars', value: 60, emoji: '⭐️'},
-                {id: 'stars_61', name: '61 ⭐️', displayChance: '0.35%', realChance: 0.35, type: 'stars', value: 61, emoji: '⭐️'},
-                {id: 'stars_62', name: '62 ⭐️', displayChance: '0.34%', realChance: 0.34, type: 'stars', value: 62, emoji: '⭐️'},
-                {id: 'stars_63', name: '63 ⭐️', displayChance: '0.33%', realChance: 0.33, type: 'stars', value: 63, emoji: '⭐️'},
-                {id: 'stars_64', name: '64 ⭐️', displayChance: '0.32%', realChance: 0.32, type: 'stars', value: 64, emoji: '⭐️'},
-                {id: 'stars_65', name: '65 ⭐️', displayChance: '0.31%', realChance: 0.31, type: 'stars', value: 65, emoji: '⭐️'},
-                {id: 'stars_66', name: '66 ⭐️', displayChance: '0.30%', realChance: 0.30, type: 'stars', value: 66, emoji: '⭐️'},
-                {id: 'stars_67', name: '67 ⭐️', displayChance: '0.29%', realChance: 0.29, type: 'stars', value: 67, emoji: '⭐️'},
-                {id: 'stars_68', name: '68 ⭐️', displayChance: '0.28%', realChance: 0.28, type: 'stars', value: 68, emoji: '⭐️'},
-                {id: 'stars_69', name: '69 ⭐️', displayChance: '0.27%', realChance: 0.27, type: 'stars', value: 69, emoji: '⭐️'},
-                {id: 'stars_70', name: '70 ⭐️', displayChance: '0.26%', realChance: 0.26, type: 'stars', value: 70, emoji: '⭐️'},
-                {id: 'stars_71', name: '71 ⭐️', displayChance: '0.25%', realChance: 0.25, type: 'stars', value: 71, emoji: '⭐️'},
-                {id: 'stars_72', name: '72 ⭐️', displayChance: '0.24%', realChance: 0.24, type: 'stars', value: 72, emoji: '⭐️'},
-                {id: 'stars_73', name: '73 ⭐️', displayChance: '0.23%', realChance: 0.23, type: 'stars', value: 73, emoji: '⭐️'},
-                {id: 'stars_74', name: '74 ⭐️', displayChance: '0.22%', realChance: 0.22, type: 'stars', value: 74, emoji: '⭐️'},
-                {id: 'stars_75', name: '75 ⭐️', displayChance: '0.21%', realChance: 0.21, type: 'stars', value: 75, emoji: '⭐️'},
-                {id: 'stars_76', name: '76 ⭐️', displayChance: '0.20%', realChance: 0.20, type: 'stars', value: 76, emoji: '⭐️'},
-                {id: 'stars_77', name: '77 ⭐️', displayChance: '0.19%', realChance: 0.19, type: 'stars', value: 77, emoji: '⭐️'},
-                {id: 'stars_78', name: '78 ⭐️', displayChance: '0.18%', realChance: 0.18, type: 'stars', value: 78, emoji: '⭐️'},
-                {id: 'stars_79', name: '79 ⭐️', displayChance: '0.17%', realChance: 0.17, type: 'stars', value: 79, emoji: '⭐️'},
-                {id: 'stars_80', name: '80 ⭐️', displayChance: '0.16%', realChance: 0.16, type: 'stars', value: 80, emoji: '⭐️'},
-                {id: 'stars_81', name: '81 ⭐️', displayChance: '0.15%', realChance: 0.15, type: 'stars', value: 81, emoji: '⭐️'},
-                {id: 'stars_82', name: '82 ⭐️', displayChance: '0.14%', realChance: 0.14, type: 'stars', value: 82, emoji: '⭐️'},
-                {id: 'stars_83', name: '83 ⭐️', displayChance: '0.13%', realChance: 0.13, type: 'stars', value: 83, emoji: '⭐️'},
-                {id: 'stars_84', name: '84 ⭐️', displayChance: '0.12%', realChance: 0.12, type: 'stars', value: 84, emoji: '⭐️'},
-                {id: 'stars_85', name: '85 ⭐️', displayChance: '0.11%', realChance: 0.11, type: 'stars', value: 85, emoji: '⭐️'},
-                {id: 'stars_86', name: '86 ⭐️', displayChance: '0.10%', realChance: 0.10, type: 'stars', value: 86, emoji: '⭐️'},
-                {id: 'stars_87', name: '87 ⭐️', displayChance: '0.09%', realChance: 0.09, type: 'stars', value: 87, emoji: '⭐️'},
-                {id: 'stars_88', name: '88 ⭐️', displayChance: '0.08%', realChance: 0.08, type: 'stars', value: 88, emoji: '⭐️'},
-                {id: 'stars_89', name: '89 ⭐️', displayChance: '0.07%', realChance: 0.07, type: 'stars', value: 89, emoji: '⭐️'},
-                {id: 'stars_90', name: '90 ⭐️', displayChance: '0.06%', realChance: 0.06, type: 'stars', value: 90, emoji: '⭐️'},
-                {id: 'stars_91', name: '91 ⭐️', displayChance: '0.05%', realChance: 0.05, type: 'stars', value: 91, emoji: '⭐️'},
-                {id: 'stars_92', name: '92 ⭐️', displayChance: '0.04%', realChance: 0.04, type: 'stars', value: 92, emoji: '⭐️'},
-                {id: 'stars_93', name: '93 ⭐️', displayChance: '0.03%', realChance: 0.03, type: 'stars', value: 93, emoji: '⭐️'},
-                {id: 'stars_94', name: '94 ⭐️', displayChance: '0.02%', realChance: 0.02, type: 'stars', value: 94, emoji: '⭐️'},
-                {id: 'stars_95', name: '95 ⭐️', displayChance: '0.01%', realChance: 0.01, type: 'stars', value: 95, emoji: '⭐️'},
-                {id: 'stars_96', name: '96 ⭐️', displayChance: '0.009%', realChance: 0.009, type: 'stars', value: 96, emoji: '⭐️'},
-                {id: 'stars_97', name: '97 ⭐️', displayChance: '0.008%', realChance: 0.008, type: 'stars', value: 97, emoji: '⭐️'},
-                {id: 'stars_98', name: '98 ⭐️', displayChance: '0.007%', realChance: 0.007, type: 'stars', value: 98, emoji: '⭐️'},
-                {id: 'stars_99', name: '99 ⭐️', displayChance: '0.006%', realChance: 0.006, type: 'stars', value: 99, emoji: '⭐️'},
-                {id: 'stars_125', name: '125 ⭐️', displayChance: '0.005%', realChance: 0.005, type: 'stars', value: 125, emoji: '⭐️'}
+                {id: 'stars_100', name: '100 ⭐️', displayChance: '0.20%', realChance: 0.20, type: 'stars', value: 100, emoji: '⭐️'},
+                {id: 'stars_125', name: '125 ⭐️', displayChance: '0.05%', realChance: 0.05, type: 'stars', value: 125, emoji: '⭐️'}
             ],
             olympus: [
-                { id: 'persephone', name: 'Персефона', emoji: '🌺', type: 'olympus_item', sellPrice: 20, realChance: 40, displayChance: '40%' },
-                { id: 'ares', name: 'Арес', emoji: '🗡️', type: 'olympus_item', sellPrice: 28, realChance: 20, displayChance: '20%' },
-                { id: 'hermes', name: 'Гермес', emoji: '📈', type: 'olympus_hermes', realChance: 15, displayChance: '15%' },
-                { id: 'dionysus', name: 'Дионис', emoji: '🍷', type: 'olympus_dionysus', realChance: 10, displayChance: '10%' },
-                { id: 'apollo', name: 'Аполлон', emoji: '☀️', type: 'olympus_apollo', realChance: 8, displayChance: '8%' },
-                { id: 'poseidon', name: 'Посейдон', emoji: '🔱', type: 'olympus_poseidon', realChance: 5, displayChance: '5%' },
-                { id: 'hades', name: 'Аид', emoji: '🔥', type: 'olympus_hades', realChance: 1.9, displayChance: '1.9%' },
-                { id: 'zeus', name: 'Зевс', emoji: '⚡️', type: 'olympus_zeus', realChance: 0.1, displayChance: '0.1%' }
+                { id: 'persephone', name: 'Персефона🌺', emoji: '🌺', type: 'olympus_item', sellPrice: 20, realChance: 40, displayChance: '40%' },
+                { id: 'ares', name: 'Арес🗡️', emoji: '🗡️', type: 'olympus_item', sellPrice: 28, realChance: 20, displayChance: '20%' },
+                { id: 'hermes', name: 'Гермес📈', emoji: '📈', type: 'olympus_hermes', realChance: 15, displayChance: '15%' },
+                { id: 'dionysus', name: 'Дионис🍷', emoji: '🍷', type: 'olympus_dionysus', realChance: 10, displayChance: '10%' },
+                { id: 'apollo', name: 'Аполлон☀️', emoji: '☀️', type: 'olympus_apollo', realChance: 8, displayChance: '8%' },
+                { id: 'poseidon', name: 'Посейдон🔱', emoji: '🔱', type: 'olympus_poseidon', realChance: 5, displayChance: '5%' },
+                { id: 'hades', name: 'Аид🔥', emoji: '🔥', type: 'olympus_hades', realChance: 1.9, displayChance: '1.9%' },
+                { id: 'zeus', name: 'Зевс⚡️', emoji: '⚡️', type: 'olympus_zeus', realChance: 0.1, displayChance: '0.1%' }
             ]
         };
         
@@ -815,11 +735,6 @@
                          const fb = nb + won.value;
                          setBalance(fb);
                          await db.ref(`users/${user.id}/balance`).set(fb);
-                     } else if(won.type === 'man_bonus_elite') {
-                         const nc = { ...cases, elite: { ...cases.elite, freeCount: (cases.elite.freeCount || 0) + 1 } };
-                         setCases(nc);
-                         await db.ref(`users/${user.id}/cases/elite/freeCount`).set((cases.elite.freeCount || 0) + 1);
-                         alert('🎉 Получен бесплатный кейс «Элита»!');
                      } else if(won.type === 'olympus_hermes') {
                          setInventorySlots(s => s + 1);
                          await db.ref(`users/${user.id}/inventorySlots`).set(inventorySlots + 1);
@@ -892,6 +807,11 @@
                     const nc = { ...cases, [reward.caseType]: { ...cases[reward.caseType], freeCount: cur + reward.caseCount } };
                     setCases(nc);
                     await db.ref(`users/${user.id}/cases/${reward.caseType}/freeCount`).set(cur + reward.caseCount);
+                    if(reward.stars) {
+                        const nb = balance + reward.stars;
+                        setBalance(nb);
+                        await db.ref(`users/${user.id}/balance`).set(nb);
+                    }
                 }
                 if(reward.item === 'hades_gift') {
                     await addToInventory({ name: 'Подарок Аид🔥', emoji: '🔥', type: 'olympus_item', sellPrice: 100 });
@@ -1291,7 +1211,7 @@
                     .slice(0, 5);
                 
                 return (
-                    <div className="min-h-screen" style={{
+                    <div className="min-h-screen pb-24" style={{
                         backgroundImage: `url('hero.jpg')`,
                         backgroundSize: 'cover',
                         backgroundPosition: 'center',
@@ -1342,7 +1262,7 @@
                 ];
                 
                 return (
-                    <div className="min-h-screen" style={{
+                    <div className="min-h-screen pb-24" style={{
                         backgroundImage: `url('gefest.jpg')`,
                         backgroundSize: 'cover',
                         backgroundPosition: 'center',
@@ -1355,7 +1275,7 @@
                             </div>
                             
                             <div className="glass rounded-xl p-6 olympus-font">
-                                <h2 className="text-xl font-bold text-center mb-6" style={{color: '#fbbf24', textShadow: '0 0 10px #fbbf24, 0 0 20px #f59e0b'}}>Обменяй свои коллекционные предметы на что-нибудь ценное💎</h2>
+                                <h2 className="text-xl font-bold text-center mb-6" style={{color: '#fbbf24', textShadow: '0 0 20px #fbbf24, 0 0 30px #f59e0b'}}>Обменяй свои коллекционные предметы на что-нибудь ценное💎</h2>
                                 
                                 <div className="grid grid-cols-2 gap-3">
                                     {gefestItems.map(item => {
@@ -1363,12 +1283,12 @@
                                         return (
                                             <div key={item.key} className="bg-gray-800/80 p-3 rounded-xl border-2 border-yellow-500/50">
                                                 <div className="text-3xl mb-2">{item.emoji}</div>
-                                                <div className="font-bold text-sm mb-1">{item.name}</div>
-                                                <div className={`text-xs ${item.profitable ? 'text-red-400 animate-pulse' : 'text-yellow-400'}`}>{item.reward.name}</div>
+                                                <div className="font-bold text-sm mb-1" style={{color: '#fbbf24'}}>{item.name}</div>
+                                                <div className={`text-xs ${item.profitable ? 'text-red-400 animate-pulse font-bold' : 'text-yellow-400'}`}>{item.reward.name}</div>
                                                 {invItem ? (
                                                     <button onClick={() => gefestExchange(invItem, item.reward)} className="w-full mt-2 bg-yellow-600 hover:bg-yellow-500 py-2 rounded-lg text-xs font-bold">Обменять</button>
                                                 ) : (
-                                                    <div className="text-gray-500 text-xs mt-2">Предмет не найден!</div>
+                                                    <div className="text-gray-500 text-xs mt-2 font-bold">Предмет не найден!</div>
                                                 )}
                                             </div>
                                         );
@@ -1382,58 +1302,54 @@
             
             if(olympusSubScreen === 'treasure') {
                 return (
-                    <div className="min-h-screen" style={{
+                    <div className="min-h-screen pb-24" style={{
                         backgroundImage: `url('case.jpg')`,
                         backgroundSize: 'cover',
                         backgroundPosition: 'center',
                         backgroundBlendMode: 'overlay'
                     }}>
-                        <div className="max-w-4xl mx-auto p-4">
+                        <div className="max-w-lg mx-auto p-4">
                             <div className="flex justify-between items-center mb-6">
                                 <h1 className="olympus-header text-3xl">⚡️ Сокровище Олимпа</h1>
                                 <button onClick={() => setOlympusSubScreen(null)} className="bg-red-600/40 hover:bg-red-600 border border-red-500/50 px-3 py-1.5 rounded-xl font-bold transition text-sm">✕ Выйти</button>
                             </div>
                             
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="glass rounded-xl p-6 olympus-font">
-                                    <h2 className="text-2xl font-bold text-center mb-4" style={{color: '#fbbf24', textShadow: '0 0 10px #fbbf24, 0 0 20px #f59e0b'}}>Кейс Олимп⚡️</h2>
-                                    
-                                    <div className="w-32 h-32 mx-auto rounded-2xl bg-gradient-to-br from-yellow-400 to-amber-600 flex items-center justify-center text-6xl mb-4 shadow-lg border-4 border-yellow-500">⚡️</div>
-                                    
-                                    <div className="text-center mb-4">
-                                        <div className="text-3xl font-bold text-yellow-400" style={{textShadow: '0 0 10px #fbbf24'}}>
-                                            {cases.olympus?.freeCount > 0 ? 'Бесплатно!' : '77⭐️'}
-                                        </div>
-                                        {cases.olympus?.freeCount > 0 && <div className="text-green-400 text-sm mt-1">Осталось бесплатных: {cases.olympus.freeCount}</div>}
+                            <div className="glass rounded-xl p-6 olympus-font">
+                                <h2 className="text-2xl font-bold text-center mb-4" style={{color: '#fbbf24', textShadow: '0 0 15px #fbbf24, 0 0 25px #f59e0b'}}>Кейс Олимп⚡️</h2>
+                                
+                                <div className="w-32 h-32 mx-auto rounded-2xl bg-gradient-to-br from-yellow-400 to-amber-600 flex items-center justify-center text-6xl mb-4 shadow-lg border-4 border-yellow-500">⚡️</div>
+                                
+                                <div className="text-center mb-4">
+                                    <div className="text-3xl font-bold" style={{color: '#fbbf24', textShadow: '0 0 10px #fbbf24'}}>
+                                        {cases.olympus?.freeCount > 0 ? 'Бесплатно!' : '77⭐️'}
                                     </div>
-                                    
-                                    <button onClick={() => handleSelectCase(cases.olympus)} className="w-full olympus-btn bg-gradient-to-r from-yellow-600 to-amber-600 hover:from-yellow-500 hover:to-amber-500 py-3 rounded-xl font-bold text-lg border-2 border-yellow-400">Открыть⭐️</button>
+                                    {cases.olympus?.freeCount > 0 && <div className="text-green-400 text-sm mt-1 font-bold">Осталось бесплатных: {cases.olympus.freeCount}</div>}
                                 </div>
                                 
-                                <div className="glass rounded-xl p-6 olympus-font">
-                                    <h2 className="text-2xl font-bold text-center mb-4" style={{color: '#fbbf24', textShadow: '0 0 10px #fbbf24, 0 0 20px #f59e0b'}}>Лестница наград</h2>
-                                    
-                                    <div className="space-y-2">
-                                        {olympusRewards.map((r, i) => {
-                                            const progress = Math.min(100, (olympusOpens / r.opens) * 100);
-                                            return (
-                                                <div key={i} className="relative">
-                                                    <div className="flex justify-between items-center mb-1">
-                                                        <div className="text-sm font-bold">{r.opens} открытий</div>
-                                                        <div className={`text-xs ${r.claimed ? 'text-green-400' : 'text-yellow-400'}`}>{r.reward}</div>
-                                                    </div>
-                                                    <div className="olympus-progress rounded-full h-4 overflow-hidden">
-                                                        <div className="olympus-progress-fill h-full transition-all duration-500" style={{width: `${progress}%`}}></div>
-                                                    </div>
-                                                    {r.claimed && <div className="text-green-400 text-xs text-center mt-1">✅ Получено</div>}
+                                <button onClick={() => handleSelectCase(cases.olympus)} className="w-full olympus-btn py-3 rounded-xl font-bold text-lg text-white hover:scale-105 transition mb-4">Открыть⭐️</button>
+                                
+                                <h2 className="text-2xl font-bold text-center mb-4" style={{color: '#fbbf24', textShadow: '0 0 15px #fbbf24, 0 0 25px #f59e0b'}}>Лестница наград</h2>
+                                
+                                <div className="space-y-2">
+                                    {olympusRewards.map((r, i) => {
+                                        const progress = Math.min(100, (olympusOpens / r.opens) * 100);
+                                        return (
+                                            <div key={i} className="relative">
+                                                <div className="flex justify-between items-center mb-1">
+                                                    <div className="text-sm font-bold text-white">{r.opens} открытий</div>
+                                                    <div className={`text-xs ${r.claimed ? 'text-green-400' : 'text-yellow-400'} font-bold`}>{r.reward}</div>
                                                 </div>
-                                            );
-                                        })}
-                                    </div>
-                                    
-                                    <div className="text-center mt-4">
-                                        <div className="text-yellow-400 font-bold">Открыто: {olympusOpens}</div>
-                                    </div>
+                                                <div className="olympus-progress rounded-full h-4 overflow-hidden">
+                                                    <div className="olympus-progress-fill h-full transition-all duration-500" style={{width: `${progress}%`}}></div>
+                                                </div>
+                                                {r.claimed && <div className="text-green-400 text-xs text-center mt-1 font-bold">✅ Получено</div>}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                                
+                                <div className="text-center mt-4">
+                                    <div className="text-yellow-400 font-bold text-lg" style={{textShadow: '0 0 10px #fbbf24'}}>Открыто: {olympusOpens}</div>
                                 </div>
                             </div>
                         </div>
@@ -1639,23 +1555,21 @@
                         )}
                         
                         {currentScreen === 'events' && (
-                            <div className="min-h-screen" style={{
+                            <div className="min-h-screen -mx-4 -mt-4" style={{
                                 backgroundImage: `url('event.jpg')`,
                                 backgroundSize: 'cover',
                                 backgroundPosition: 'center',
                                 backgroundBlendMode: 'overlay'
                             }}>
                                 <div className="max-w-lg mx-auto p-4">
-                                    <div className="flex justify-between items-center mb-6">
-                                        <h1 className="olympus-header text-4xl">🏛️ ИВЕНТ ОЛИМП ⚡️</h1>
-                                    </div>
+                                    <h1 className="olympus-header text-4xl text-center mb-8">🏛️ ИВЕНТ ОЛИМП ⚡️</h1>
                                     
                                     <div className="space-y-4">
-                                        <button onClick={() => setOlympusSubScreen('heroes')} className="w-full olympus-btn bg-gradient-to-r from-yellow-600 to-amber-600 hover:from-yellow-500 hover:to-amber-500 py-4 rounded-xl font-bold text-xl border-2 border-yellow-400 shadow-lg">🏆 Герои Олимпа</button>
+                                        <button onClick={() => { setOlympusSubScreen('heroes'); db.ref('users').once('value').then(snap => { const u = []; snap.forEach(c => u.push({ id: c.key, ...c.val() })); setAllUsers(u); }); }} className="w-full olympus-btn py-4 rounded-xl font-bold text-xl text-white hover:scale-105 transition shadow-lg">🏆 Герои Олимпа</button>
                                         
                                         <div className="grid grid-cols-2 gap-4">
-                                            <button onClick={() => setOlympusSubScreen('treasure')} className="olympus-btn bg-gradient-to-r from-yellow-600 to-amber-600 hover:from-yellow-500 hover:to-amber-500 py-4 rounded-xl font-bold text-lg border-2 border-yellow-400 shadow-lg">⚡️ Сокровище Олимпа</button>
-                                            <button onClick={() => setOlympusSubScreen('gefest')} className="olympus-btn bg-gradient-to-r from-yellow-600 to-amber-600 hover:from-yellow-500 hover:to-amber-500 py-4 rounded-xl font-bold text-lg border-2 border-yellow-400 shadow-lg">🏵️ Лавка Гефеста</button>
+                                            <button onClick={() => setOlympusSubScreen('treasure')} className="olympus-btn py-4 rounded-xl font-bold text-lg text-white hover:scale-105 transition shadow-lg">⚡️ Сокровище<br/>Олимпа</button>
+                                            <button onClick={() => setOlympusSubScreen('gefest')} className="olympus-btn py-4 rounded-xl font-bold text-lg text-white hover:scale-105 transition shadow-lg">🏵️ Лавка<br/>Гефеста</button>
                                         </div>
                                     </div>
                                 </div>
