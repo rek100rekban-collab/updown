@@ -43,6 +43,9 @@
         .fullscreen-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 100; overflow-y: auto; }
         .case-cardboard { background: linear-gradient(135deg, #8B4513 0%, #D2691E 50%, #8B4513 100%); border: 3px solid #A0522D; }
         .case-collector { background: linear-gradient(135deg, #DC143C 0%, #FF1493 50%, #8B008B 100%); border: 3px solid #FFD700; }
+        .player-row-ready { border-color: rgba(0,255,100,0.5) !important; background: rgba(0,255,100,0.1) !important; }
+        .player-row-waiting { border-color: rgba(255,200,0,0.4) !important; background: rgba(255,200,0,0.05) !important; }
+        .player-row-presence { border-color: rgba(150,150,150,0.3) !important; }
         @keyframes goldGlow { 0%, 100% { text-shadow: 0 0 5px #facc15, 0 0 10px #facc15; } 50% { text-shadow: 0 0 20px #facc15, 0 0 30px #eab308; } }
         @keyframes purpleGlow { 0%, 100% { text-shadow: 0 0 5px #a855f7, 0 0 10px #a855f7; } 50% { text-shadow: 0 0 20px #a855f7, 0 0 30px #9333ea; } }
         @keyframes greenGlow { 0%, 100% { box-shadow: 0 0 5px #22c55e, 0 0 10px #22c55e; } 50% { box-shadow: 0 0 15px #22c55e, 0 0 25px #16a34a; } }
@@ -64,7 +67,7 @@
 <body class="bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 min-h-screen text-white overflow-x-hidden">
     <div id="root"></div>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
@@ -82,6 +85,7 @@
         const db = firebase.database();
         const TelegramWebApp = window.Telegram?.WebApp;
         const ADMIN_WALLET = 'UQAWqaIPFSg81l9MlgAx0HBE9o3gpJMhk1dnyryKJXhWNHIc';
+        const TONCENTER_API = 'https://toncenter.com/api/v2';
         const BOT_TOKEN = '8325421899:AAG9t3yS4WWiwasRoHb-nbr3a94S9tQfHys';
         
         const PLAYER_COLORS = ['#FF6B6B','#FF9F43','#FFEAA7','#55EFC4','#74B9FF','#A29BFE','#FD79A8','#E17055','#00CEC9','#6C5CE7','#FDCB6E','#81ECEC','#FF7675','#DFE6E9','#B2BEC3'];
@@ -370,6 +374,20 @@
             const [totalDeposits, setTotalDeposits] = useState(0);
             const [freeEliteSpin, setFreeEliteSpin] = useState(0);
             const [currentGame, setCurrentGame] = useState(null);
+            const [gameStatus, setGameStatus] = useState('waiting');
+            const [timerRemaining, setTimerRemaining] = useState(0);
+            const [myBet, setMyBet] = useState(25);
+            const [myBetInput, setMyBetInput] = useState(25);
+            const [hasBet, setHasBet] = useState(false);
+            const [isReady, setIsReady] = useState(false);
+            const [myColor, setMyColor] = useState('');
+            const [showVictoryBox, setShowVictoryBox] = useState(false);
+            const [victoryStars, setVictoryStars] = useState(0);
+            const [victoryPrize, setVictoryPrize] = useState(null);
+            const [boxOpened, setBoxOpened] = useState(false);
+            const [prizeClaimedLocal, setPrizeClaimedLocal] = useState(false);
+            
+            // Геракл игра состояния
             const [geraklGameActive, setGeraklGameActive] = useState(false);
             const [geraklBetAmount, setGeraklBetAmount] = useState(25);
             const [geraklBetInput, setGeraklBetInput] = useState(25);
@@ -381,6 +399,7 @@
             const [geraklBoxOpened, setGeraklBoxOpened] = useState(false);
             const [geraklBoxPrize, setGeraklBoxPrize] = useState(null);
             
+            // Полная инициализация приложения
             useEffect(() => {
                 const initApp = async () => {
                     let userId = null;
@@ -440,9 +459,10 @@
                 initApp();
             }, []);
             
+            // Таймеры ивента
             useEffect(() => {
                 const olympusTarget = new Date('2026-03-01T15:00:00').getTime();
-                const casesTarget = new Date('2025-03-01T17:00:00').getTime();
+                const casesTarget = new Date('2026-03-01T17:00:00').getTime(); // Изменено на 1.03.2026 17:00 МСК
                 const timer = setInterval(() => {
                     const now = Date.now();
                     const format = (diff) => {
@@ -459,6 +479,7 @@
                 return () => clearInterval(timer);
             }, []);
             
+            // Онлайн статус
             useEffect(() => {
                 if (!user?.id) return;
                 const ref = db.ref('online/' + user.id);
@@ -468,6 +489,7 @@
                 return () => ref.remove();
             }, [user?.id]);
             
+            // Авто-сохранение
             useEffect(() => {
                 if (!user?.id || isLoading) return;
                 const iv = setInterval(() => {
@@ -481,6 +503,7 @@
                 return () => clearInterval(iv);
             }, [balance, cases, inventory, tasks, inventorySlots, usedPromos, wonPromos, user?.id, isLoading, totalDeposits, freeEliteSpin]);
             
+            // Таймер ежедневного кейса
             useEffect(() => {
                 if (isLoading || !cases.daily) return;
                 const DAILY_COOLDOWN = 23 * 60 * 60 * 1000;
@@ -504,6 +527,7 @@
                 return () => clearInterval(timer);
             }, [cases.daily, isLoading]);
             
+            // Таймер игры Геракл
             useEffect(() => {
                 if (!geraklGameActive || geraklResult) return;
                 const iv = setInterval(() => {
@@ -743,6 +767,7 @@
                          setBalance(fb);
                          await db.ref(`users/${user.id}/balance`).set(fb);
                      } else if(won.type === 'man_bonus_elite') {
+                         // Исправление бага: бесплатный кейс Элита добавляется сразу, а не в инвентарь
                          const nc = { ...cases, elite: { ...cases.elite, freeCount: (cases.elite.freeCount || 0) + 1 } };
                          setCases(nc);
                          await db.ref(`users/${user.id}/cases/elite/freeCount`).set((cases.elite.freeCount || 0) + 1);
@@ -801,6 +826,7 @@
                  await db.ref(`users/${user.id}`).update({ balance: balance - 50, inventorySlots: inventorySlots + 1 });
             };
             
+            // Функции игры Геракл
             const startGeraklGame = async () => {
                 if (balance < geraklBetInput || geraklBetInput < 25) {
                     alert('Недостаточно звезд или ставка меньше 25!');
@@ -852,6 +878,7 @@
                 });
                 setGeraklGameActive(false);
                 
+                // Если прошли 10 раундов, выдаем сундук
                 if (geraklRound >= 10) {
                     const prize = getGeraklBoxPrize();
                     setGeraklBoxPrize(prize);
@@ -903,6 +930,8 @@
                 setCurrentGame(null);
             };
             
+            // ===== РЕНДЕР ВСЕХ ЭКРАНОВ =====
+            // Игра Геракл
             if (currentGame?.type === 'gerakl') {
                 return (
                     <div className="min-h-screen bg-gradient-to-b from-red-900 via-orange-900 to-red-800 pb-4" style={{
@@ -920,6 +949,7 @@
                             </div>
                             
                             {geraklResult ? (
+                                // Результат игры
                                 <div className="glass rounded-xl p-4 mb-3 text-center border border-yellow-500/30">
                                     {geraklResult.type === 'ice' ? (
                                         <>
@@ -954,6 +984,7 @@
                                     )}
                                 </div>
                             ) : geraklGameActive ? (
+                                // Активная игра
                                 <>
                                     <div className="glass rounded-xl p-4 mb-3 text-center border border-yellow-500/30">
                                         <div className="text-3xl mb-2">⏱️</div>
@@ -976,6 +1007,7 @@
                                             <button onClick={handleGeraklCashout} className="flex-1 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 py-3 rounded-xl font-bold transition text-sm">🧊 Забрать</button>
                                         </div>
                                         
+                                        {/* Прямоугольник с 10 раундами */}
                                         <div className="flex justify-center flex-wrap">
                                             {[...Array(10)].map((_, i) => (
                                                 <div key={i} className={`round-box ${i < geraklRound ? 'completed' : i === geraklRound ? 'current' : ''}`}>
@@ -985,6 +1017,7 @@
                                         </div>
                                     </div>
                                     
+                                    {/* Возможные награды за 10 раундов */}
                                     <div className="glass rounded-xl p-3">
                                         <h3 className="font-bold text-center text-yellow-300 text-xs mb-2">🎁 Возможные награды за 10 раундов</h3>
                                         <div className="flex flex-wrap justify-center gap-1.5 text-xl">
@@ -993,6 +1026,7 @@
                                     </div>
                                 </>
                             ) : (
+                                // Экран ставки
                                 <div className="glass rounded-xl p-4 mb-3 text-center border border-yellow-500/30">
                                     <div className="text-3xl mb-2 animate-bounce">🪬</div>
                                     <div className="font-bold text-yellow-300 text-lg mb-2">Соверши 13 подвиг!</div>
@@ -1012,6 +1046,7 @@
                 );
             }
             
+            // Admin Panel
             if(isAdmin) {
                 const filteredUsers = allUsers.filter(u => !adminUserSearch || (u.name && u.name.toLowerCase().includes(adminUserSearch.toLowerCase())) || (u.username && u.username.toLowerCase().includes(adminUserSearch.toLowerCase())) || (u.id && u.id.toLowerCase().includes(adminUserSearch.toLowerCase())));
                 return (
@@ -1022,9 +1057,9 @@
                                 <button onClick={() => setIsAdmin(false)} className="text-gray-400 hover:text-white">Выйти</button>
                             </div>
                             <div className="flex gap-2 mb-6 overflow-x-auto">
-                                {['stats', 'users', 'rewards', 'settings'].map(tab => (
+                                {['stats', 'users', 'give', 'rewards', 'settings'].map(tab => (
                                     <button key={tab} onClick={() => setAdminScreen(tab)} className={`px-4 py-2 rounded-lg ${adminScreen === tab ? 'bg-indigo-600' : 'bg-gray-700'} text-sm`}>
-                                        {tab === 'stats' ? '📊 Стат.' : tab === 'users' ? '👥 Юзеры' : tab === 'rewards' ? '🎀 Награды' : '⚙️ Настр.'}
+                                        {tab === 'stats' ? '📊 Стат.' : tab === 'users' ? '👥 Юзеры' : tab === 'give' ? '💎 Выдать' : tab === 'rewards' ? '🎀 Награды' : '⚙️ Настр.'}
                                     </button>
                                 ))}
                             </div>
@@ -1068,6 +1103,20 @@
                                         <button onClick={() => setSelectedUser(null)} className="w-full bg-gray-600 p-2 rounded text-sm">← Назад</button>
                                     </div>
                                 )}
+                                {adminScreen === 'give' && (
+                                    <div>
+                                        <h3 className="text-lg mb-4">💎 Выдать звёзды любому игроку</h3>
+                                        <div className="mb-4">
+                                            <input type="text" placeholder="ID игрока" value={adminUserSearch} onChange={e => setAdminUserSearch(e.target.value)} className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-sm mb-3" />
+                                            <input type="number" placeholder="Количество звёзд" value="1000" onChange={e => setAdminUserSearch(e.target.value)} className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-sm" />
+                                        </div>
+                                        <div className="grid grid-cols-3 gap-2">
+                                            <button onClick={() => adminGiveReward(user.id, {type:'stars', amount:1000})} className="bg-indigo-600 p-3 rounded text-sm">+1000⭐️</button>
+                                            <button onClick={() => adminGiveReward(user.id, {type:'stars', amount:5000})} className="bg-indigo-600 p-3 rounded text-sm">+5000⭐️</button>
+                                            <button onClick={() => adminGiveReward(user.id, {type:'stars', amount:10000})} className="bg-indigo-600 p-3 rounded text-sm">+10000⭐️</button>
+                                        </div>
+                                    </div>
+                                )}
                                 {adminScreen === 'rewards' && (
                                     <div>
                                         <h3 className="text-lg mb-4">Выдать себе:</h3>
@@ -1092,6 +1141,7 @@
                 );
             }
             
+            // ===== MAIN GAME SCREEN =====
             return (
                 <div className="min-h-screen pb-24">
                     <header className="p-4 flex justify-between items-center glass sticky top-0 z-50">
@@ -1101,6 +1151,7 @@
                     
                     {paymentStatus && <div className="mx-4 mt-2 p-3 rounded-lg text-center text-xs bg-blue-500/20 border border-blue-500">{paymentStatus}</div>}
                     
+                    {/* MODALS */}
                     {showRandomCaseModal && (
                         <div className="fixed inset-0 bg-black/90 z-[60] flex items-center justify-center p-4">
                             <div className="glass rounded-2xl p-6 max-w-sm w-full text-center">
@@ -1196,6 +1247,7 @@
                             <div>
                                 <h2 className="text-2xl font-bold mb-4 text-center">🎰 Кейсы</h2>
                                 
+                                {/* Надписи о бесплатных кейсах */}
                                 {cases.diamond?.freeCount > 0 && <div className="bg-green-500/20 border border-green-500 rounded-lg p-3 mb-3 text-center text-sm animate-pulse">🎁 Бесплатных кейсов Алмаз: {cases.diamond.freeCount}</div>}
                                 {cases.elite?.freeCount > 0 && <div className="bg-green-500/20 border border-green-500 rounded-lg p-3 mb-3 text-center text-sm animate-pulse">🎁 Бесплатных кейсов Элита: {cases.elite.freeCount}</div>}
                                 {freeEliteSpin > 0 && <div className="bg-green-500/20 border border-green-500 rounded-lg p-3 mb-3 text-center text-sm animate-pulse">🎁 Бесплатных прокрутов Элита: {freeEliteSpin}</div>}
@@ -1209,6 +1261,7 @@
                                 {cases.money?.freeCount > 0 && <div className="bg-green-500/20 border border-green-500 rounded-lg p-3 mb-3 text-center text-sm animate-pulse">🎁 Бесплатных кейсов Денежный: {cases.money.freeCount}</div>}
                                 {cases.star?.freeCount > 0 && <div className="bg-amber-400/20 border border-amber-400 rounded-lg p-3 mb-3 text-center text-sm animate-pulse">🎁 Бесплатных кейсов Звездный: {cases.star.freeCount}</div>}
                                 
+                                {/* SPECIAL CASES */}
                                 <div className="mb-6">
                                     <h3 className="text-lg font-bold text-center mb-3 text-purple-300 special-header">🔮 Особые 🔮</h3>
                                     <div className="grid grid-cols-2 gap-4">
@@ -1249,6 +1302,7 @@
                                     </div>
                                 </div>
                                 
+                                {/* ORDINARY CASES */}
                                 <div className="mb-6">
                                     <h3 className="text-lg font-bold text-center mb-3 text-yellow-300 ordinary-header">🎁 Обычные 🎁</h3>
                                     <div className="grid grid-cols-2 gap-4">
@@ -1425,6 +1479,7 @@
                         )}
                     </main>
                     
+                    {/* ROULETTE MODAL */}
                     {selectedCase && (
                         <div className="fullscreen-modal flex items-center justify-center p-4">
                             <div className="w-full max-w-lg" ref={rouletteContainerRef}>
@@ -1470,6 +1525,7 @@
                         </div>
                     )}
                     
+                    {/* TOP UP MODAL */}
                     {showTopUp && (
                         <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
                             <div className="glass rounded-2xl p-5 max-w-sm w-full">
@@ -1499,6 +1555,7 @@
                         </div>
                     )}
                     
+                    {/* NAVIGATION */}
                     <nav className="fixed bottom-0 left-0 right-0 glass border-t border-white/10 p-2 z-40">
                         <div className="max-w-md mx-auto flex justify-around">
                             {[ { id: 'tasks', emoji: '📋', label: 'Задания' }, { id: 'cases', emoji: '🎁', label: 'Кейсы' }, { id: 'events', emoji: '🏛️', label: 'Ивенты' }, { id: 'games', emoji: '🎮', label: 'Игры' }, { id: 'profile', emoji: '👤', label: 'Профиль' } ].map(s => (
