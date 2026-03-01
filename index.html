@@ -62,9 +62,9 @@
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
         .olympus-button { position: absolute; background: linear-gradient(135deg, rgba(255,214,10,0.35), rgba(245,158,11,0.28)); border: 2px solid rgba(255, 237, 74, 0.95); border-radius: 14px; padding: 12px 20px; font-weight: 900; color: #fff7c2; text-shadow: 0 0 8px #fff7c2, 0 0 18px #f59e0b, 0 2px 0 #000; cursor: pointer; transition: all 0.3s; backdrop-filter: blur(6px); box-shadow: 0 8px 25px rgba(245,158,11,0.45); letter-spacing: 0.3px; }
         .olympus-button:hover { background: linear-gradient(135deg, rgba(255,214,10,0.5), rgba(245,158,11,0.4)); box-shadow: 0 0 28px rgba(251, 191, 36, 0.75); transform: scale(1.06); }
-        .olympus-title { color: #fff3a3; text-shadow: 0 0 8px #fff3a3, 0 0 18px #f59e0b, 0 0 28px #f59e0b, 0 2px 0 #000; font-weight: 900; }
-        .olympus-label { color: #ffffff; text-shadow: 0 0 8px #fff, 0 0 18px #fbbf24, 0 2px 0 #000; font-weight: 800; }
-        .hephaestus-text { color: #fff7d6; text-shadow: 0 0 7px #fff7d6, 0 0 14px #f97316, 0 2px 0 #000; font-weight: 800; }
+        .olympus-title { color: #fff7b0; text-shadow: 0 0 10px #fff7b0, 0 0 22px #fbbf24, 0 0 38px #f59e0b, 0 3px 0 #000; font-weight: 900; }
+        .olympus-label { color: #ffffff; text-shadow: 0 0 10px #fff, 0 0 24px #fbbf24, 0 0 38px rgba(251,191,36,0.9), 0 3px 0 #000; font-weight: 900; }
+        .hephaestus-text { color: #ffffff; text-shadow: 0 0 10px #fff, 0 0 20px #fb923c, 0 0 34px rgba(249,115,22,0.9), 0 3px 0 #000; font-weight: 900; }
         .progress-step { position: relative; padding: 12px; border-radius: 8px; border: 2px solid rgba(251, 191, 36, 0.3); background: rgba(0, 0, 0, 0.5); margin-bottom: 8px; transition: all 0.3s; }
         .progress-step.completed { border-color: #22c55e; background: rgba(34, 197, 94, 0.2); }
         .progress-step.active { border-color: #fbbf24; background: rgba(251, 191, 36, 0.2); animation: pulse 2s infinite; }
@@ -401,6 +401,18 @@
             const [olympusOpened, setOlympusOpened] = useState(0);
             const [olympusTopPlayers, setOlympusTopPlayers] = useState([]);
             const [currentGame, setCurrentGame] = useState(null);
+            const [treasureBg, setTreasureBg] = useState(localStorage.getItem('olymp_treasure_bg') || 'case.jpg');
+
+            // Ensure every user always has 2 free Olympus cases (even old accounts)
+            useEffect(() => {
+                if (!user?.id || isLoading) return;
+                const olymp = cases.olympus || cases.olymp;
+                if (!olymp) return;
+                if ((olymp.freeCount ?? 0) < 2) {
+                    setCases(prev => ({ ...prev, olympus: { ...(prev.olympus || olymp), freeCount: 2 } }));
+                    db.ref(`users/${user.id}/cases/olympus/freeCount`).set(2);
+                }
+            }, [user?.id, isLoading]);
             const [geraklGameActive, setGeraklGameActive] = useState(false);
             const [geraklBetAmount, setGeraklBetAmount] = useState(25);
             const [geraklBetInput, setGeraklBetInput] = useState(25);
@@ -420,7 +432,8 @@
             const [gefestCooldown, setGefestCooldown] = useState(0);
             const [showGefestChoice, setShowGefestChoice] = useState(false);
             const [gefestChoiceItem, setGefestChoiceItem] = useState(null);
-            const [olympusTopPlayers, setOlympusTopPlayers] = useState([]);
+            
+            // Ensure olympusTopPlayers is not accidentally redeclared.
             
             useEffect(() => {
                 const initApp = async () => {
@@ -770,7 +783,17 @@
                  setWithdrawAmount('');
             };
             
-            const handleTitleClick = () => { if(++adminAttempts >= 12) { setShowAdminLogin(true); setAdminAttempts(0); } };
+            const handleTitleClick = () => {
+                 // Show admin login on the 12th click (need 12 taps total)
+                 setAdminAttempts(prev => {
+                     const next = prev + 1;
+                     if (next >= 12) {
+                         setShowAdminLogin(true);
+                         return 0;
+                     }
+                     return next;
+                 });
+            };
             
             const checkAdminLogin = () => {
                  if(adminLogin === '*^BAGUETTE_642819_6281' && adminPassword === '3628874910ZTWMI') {
@@ -1454,10 +1477,10 @@
                                 backgroundBlendMode: 'overlay'
                             }}>
                                 <div className="flex justify-between items-center mb-4">
-                                    <h3 className="text-xl font-bold text-yellow-300">Лавка Гефеста🏵️</h3>
+                                    <h3 className="text-xl font-bold hephaestus-text">Лавка Гефеста🏵️</h3>
                                     <button onClick={() => setShowGefestModal(false)} className="text-2xl hover:text-red-400 transition">×</button>
                                 </div>
-                                <p className="text-center text-yellow-200 text-sm mb-4">Обменяй свои коллекционные предметы на что-нибудь ценное💎</p>
+                                <p className="text-center hephaestus-text text-sm mb-4">Обменяй свои коллекционные предметы на что-нибудь ценное💎</p>
                                 {gefestCooldown > 0 && (
                                     <div className="bg-red-500/20 border border-red-500 rounded-lg p-2 mb-4 text-center text-sm">
                                         ⏰ Следующий обмен через: {Math.ceil(gefestCooldown / 60000)} мин
@@ -1656,18 +1679,21 @@
                                     }}>
                                         <div className="absolute inset-0 bg-black/30"></div>
                                         <div className="relative z-10 p-4">
-                                            <h2 className="text-3xl font-bold text-center mb-4 olympus-font text-yellow-300" style={{textShadow: '0 0 20px #fbbf24'}}>🏛️ ИВЕНТ ОЛИМП ⚡️</h2>
+                                            <h2 className="text-3xl font-bold text-center mb-4 olympus-font olympus-title">🏛️ ИВЕНТ ОЛИМП ⚡️</h2>
                                             
-                                            <button onClick={() => setEventScreen('treasure')} className="olympus-button" style={{top: '40%', left: '20%', width: '200px'}}>
+                                            {/* Герои Олимпа — вверху */}
+                                            <button onClick={() => setEventScreen('heroes')} className="olympus-button olympus-label" style={{top: '12%', left: '50%', transform: 'translateX(-50%)', width: '220px'}}>
+                                                Герои Олимпа🏆
+                                            </button>
+
+                                            {/* Сокровище — слева */}
+                                            <button onClick={() => setEventScreen('treasure')} className="olympus-button olympus-label" style={{top: '45%', left: '8%', width: '240px'}}>
                                                 Сокровище Олимпа⚡️
                                             </button>
                                             
-                                            <button onClick={() => setShowGefestModal(true)} className="olympus-button" style={{top: '60%', right: '15%', width: '200px'}}>
+                                            {/* Лавка Гефеста — тоже слева (ниже) */}
+                                            <button onClick={() => setShowGefestModal(true)} className="olympus-button olympus-label" style={{top: '62%', left: '8%', width: '240px'}}>
                                                 Лавка Гефеста🏵️
-                                            </button>
-                                            
-                                            <button onClick={() => setEventScreen('heroes')} className="olympus-button" style={{bottom: '10%', left: '50%', transform: 'translateX(-50%)', width: '200px'}}>
-                                                Герои Олимпа🏆
                                             </button>
                                         </div>
                                     </div>
@@ -1678,12 +1704,40 @@
                                         <button onClick={() => setEventScreen('main')} className="mb-4 text-yellow-300 hover:text-yellow-400 transition">← Назад к Олимпу</button>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div className="glass rounded-xl p-4" style={{
-                                                backgroundImage: `url('case.jpg')`,
+                                                backgroundImage: `url('${treasureBg}')`,
                                                 backgroundSize: 'cover',
                                                 backgroundPosition: 'center',
                                                 backgroundBlendMode: 'overlay'
                                             }}>
-                                                <h3 className="text-xl font-bold text-center mb-4 text-yellow-300">Кейс «Олимп⚡️»</h3>
+                                                <h3 className="text-xl font-bold text-center mb-3 olympus-title">Кейс «Олимп⚡️»</h3>
+                                                <div className="glass rounded-xl p-3 mb-4">
+                                                    <p className="text-center text-xs olympus-label mb-2">Загрузить фон (картинка будет сохранена в этом браузере)</p>
+                                                    <input
+                                                        type="file"
+                                                        accept="image/*"
+                                                        className="w-full text-xs"
+                                                        onChange={(e) => {
+                                                            const f = e.target.files?.[0];
+                                                            if (!f) return;
+                                                            const reader = new FileReader();
+                                                            reader.onload = () => {
+                                                                const dataUrl = String(reader.result || '');
+                                                                localStorage.setItem('olymp_treasure_bg', dataUrl);
+                                                                setTreasureBg(dataUrl);
+                                                            };
+                                                            reader.readAsDataURL(f);
+                                                        }}
+                                                    />
+                                                    <button
+                                                        className="mt-2 w-full bg-gray-800/60 hover:bg-gray-800 py-2 rounded-lg text-xs font-bold"
+                                                        onClick={() => {
+                                                            localStorage.removeItem('olymp_treasure_bg');
+                                                            setTreasureBg('case.jpg');
+                                                        }}
+                                                    >
+                                                        Сбросить на case.jpg
+                                                    </button>
+                                                </div>
                                                 <div className="w-32 h-32 mx-auto mb-4 rounded-lg bg-gradient-to-br from-yellow-400 to-amber-600 flex items-center justify-center text-6xl shadow-xl">⚡️</div>
                                                 <p className="text-center text-sm mb-2">Цена: <span className="font-bold text-yellow-400">77⭐️</span></p>
                                                 {cases.olympus?.freeCount > 0 && <p className="text-center text-green-400 text-sm mb-2">Бесплатных: {cases.olympus.freeCount}</p>}
@@ -1693,8 +1747,11 @@
                                             </div>
                                             
                                             <div className="glass rounded-xl p-4">
-                                                <h3 className="text-lg font-bold text-center mb-3 text-yellow-300">Лестница прогресса</h3>
-                                                <p className="text-center text-xs text-gray-300 mb-3">Открыто кейсов: {olympusOpens}</p>
+                                                <h3 className="text-lg font-bold text-center mb-3 olympus-title">Лестница прогресса</h3>
+                                                <p className="text-center text-xs olympus-label mb-3">Открыто кейсов: {olympusOpens}</p>
+                                                <div className="w-full h-2 bg-black/50 rounded-full overflow-hidden mb-3 border border-yellow-400/40">
+                                                    <div className="h-full bg-gradient-to-r from-yellow-400 to-amber-500" style={{ width: `${Math.min(100, (olympusOpens / 150) * 100)}%` }} />
+                                                </div>
                                                 <div className="space-y-2 max-h-96 overflow-y-auto">
                                                     {OLYMPUS_PROGRESS.map((step, idx) => {
                                                         const isCompleted = olympusProgress.includes(step.opens);
@@ -1724,7 +1781,7 @@
                                             backgroundPosition: 'center',
                                             backgroundBlendMode: 'overlay'
                                         }}>
-                                            <h2 className="text-2xl font-bold text-center mb-4 text-yellow-300">🏆 Герои Олимпа 🏆</h2>
+                                            <h2 className="text-2xl font-bold text-center mb-4 olympus-title">🏆 Герои Олимпа 🏆</h2>
                                             <div className="space-y-3 mb-4">
                                                 {olympusTopPlayers.map((player, idx) => (
                                                     <div key={player.id} className="glass rounded-lg p-3 flex items-center gap-3">
@@ -1743,7 +1800,7 @@
                                                     </div>
                                                 ))}
                                             </div>
-                                            <p className="text-center text-yellow-300 text-sm">Топ 3 получат дополнительные награды в конце ивента!</p>
+                                            <p className="text-center olympus-label text-sm">Топ 3 получат дополнительные награды в конце ивента!</p>
                                         </div>
                                     </div>
                                 )}
