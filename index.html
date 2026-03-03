@@ -33,6 +33,8 @@
         @keyframes pulseGlow { 0%, 100% { box-shadow: 0 0 10px rgba(0,210,255,0.3); } 50% { box-shadow: 0 0 30px rgba(0,210,255,0.8); } }
         @keyframes goldGlow { 0%, 100% { text-shadow: 0 0 5px #facc15, 0 0 10px #facc15; } 50% { text-shadow: 0 0 20px #facc15, 0 0 30px #eab308; } }
         @keyframes purpleGlow { 0%, 100% { text-shadow: 0 0 5px #a855f7, 0 0 10px #a855f7; } 50% { text-shadow: 0 0 20px #a855f7, 0 0 30px #9333ea; } }
+        @keyframes greenGlow { 0%, 100% { box-shadow: 0 0 5px #22c55e, 0 0 10px #22c55e; } 50% { box-shadow: 0 0 15px #22c55e, 0 0 25px #16a34a; } }
+        @keyframes yellowGlow { 0%, 100% { text-shadow: 0 0 5px #fbbf24, 0 0 10px #fbbf24; } 50% { text-shadow: 0 0 20px #fbbf24, 0 0 30px #f59e0b; } }
         @keyframes neonPulse { 0%, 100% { text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 20px #fbbf24, 0 0 30px #fbbf24, 0 0 40px #f59e0b; } 50% { text-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 30px #fbbf24, 0 0 40px #fbbf24, 0 0 60px #f59e0b; } }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
         .neon-text { animation: neonPulse 2s infinite; }
@@ -42,7 +44,9 @@
         .glass { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); }
         .line-through { text-decoration: line-through; opacity: 0.6; color: #ef4444; text-decoration-color: #ef4444; text-decoration-thickness: 2px; }
         .fullscreen-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 100; overflow-y: auto; }
-        .daily-timer { color: #4ade80; font-family: monospace; font-weight: bold; font-size: 14px; background: rgba(0,0,0,0.6); padding: 2px 8px; border-radius: 6px; border: 1px solid #22c55e; display: inline-block; }
+        .daily-timer { color: #4ade80; font-family: monospace; font-weight: bold; font-size: 14px; background: rgba(0,0,0,0.6); padding: 2px 8px; border-radius: 6px; border: 1px solid #22c55e; animation: greenGlow 2s infinite; display: inline-block; }
+        .cases-timer { color: #fbbf24; font-family: monospace; text-shadow: 0 0 5px #fbbf24; animation: yellowGlow 2s infinite; }
+        .case-cardboard { background: linear-gradient(135deg, #8B4513 0%, #D2691E 50%, #8B4513 100%); border: 3px solid #A0522D; }
         .case-collector { background: linear-gradient(135deg, #DC143C 0%, #FF1493 50%, #8B008B 100%); border: 3px solid #FFD700; }
         .events-tab-active { background: linear-gradient(135deg, rgba(251,191,36,0.3), rgba(245,158,11,0.2)); border: 2px solid rgba(251,191,36,0.6); box-shadow: 0 0 20px rgba(251,191,36,0.4); }
         .roulette-container { position: relative; width: 100%; height: 140px; overflow: hidden; background: rgba(0,0,0,0.4); border-radius: 16px; border: 2px solid rgba(255,255,255,0.1); margin: 16px 0; }
@@ -52,6 +56,7 @@
         .roulette-item .name { font-size: 10px; opacity: 0.8; text-align: center; margin-top: 2px; }
         .roulette-pointer { position: absolute; left: 50%; top: 0; bottom: 0; width: 4px; background: #ff4757; z-index: 20; transform: translateX(-50%); box-shadow: 0 0 20px #ff4757; }
         .roulette-pointer::before { content: ''; position: absolute; top: -5px; left: 50%; transform: translateX(-50%); border-left: 10px solid transparent; border-right: 10px solid transparent; border-top: 15px solid #ff4757; }
+        .roulette-pointer::after { content: ''; position: absolute; bottom: -5px; left: 50%; transform: translateX(-50%); border-left: 10px solid transparent; border-right: 10px solid transparent; border-bottom: 15px solid #ff4757; }
         .round-box { width: 28px; height: 28px; border-radius: 6px; border: 2px solid rgba(255,255,255,0.3); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; margin: 0 2px; transition: all 0.3s; }
         .round-box.completed { background: linear-gradient(135deg, #22c55e, #16a34a); border-color: #22c55e; box-shadow: 0 0 10px #22c55e; }
         .round-box.current { background: linear-gradient(135deg, #fbbf24, #f59e0b); border-color: #fbbf24; box-shadow: 0 0 10px #fbbf24; animation: pulse 1s infinite; }
@@ -60,22 +65,24 @@
         .progress-step.done { background: linear-gradient(135deg, #22c55e, #16a34a) !important; border-color: #22c55e !important; box-shadow: 0 0 12px rgba(34,197,94,0.5); }
         .progress-step.active { border-color: #fbbf24 !important; box-shadow: 0 0 12px rgba(251,191,36,0.5); animation: pulse 1.5s infinite; }
         .case-flowers { background: linear-gradient(135deg, #ec4899 0%, #db2777 50%, #be185d 100%); border: 3px solid #fbcfe8; box-shadow: 0 0 15px #f472b6; }
-        .door-card { 
-            width: 100%; aspect-ratio: 1; 
+        .hades-door { 
+            width: 100%; 
+            aspect-ratio: 1; 
             background-image: url('door.jpg');
             background-size: cover;
             background-position: center;
             border-radius: 12px;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
             position: relative;
             overflow: hidden;
+            border: 2px solid #7c2d12;
         }
-        .door-card:hover { transform: scale(1.05); box-shadow: 0 8px 12px rgba(255,215,0,0.3); }
-        .door-card:active { transform: scale(0.95); }
+        .hades-door:hover { transform: scale(1.05); box-shadow: 0 8px 25px rgba(255,69,0,0.4); border-color: #fbbf24; }
+        .hades-door:active { transform: scale(0.95); }
         .marquee-container { overflow: hidden; white-space: nowrap; }
-        .marquee-content { display: inline-block; animation: marquee 20s linear infinite; }
+        .marquee-content { display: inline-block; animation: marquee 25s linear infinite; }
         @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
     </style>
 </head>
@@ -102,7 +109,6 @@
         const ADMIN_WALLET = 'UQAWqaIPFSg81l9MlgAx0HBE9o3gpJMhk1dnyryKJXhWNHIc';
         const BOT_TOKEN = '8325421899:AAG9t3yS4WWiwasRoHb-nbr3a94S9tQfHys';
 
-        // Unlock date: March 8, 2026, 12:30 MSK (UTC+3)
         const FLOWERS_UNLOCK_DATE = new Date('2026-03-08T12:30:00+03:00').getTime();
 
         const INITIAL_CASES = {
@@ -322,7 +328,6 @@
             const [freeEliteSpin, setFreeEliteSpin] = useState(0);
             const [currentGame, setCurrentGame] = useState(null);
             
-            // Gerakl Game
             const [geraklGameActive, setGeraklGameActive] = useState(false);
             const [geraklBetAmount, setGeraklBetAmount] = useState(25);
             const [geraklBetInput, setGeraklBetInput] = useState(25);
@@ -334,7 +339,6 @@
             const [geraklBoxOpened, setGeraklBoxOpened] = useState(false);
             const [geraklBoxPrize, setGeraklBoxPrize] = useState(null);
 
-            // Olympus Event
             const [eventSubScreen, setEventSubScreen] = useState('main');
             const [olympusOpens, setOlympusOpens] = useState(0);
             const [olympusRewardsClaimed, setOlympusRewardsClaimed] = useState([]);
@@ -351,9 +355,8 @@
             const [gefestTradeChoice, setGefestTradeChoice] = useState(null);
             const olympusRouletteRef = useRef(null);
 
-            // Hades Game & Flowers
             const [fateTickets, setFateTickets] = useState(0);
-            const [hadesGameState, setHadesGameState] = useState('menu'); // menu, intro, game, result
+            const [hadesGameState, setHadesGameState] = useState('menu');
             const [hadesTimer, setHadesTimer] = useState(30);
             const [hadesDoorOpened, setHadesDoorOpened] = useState(false);
             const [hadesReward, setHadesReward] = useState(0);
@@ -362,6 +365,22 @@
             const [selectedFlowerItem, setSelectedFlowerItem] = useState(null);
 
             const isFlowersUnlocked = Date.now() >= FLOWERS_UNLOCK_DATE;
+
+            const [flowerBankCountdown, setFlowerBankCountdown] = useState({ days: 0, hours: 0, minutes: 0 });
+
+            useEffect(() => {
+                const timer = setInterval(() => {
+                    const now = Date.now();
+                    const diff = FLOWERS_UNLOCK_DATE - now;
+                    if (diff > 0) {
+                        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                        setFlowerBankCountdown({ days, hours, minutes });
+                    }
+                }, 1000);
+                return () => clearInterval(timer);
+            }, []);
 
             useEffect(() => {
                 const initApp = async () => {
@@ -448,7 +467,6 @@
                 return () => clearInterval(iv);
             }, [balance, cases, inventory, tasks, inventorySlots, usedPromos, wonPromos, user?.id, isLoading, totalDeposits, freeEliteSpin, olympusOpens, olympusRewardsClaimed, olympusFreeCount, gefestLastTrade, fateTickets, flowerBankTimer]);
 
-            // Daily Case Timer
             useEffect(() => {
                 if (isLoading || !cases.daily) return;
                 const DAILY_COOLDOWN = 23 * 60 * 60 * 1000;
@@ -470,7 +488,6 @@
                 return () => clearInterval(timer);
             }, [cases.daily, isLoading]);
 
-            // Gerakl Timer
             useEffect(() => {
                 if (!geraklGameActive || geraklResult) return;
                 const iv = setInterval(() => {
@@ -482,7 +499,6 @@
                 return () => clearInterval(iv);
             }, [geraklGameActive, geraklResult]);
 
-            // Hades Timer
             useEffect(() => {
                 if (hadesGameState !== 'game') return;
                 const iv = setInterval(() => {
@@ -914,31 +930,31 @@
                          )}
                          {hadesGameState === 'game' && (
                              <div className="w-full max-w-lg p-4 flex flex-col h-full relative z-10">
-                                 <div className="glass rounded-xl p-4 mb-4 text-center bg-red-900/40">
+                                 <div className="glass rounded-xl p-4 mb-4 text-center bg-red-900/40 border border-red-500/30">
                                      <div className="text-red-500 font-bold text-3xl mb-2">{hadesTimer} сек</div>
                                      <div className="text-gray-300 text-xs mb-2">Играешь на приз:</div>
-                                     <div className="animate-marquee marquee-container">
-                                         <span className="marquee-content font-bold text-yellow-400">
+                                     <div className="marquee-container">
+                                         <span className="marquee-content font-bold text-yellow-400 text-sm">
                                              {PRO_FAKE_REWARDS.join(' • ')} • {PRO_FAKE_REWARDS.join(' • ')}
                                          </span>
                                      </div>
                                  </div>
                                  
-                                 <div className="flex-1 grid grid-cols-2 gap-4 place-content-center pb-4">
+                                 <div className="flex-1 grid grid-cols-4 gap-3 place-content-center pb-4 px-2">
                                      {[...Array(8)].map((_, i) => (
-                                         <div key={i} onClick={openHadesDoor} className={`door-card ${hadesDoorOpened ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+                                         <div key={i} onClick={openHadesDoor} className={`hades-door ${hadesDoorOpened ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
                                          </div>
                                      ))}
                                  </div>
                                  
-                                 <div className="glass rounded-xl p-4 mt-4 bg-black/40">
-                                     <p className="text-center text-gray-300 text-sm mb-2">Возможные награды:</p>
+                                 <div className="glass rounded-xl p-4 mt-4 bg-black/60 border border-yellow-500/20">
+                                     <p className="text-center text-gray-300 text-sm mb-3">Возможные награды:</p>
                                      <div className="flex justify-around items-center">
-                                         <div className="text-center"><div className="text-2xl font-bold text-yellow-400">⭐️ 5</div></div>
-                                         <div className="text-center"><div className="text-2xl font-bold text-yellow-400">⭐️ 20</div></div>
-                                         <div className="text-center"><div className="text-2xl font-bold text-yellow-400">⭐️ 40</div></div>
-                                         <div className="text-center"><div className="text-2xl font-bold text-yellow-400">⭐️ 100</div></div>
-                                         <div className="text-center"><div className="text-2xl font-bold text-yellow-400">⭐️ 150</div></div>
+                                         <div className="text-center"><div className="text-2xl mb-1">⭐️</div><div className="text-xl font-bold text-yellow-400">5</div></div>
+                                         <div className="text-center"><div className="text-2xl mb-1">⭐️</div><div className="text-xl font-bold text-yellow-400">20</div></div>
+                                         <div className="text-center"><div className="text-2xl mb-1">⭐️</div><div className="text-xl font-bold text-yellow-400">40</div></div>
+                                         <div className="text-center"><div className="text-2xl mb-1">⭐️</div><div className="text-xl font-bold text-yellow-400">100</div></div>
+                                         <div className="text-center"><div className="text-2xl mb-1">⭐️</div><div className="text-xl font-bold text-yellow-400">150</div></div>
                                      </div>
                                  </div>
                              </div>
@@ -961,7 +977,7 @@
                                  <button onClick={() => { setHadesGameState('menu'); setCurrentGame(null); }} className="w-full bg-gray-700 py-3 rounded-xl font-bold mobile-btn">Покинуть игру</button>
                              </div>
                          )}
-                         <div className="absolute inset-0 bg-black/50 pointer-events-none"></div>
+                         <div className="absolute inset-0 bg-black/40 pointer-events-none"></div>
                     </div>
                 );
             };
@@ -972,9 +988,8 @@
                 const canHarvest = flowerBankTimer > 0 && timeLeft <= 0;
                 const isGrowing = flowerBankTimer > 0 && timeLeft > 0;
                 
-                const days = Math.max(0, Math.ceil((FLOWERS_UNLOCK_DATE - now) / (1000*60*60*24)));
-                const hours = Math.max(0, Math.ceil(((FLOWERS_UNLOCK_DATE - now) % (1000*60*60*24)) / (1000*60*60)));
-                const minutes = Math.max(0, Math.ceil(((FLOWERS_UNLOCK_DATE - now) % (1000*60*60)) / (1000*60)));
+                const growHours = Math.floor(timeLeft / (1000*60*60));
+                const growMinutes = Math.floor((timeLeft % (1000*60*60)) / (1000*60));
                 
                 return (
                     <div className="min-h-screen bg-gray-900 flex flex-col" style={{ backgroundImage: "url('roza.jpg')", backgroundSize: 'cover', backgroundPosition: 'center' }}>
@@ -983,28 +998,29 @@
                                  <div>
                                      <div className="text-6xl mb-4">🔒</div>
                                      <h2 className="text-2xl font-bold text-pink-400 mb-4 olympus-font">💐 Банк цветов 💐</h2>
-                                     <p className="text-gray-300 mb-4">Открой вклад в банке цветов!</p>
-                                     <div className="bg-black/50 rounded-lg p-4 mb-4">
+                                     <p className="text-gray-300 mb-4 text-lg">Открой вклад в банке цветов!</p>
+                                     <div className="bg-black/50 rounded-lg p-4 mb-4 border border-pink-500/30">
                                          <p className="text-sm text-gray-400 mb-2">До открытия:</p>
                                          <p className="text-3xl font-mono font-bold text-pink-300">
-                                             {days}д {hours}ч {minutes}м
+                                             {flowerBankCountdown.days}д {flowerBankCountdown.hours}ч {flowerBankCountdown.м}м
                                          </p>
                                      </div>
-                                     <button onClick={() => setCurrentGame(null)} className="w-full bg-gray-700/80 py-2 rounded-xl text-sm font-bold">Закрыть</button>
+                                     <button onClick={() => setCurrentGame(null)} className="w-full bg-gray-700/80 py-3 rounded-xl text-sm font-bold">Закрыть</button>
                                  </div>
                              </div>
                          )}
                          
-                         {(isFlowersUnlocked || flowerBankTimer > 0) && (
+                         {isFlowersUnlocked && (
                              <div className="p-4 glass m-4 rounded-xl relative z-10 flex flex-col items-center text-center flex-1">
                                  <h2 className="text-2xl font-bold text-pink-400 mb-2 olympus-font">💐 Банк цветов 💐</h2>
+                                 <p className="text-pink-200 text-sm mb-4">Открой вклад в банке цветов!</p>
                                  <div className="w-32 h-32 bg-white/20 rounded-full flex items-center justify-center mb-6 text-6xl relative overflow-hidden border-4 border-pink-300 shadow-[0_0_20px_rgba(236,72,153,0.5)]">
                                      {isGrowing ? <span className="animate-pulse">🌱</span> : (canHarvest ? '🌺' : '🫧')}
                                  </div>
                                  
                                  {isGrowing && (
                                      <div className="text-xl font-mono font-bold text-yellow-300 mb-4">
-                                         ⏳ Растёт: {Math.floor(timeLeft/(1000*60*60))}ч {Math.floor((timeLeft%(1000*60*60))/(1000*60))}м
+                                         ⏳ Растёт: {growHours}ч {growMinutes}м
                                      </div>
                                  )}
                                  
@@ -1014,7 +1030,7 @@
                                      </button>
                                  )}
                                  
-                                 {!isGrowing && !canHarvest && isFlowersUnlocked && (
+                                 {!isGrowing && !canHarvest && (
                                      <button onClick={plantFlower} className="w-full bg-gradient-to-r from-pink-500 to-rose-600 py-3 rounded-xl font-bold text-lg mb-4 mobile-btn shadow-lg">
                                          Посадить цветок 💮
                                      </button>
@@ -1059,7 +1075,6 @@
                                     <div className="text-2xl font-bold text-yellow-400 mb-4">Выигрыш: {geraklCurrentWin}⭐️</div>
                                     <div className="flex gap-2 mb-4">
                                         <button onClick={() => {
-                                            if (geraklRound >= 10) { /* cashout logic */ }
                                             if (Math.random() < 0.2 + (geraklRound*0.03)) { setGeraklResult({ type: 'ice', round: geraklRound }); setGeraklGameActive(false); }
                                             else {
                                                 const nr = geraklRound + 1; setGeraklRound(nr); setGeraklCurrentWin(Math.floor(geraklBetAmount * [1.1,1.4,1.9,2.3,2.6,3.8,4.5,5.5,6.0,10.0][nr])); setGeraklTimer(25);
@@ -1068,7 +1083,7 @@
                                         <button onClick={() => {
                                              const nb = balance + geraklCurrentWin; setBalance(nb); db.ref(`users/${user.id}/balance`).set(nb);
                                              setGeraklResult({ type: 'cashout', win: geraklCurrentWin }); setGeraklGameActive(false);
-                                             if(geraklRound >= 10) { /* prize logic simplified */ setGeraklBoxPrize({emoji:'🧸', name:'Мишка'}); }
+                                             if(geraklRound >= 10) { setGeraklBoxPrize({emoji:'🧸', name:'Мишка'}); }
                                         }} className="flex-1 bg-gradient-to-r from-cyan-600 to-blue-600 py-3 rounded-xl font-bold text-sm mobile-btn">🧊 Забрать</button>
                                     </div>
                                     <div className="flex justify-center flex-wrap">{[...Array(10)].map((_, i) => <div key={i} className={`round-box ${i < geraklRound ? 'completed' : i === geraklRound ? 'current' : ''}`}>{i + 1}</div>)}</div>
@@ -1103,7 +1118,7 @@
                                 <button onClick={() => setIsAdmin(false)} className="text-gray-400">Выйти</button>
                             </div>
                             <div className="flex gap-2 mb-4 overflow-x-auto">
-                                {['stats', 'users', 'seme'].map(tab => <button key={tab} onClick={() => setAdminScreen(tab)} className={`px-3 py-2 rounded-lg text-sm ${adminScreen === tab ? 'bg-indigo-600' : 'bg-gray-700'}`}>{tab === 'seme' ? '👤 Себе' : tab}</button>)}
+                                {['stats', 'users', 'sebe'].map(tab => <button key={tab} onClick={() => setAdminScreen(tab)} className={`px-3 py-2 rounded-lg text-sm ${adminScreen === tab ? 'bg-indigo-600' : 'bg-gray-700'}`}>{tab === 'sebe' ? '👤 Себе' : tab}</button>)}
                             </div>
                             {adminScreen === 'stats' && (
                                 <div className="grid grid-cols-2 gap-3">
@@ -1134,18 +1149,18 @@
                                     </div>
                                 </div>
                             )}
-                            {adminScreen === 'seme' && (
+                            {adminScreen === 'sebe' && (
                                 <div>
-                                    <h3 className="text-lg font-bold mb-4 text-center">👤 Себе</h3>
+                                    <h3 className="text-lg font-bold mb-4 text-center">👤 Выдача себе</h3>
                                     <div className="grid grid-cols-2 gap-3 mb-4">
-                                        <button onClick={() => adminGiveReward(user.id, {type:'stars', amount:1000})} className="bg-green-600 p-4 rounded-xl font-bold text-sm mobile-btn">+1000⭐️</button>
-                                        <button onClick={() => adminGiveReward(user.id, {type:'stars', amount:5000})} className="bg-green-600 p-4 rounded-xl font-bold text-sm mobile-btn">+5000⭐️</button>
-                                        <button onClick={() => adminGiveReward(user.id, {type:'case', caseType: 'star', count: 10})} className="bg-blue-600 p-4 rounded-xl font-bold text-sm mobile-btn">+10 Звездных</button>
-                                        <button onClick={() => adminGiveReward(user.id, {type:'case', caseType: 'collector', count: 3})} className="bg-pink-600 p-4 rounded-xl font-bold text-sm mobile-btn">+3 Коллектора</button>
-                                        <button onClick={() => adminGiveReward(user.id, {type:'unlock_collector'})} className="bg-purple-600 p-4 rounded-xl font-bold text-sm mobile-btn">Разблокировать</button>
-                                        <button onClick={() => adminGiveReward(user.id, {type:'reset_daily'})} className="bg-cyan-600 p-4 rounded-xl font-bold text-sm mobile-btn">Сброс Daily</button>
-                                        <button onClick={() => adminGiveReward(user.id, {type:'tickets', count: 10})} className="bg-yellow-600 p-4 rounded-xl font-bold text-sm mobile-btn">+10 билетов🎟</button>
-                                        <button onClick={() => adminGiveReward(user.id, {type:'flowers_free', count: 5})} className="bg-rose-600 p-4 rounded-xl font-bold text-sm mobile-btn">+5 Цветов🌺</button>
+                                        <button onClick={() => adminGiveReward(user.id, {type:'stars', amount:1000})} className="bg-green-600 p-4 rounded-xl font-bold text-sm mobile-btn hover:bg-green-500 transition">+1000⭐️</button>
+                                        <button onClick={() => adminGiveReward(user.id, {type:'stars', amount:5000})} className="bg-green-500 p-4 rounded-xl font-bold text-sm mobile-btn hover:bg-green-400 transition">+5000⭐️</button>
+                                        <button onClick={() => adminGiveReward(user.id, {type:'case', caseType: 'star', count: 10})} className="bg-blue-600 p-4 rounded-xl font-bold text-sm mobile-btn hover:bg-blue-500 transition">+10 Звездных</button>
+                                        <button onClick={() => adminGiveReward(user.id, {type:'case', caseType: 'collector', count: 3})} className="bg-pink-600 p-4 rounded-xl font-bold text-sm mobile-btn hover:bg-pink-500 transition">+3 Коллектора</button>
+                                        <button onClick={() => adminGiveReward(user.id, {type:'unlock_collector'})} className="bg-purple-600 p-4 rounded-xl font-bold text-sm mobile-btn hover:bg-purple-500 transition">Разблокировать</button>
+                                        <button onClick={() => adminGiveReward(user.id, {type:'reset_daily'})} className="bg-cyan-600 p-4 rounded-xl font-bold text-sm mobile-btn hover:bg-cyan-500 transition">Сброс Daily</button>
+                                        <button onClick={() => adminGiveReward(user.id, {type:'tickets', count: 10})} className="bg-yellow-600 p-4 rounded-xl font-bold text-sm mobile-btn hover:bg-yellow-500 transition">+10 билетов🎟</button>
+                                        <button onClick={() => adminGiveReward(user.id, {type:'flowers_free', count: 5})} className="bg-rose-600 p-4 rounded-xl font-bold text-sm mobile-btn hover:bg-rose-500 transition">+5 Цветов🌺</button>
                                     </div>
                                 </div>
                             )}
@@ -1348,32 +1363,31 @@
                                     <button onClick={() => setCurrentGame({ type: 'gerakl' })} className="w-full bg-gradient-to-r from-yellow-600 to-orange-600 py-3 rounded-xl font-bold text-sm mobile-btn">Войти</button>
                                 </div>
                                 
-                                {isFlowersUnlocked && (
-                                    <div className="glass rounded-xl p-4 border border-pink-500/50 relative overflow-hidden" onClick={() => setCurrentGame({ type: 'flowerBank' })} style={{ backgroundImage: "url('roza.jpg')", backgroundSize: 'cover', backgroundPosition: 'center' }}>
-                                         <div className="absolute inset-0 bg-black/50"></div>
-                                         <div className="relative z-10 text-center">
-                                             <div className="text-xs bg-red-600 text-white px-2 py-0.5 rounded-full inline-block mb-1">Временное событие!</div>
-                                             <h3 className="text-xl font-bold mb-1 text-pink-300">💐 Банк цветов</h3>
-                                             <p className="text-gray-200 text-xs mb-3">Открой вклад в банке цветов!</p>
-                                             <div className="bg-pink-600 w-full py-2 rounded-xl font-bold text-sm">Открыть</div>
-                                         </div>
-                                    </div>
-                                )}
-                                
-                                {!isFlowersUnlocked && (
+                                {!isFlowersUnlocked ? (
                                     <div className="glass rounded-xl p-4 border border-gray-500/30 relative overflow-hidden" style={{ backgroundImage: "url('roza.jpg')", backgroundSize: 'cover', backgroundPosition: 'center' }}>
                                          <div className="absolute inset-0 bg-black/70"></div>
                                          <div className="relative z-10 text-center">
+                                             <div className="inline-block bg-red-600 text-white text-xs px-2 py-1 rounded-full mb-2">Временное событие!</div>
                                              <div className="text-6xl mb-2">🔒</div>
                                              <h3 className="text-xl font-bold mb-1 text-pink-300 olympus-font">💐 Банк цветов 💐</h3>
                                              <p className="text-gray-300 text-xs mb-3">Открой вклад в банке цветов!</p>
                                              <div className="bg-black/50 rounded-lg p-3 mb-3">
                                                  <p className="text-sm text-gray-400 mb-1">До открытия:</p>
                                                  <p className="text-xl font-mono font-bold text-pink-300">
-                                                     {days}д {hours}ч {minutes}м
+                                                     {flowerBankCountdown.days}д {flowerBankCountdown.hours}ч {flowerBankCountdown.minutes}м
                                                  </p>
                                              </div>
                                              <button disabled className="w-full bg-gray-600 py-2 rounded-xl font-bold text-sm mobile-btn opacity-50 cursor-not-allowed">Закрыто</button>
+                                         </div>
+                                    </div>
+                                ) : (
+                                    <div className="glass rounded-xl p-4 border border-pink-500/50 relative overflow-hidden cursor-pointer" onClick={() => setCurrentGame({ type: 'flowerBank' })} style={{ backgroundImage: "url('roza.jpg')", backgroundSize: 'cover', backgroundPosition: 'center' }}>
+                                         <div className="absolute inset-0 bg-black/50"></div>
+                                         <div className="relative z-10 text-center">
+                                             <div className="inline-block bg-red-600 text-white text-xs px-2 py-1 rounded-full mb-2">Временное событие!</div>
+                                             <h3 className="text-xl font-bold mb-1 text-pink-300">💐 Банк цветов 💐</h3>
+                                             <p className="text-gray-200 text-xs mb-3">Открой вклад в банке цветов!</p>
+                                             <div className="bg-pink-600 w-full py-2 rounded-xl font-bold text-sm">Открыть</div>
                                          </div>
                                     </div>
                                 )}
@@ -1389,6 +1403,8 @@
                                             <h2 className="text-3xl font-bold text-center olympus-font neon-text mb-6" style={{ color: '#fbbf24' }}>⚡ ОЛИМП ⚡</h2>
                                             <div className="flex flex-col gap-4 max-w-xs mx-auto">
                                                 <button onClick={() => { loadOlympusTop(); setEventSubScreen('heroes'); }} className="w-full py-4 rounded-xl font-bold text-lg olympus-font mobile-btn" style={{ background: 'linear-gradient(135deg, rgba(251,191,36,0.4), rgba(245,158,11,0.3))', border: '2px solid #fbbf24' }}>🏆 Герои Олимпа</button>
+                                                <button onClick={() => setEventSubScreen('treasure')} className="w-full py-4 rounded-xl font-bold text-lg olympus-font mobile-btn" style={{ background: 'linear-gradient(135deg, rgba(139,92,246,0.4), rgba(109,40,217,0.3))', border: '2px solid #a78bfa' }}>⚡ Сокровище Олимпа</button>
+                                                <button onClick={() => setEventSubScreen('gefest')} className="w-full py-4 rounded-xl font-bold text-lg olympus-font mobile-btn" style={{ background: 'linear-gradient(135deg, rgba(239,68,68,0.4), rgba(185,28,28,0.3))', border: '2px solid #f87171' }}>🏵️ Лавка Гефеста</button>
                                             </div>
                                         </div>
                                      </div>
