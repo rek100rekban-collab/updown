@@ -37,6 +37,7 @@
         @keyframes yellowGlow { 0%, 100% { text-shadow: 0 0 5px #fbbf24, 0 0 10px #fbbf24; } 50% { text-shadow: 0 0 20px #fbbf24, 0 0 30px #f59e0b; } }
         @keyframes neonPulse { 0%, 100% { text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 20px #fbbf24, 0 0 30px #fbbf24, 0 0 40px #f59e0b; } 50% { text-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 30px #fbbf24, 0 0 40px #fbbf24, 0 0 60px #f59e0b; } }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+        @keyframes doorShake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-2px); } 75% { transform: translateX(2px); } }
         .neon-text { animation: neonPulse 2s infinite; }
         .pulse-glow { animation: pulseGlow 2s ease-in-out infinite; }
         .special-header { animation: purpleGlow 3s infinite; }
@@ -48,7 +49,7 @@
         .cases-timer { color: #fbbf24; font-family: monospace; text-shadow: 0 0 5px #fbbf24; animation: yellowGlow 2s infinite; }
         .case-cardboard { background: linear-gradient(135deg, #8B4513 0%, #D2691E 50%, #8B4513 100%); border: 3px solid #A0522D; }
         .case-collector { background: linear-gradient(135deg, #DC143C 0%, #FF1493 50%, #8B008B 100%); border: 3px solid #FFD700; }
-        .case-lifeflower { background: linear-gradient(135deg, #ffc0cb 0%, #ffb6c1 50%, #ff69b4 100%); border: 3px solid #ff69b4; box-shadow: 0 0 20px rgba(255,105,180,0.5); }
+        .case-flowers { background: linear-gradient(135deg, #ec4899 0%, #db2777 50%, #be185d 100%); border: 3px solid #f472b6; }
         .events-tab-active { background: linear-gradient(135deg, rgba(251,191,36,0.3), rgba(245,158,11,0.2)); border: 2px solid rgba(251,191,36,0.6); box-shadow: 0 0 20px rgba(251,191,36,0.4); }
         .roulette-container { position: relative; width: 100%; height: 140px; overflow: hidden; background: rgba(0,0,0,0.4); border-radius: 16px; border: 2px solid rgba(255,255,255,0.1); margin: 16px 0; }
         .roulette-inner { display: flex; position: absolute; left: 0; top: 10px; transition: transform 6.5s cubic-bezier(0.1, 0, 0.1, 1); will-change: transform; }
@@ -65,13 +66,10 @@
         .progress-step { transition: all 0.3s; }
         .progress-step.done { background: linear-gradient(135deg, #22c55e, #16a34a) !important; border-color: #22c55e !important; box-shadow: 0 0 12px rgba(34,197,94,0.5); }
         .progress-step.active { border-color: #fbbf24 !important; box-shadow: 0 0 12px rgba(251,191,36,0.5); animation: pulse 1.5s infinite; }
-        .door-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-        .door { aspect-ratio: 1; background: url('door.jpg') center/cover; border: 2px solid #8B4513; border-radius: 8px; cursor: pointer; transition: all 0.3s; }
-        .door:hover { transform: scale(1.05); box-shadow: 0 0 15px #f59e0b; }
+        .door { width: 80px; height: 100px; background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 100"><rect fill="%238B4513" width="80" height="100"/><circle cx="70" cy="50" r="4" fill="%23FFD700"/></svg>') center/cover; border-radius: 8px; border: 3px solid #654321; cursor: pointer; transition: all 0.3s; }
+        .door:hover { transform: scale(1.05); box-shadow: 0 0 20px rgba(255,215,0,0.4); }
         .door.opened { opacity: 0; pointer-events: none; }
-        .portal-gum { aspect-ratio: 1; max-width: 150px; margin: 0 auto; cursor: pointer; filter: drop-shadow(0 0 20px rgba(255,192,203,0.5)); animation: float 3s ease-in-out infinite; }
-        .timer-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.9); z-index: 200; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .locked-message { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(34,197,94,0.95); padding: 20px 30px; border-radius: 12px; text-align: center; z-index: 300; box-shadow: 0 0 30px rgba(34,197,94,0.5); animation: pulse 2s infinite; }
+        .fate-ticket { color: #fbbf24; font-weight: bold; }
     </style>
 </head>
 <body class="bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 min-h-screen text-white overflow-x-hidden">
@@ -95,8 +93,8 @@
         const TelegramWebApp = window.Telegram?.WebApp;
         const ADMIN_WALLET = 'UQAWqaIPFSg81l9MlgAx0HBE9o3gpJMhk1dnyryKJXhWNHIc';
         const BOT_TOKEN = '8325421899:AAG9t3yS4WWiwasRoHb-nbr3a94S9tQfHys';
-        // Новая дата разблокировки (8 марта 2026, 12:30 МСК)
-        const LIFEFLOWER_LOCK_TIME = new Date('2026-03-08T12:30:00+03:00').getTime();
+        const FLOWER_CASE_UNLOCK_TIME = new Date('2026-03-08T12:30:00+03:00').getTime();
+        const PORTAL_FLOWER_UNLOCK_TIME = new Date('2026-03-08T12:30:00+03:00').getTime();
         const INITIAL_CASES = {
             daily: { id: 'daily', name: 'Ежедневный', emoji: '🗓️', price: 0, color: 'from-cyan-400 to-teal-600', locked: false, isNew: true, freeCount: 1, type: 'special', lastOpened: 0 },
             collector: { id: 'collector', name: 'Коллекционер', emoji: '🎩', price: 650, color: 'from-rose-600 to-pink-800', locked: true, isNew: true, freeCount: 0, type: 'special' },
@@ -109,7 +107,7 @@
             diamond: { id: 'diamond', name: 'Алмаз', emoji: '💎', price: 50, color: 'from-blue-400 to-blue-600', locked: false, isNew: false, freeCount: 0 },
             major: { id: 'major', name: 'Мажор', emoji: '🤴', price: 800, color: 'from-purple-500 to-indigo-700', locked: true, isNew: false, freeCount: 0 },
             star: { id: 'star', name: 'Звездный', emoji: '⭐️', price: 30, originalPrice: 30, discountPrice: 23, color: 'from-yellow-400 to-amber-500', locked: false, isNew: true, freeCount: 0 },
-            lifeflower: { id: 'lifeflower', name: 'Цветы жизни🌺', emoji: '🌺', price: 75, originalPrice: 100, discountPrice: null, color: 'from-pink-400 to-pink-600', locked: true, isNew: true, freeCount: 0, type: 'special' }
+            flowers: { id: 'flowers', name: 'Цветы жизни', emoji: '🌺', price: 100, originalPrice: 100, discountPrice: 75, color: 'from-pink-400 to-rose-600', locked: false, isNew: true, freeCount: 0, type: 'special', unlockTime: FLOWER_CASE_UNLOCK_TIME }
         };
         const CASE_REWARDS = {
             daily: [
@@ -208,6 +206,15 @@
                 {id:'stars_100',name:'100 ⭐️',displayChance:'0.20%',realChance:0.20,type:'stars',value:100,emoji:'⭐️'},
                 {id:'stars_125',name:'125 ⭐️',displayChance:'0.10%',realChance:0.10,type:'stars',value:125,emoji:'⭐️'}
             ],
+            flowers: [
+                { id: 'sunflower', name: '🌻 Подсолнух', emoji: '🌻', type: 'flower_sunflower', realChance: 40, displayChance: '40%' },
+                { id: 'red_flower', name: '🌺 Красныш', emoji: '🌺', type: 'flower_red', sellPrice: 15, realChance: 30, displayChance: '30%' },
+                { id: 'tulip', name: '🌷 Тюльпанчик', emoji: '🌷', type: 'flower_tulip', sellPrice: 30, realChance: 15, displayChance: '15%' },
+                { id: 'cherry', name: '🌸 Сакура', emoji: '🌸', type: 'flower_cherry', sellPrice: 80, realChance: 6, displayChance: '6%' },
+                { id: 'bouquet', name: '💐 Букет тюльпанов', emoji: '💐', type: 'flower_bouquet', sellPrice: 100, realChance: 5, displayChance: '5%' },
+                { id: 'red_rose', name: '🌹 Красная Роза', emoji: '🌹', type: 'flower_red_rose', sellPrice: 125, realChance: 3.5, displayChance: '3.5%' },
+                { id: 'golden_rose', name: '🏵 Золотая Роза', emoji: '🏵', type: 'flower_golden_rose', realChance: 0.5, displayChance: '0.5%' }
+            ],
             olympus: [
                 { id: 'persephone', name: 'Персефона 🌺', emoji: '🌺', type: 'olympus_item', sellPrice: 20, realChance: 40, displayChance: '40%' },
                 { id: 'ares', name: 'Арес 🗡️', emoji: '🗡️', type: 'olympus_item', sellPrice: 28, realChance: 20, displayChance: '20%' },
@@ -217,27 +224,37 @@
                 { id: 'poseidon', name: 'Посейдон 🔱', emoji: '🔱', type: 'olympus_poseidon', realChance: 5, displayChance: '5%' },
                 { id: 'hades', name: 'Аид 🔥', emoji: '🔥', type: 'olympus_hades', realChance: 1.9, displayChance: '1.9%' },
                 { id: 'zeus', name: 'Зевс ⚡️', emoji: '⚡', type: 'olympus_zeus', realChance: 0.1, displayChance: '0.1%' }
-            ],
-            lifeflower: [
-                { id: 'sunflower', name: '🌻 Подсолнух', emoji: '🌻', type: 'lifeflower_sunflower', sellPrice: 'stars:star:1', chance: 40, displayChance: '40%' },
-                { id: 'krasnissh', name: '🌺 Красныш', emoji: '🌺', type: 'lifeflower_krasnish', sellPrice: 15, chance: 30, displayChance: '30%' },
-                { id: 'tulpanchik', name: '🌷 Тюльпанчик', emoji: '🌷', type: 'lifeflower_tulpanchik', sellPrice: 30, chance: 15, displayChance: '15%' },
-                { id: 'sakura', name: '🌸 Сакура', emoji: '🌸', type: 'lifeflower_sakura', sellPrice: 80, chance: 6, displayChance: '6%' },
-                { id: 'bouquet', name: '💐 Букет тюльпанов', emoji: '💐', type: 'lifeflower_bouquet', sellPrice: 100, chance: 5, displayChance: '5%' },
-                { id: 'redrose', name: '🌹 Красная Роза', emoji: '🌹', type: 'lifeflower_redrose', sellPrice: 125, chance: 3.5, displayChance: '3.5%' },
-                { id: 'goldrose', name: '🏵 Золотая Роза', emoji: '🏵', type: 'lifeflower_goldrose', exchangeStars: 14, chance: 0.5, displayChance: '0.5%' }
             ]
         };
-        // Награды для Подземелья Аида
-        const HADES_DUNGEON_REWARDS = [
-            { id: 'hades_5', name: '5 ⭐️', type: 'stars', value: 5, realChance: 50, emoji: '⭐️' },
-            { id: 'hades_20', name: '20 ⭐️', type: 'stars', value: 20, realChance: 35, emoji: '⭐️' },
-            { id: 'hades_40', name: '40 ⭐️', type: 'stars', value: 40, realChance: 10, emoji: '⭐️' },
-            { id: 'hades_100', name: '100 ⭐️', type: 'stars', value: 100, realChance: 4, emoji: '⭐️' },
-            { id: 'hades_150', name: '150 ⭐️', type: 'stars', value: 150, realChance: 1, emoji: '⭐️' }
+        const HADES_PORTAL_REWARDS = [
+            { id: 'stars_5', name: '5⭐️', realChance: 50, displayChance: '50%', type: 'stars', value: 5, emoji: '⭐️' },
+            { id: 'stars_20', name: '20⭐️', realChance: 35, displayChance: '35%', type: 'stars', value: 20, emoji: '⭐️' },
+            { id: 'stars_40', name: '40⭐️', realChance: 10, displayChance: '10%', type: 'stars', value: 40, emoji: '⭐️' },
+            { id: 'stars_100', name: '100⭐️', realChance: 4, displayChance: '4%', type: 'stars', value: 100, emoji: '⭐️' },
+            { id: 'stars_150', name: '150⭐️', realChance: 1, displayChance: '1%', type: 'stars', value: 150, emoji: '⭐️' }
         ];
-        // PRO-награды для визуализации (шанс 0%)
-        const HADES_PRO_VISUAL = ['🐍', '🍭', '🐕', '🍀', '🗓️', '🔘', '🎀', '🔮', '🎃', '🍄', '👀'];
+        const HADES_PORTAL_PRO_ITEMS = [
+            { id: 'snake_box', name: 'Snake Box', emoji: '🐍' },
+            { id: 'lol_pop', name: 'Lol pop', emoji: '🍭' },
+            { id: 'snoop_pro', name: 'Snoop dog PRO', emoji: '🐕' },
+            { id: 'clover_pro', name: 'Clover pin PRO', emoji: '🍀' },
+            { id: 'bday_pro', name: 'B-day bundle PRO', emoji: '🗓' },
+            { id: 'input_key', name: 'Input key', emoji: '🔘' },
+            { id: 'bow_tie', name: 'Bow Tie', emoji: '🎀' },
+            { id: 'crystal_ball', name: 'Crystal ball', emoji: '🔮' },
+            { id: 'mad_pumpkin', name: 'Mad pumpkin', emoji: '🎃' },
+            { id: 'spy_agaric', name: 'Spy agaric', emoji: '🍄' },
+            { id: 'evil_eye', name: 'Evil eye', emoji: '👀' }
+        ];
+        const PORTAL_FLOWER_REWARDS = [
+            { id: 'lily', name: '🪷 Кувшинка', emoji: '🪷', type: 'portal_lily', realChance: 40, displayChance: '40%' },
+            { id: 'white_rose', name: '💮 Бело-розовая Роза', emoji: '💮', type: 'portal_white_rose', sellPrice: 40, realChance: 30, displayChance: '30%' },
+            { id: 'carbonara', name: '🍝 Карбонара', emoji: '🍝', type: 'portal_carbonara', sellPrice: 35, realChance: 15, displayChance: '15%' },
+            { id: 'cherry2', name: '🌸 Сакура', emoji: '🌸', type: 'portal_cherry', sellPrice: 80, realChance: 6, displayChance: '6%' },
+            { id: 'bouquet2', name: '💐 Букет тюльпанов', emoji: '💐', type: 'portal_bouquet', sellPrice: 100, realChance: 5, displayChance: '5%' },
+            { id: 'red_rose2', name: '🌹 Красная Роза', emoji: '🌹', type: 'portal_red_rose', sellPrice: 125, realChance: 3.5, displayChance: '3.5%' },
+            { id: 'golden_rose2', name: '🏵 Золотая Роза', emoji: '🏵', type: 'portal_golden_rose', realChance: 0.5, displayChance: '0.5%' }
+        ];
         const GERAKL_10_REWARDS = [
             { id: 'bear', name: '🧸 Мишка', chance: 35, type: 'item', sellPrice: 20, emoji: '🧸' },
             { id: 'bear_pro', name: '🧸 PRO', chance: 20, type: 'collectible', emoji: '🧸' },
@@ -274,16 +291,6 @@
         ];
         const TON_RATES = [{ stars: 50, ton: 0.6 }, { stars: 250, ton: 3 }, { stars: 500, ton: 6 }, { stars: 1000, ton: 12 }];
         const STARS_PACKAGES = [{ stars: 50, price: 50 }, { stars: 100, price: 100 }, { stars: 250, price: 250 }, { stars: 500, price: 500 }, { stars: 1000, price: 1000 }];
-        // Награды для Банка цветов
-        const PORTAL_FLOWER_REWARDS = [
-            { id: 'waterlily', name: '🪷 Кувшинка', emoji: '🪷', type: 'portalfower_waterlily', sellPrice: 'stars:diamond:1', chance: 40, displayChance: '40%' },
-            { id: 'whiterose', name: '💮 Бело-розовая Роза', emoji: '💮', type: 'portalfower_whiterose', sellPrice: 40, chance: 30, displayChance: '30%' },
-            { id: 'carbonara', name: '🍝 Карбонара', emoji: '🍝', type: 'portalfower_carbonara', sellPrice: 35, chance: 15, displayChance: '15%' },
-            { id: 'sakura_p', name: '🌸 Сакура', emoji: '🌸', type: 'portalfower_sakura', sellPrice: 80, chance: 6, displayChance: '6%' },
-            { id: 'bouquet_p', name: '💐 Букет тюльпанов', emoji: '💐', type: 'portalfower_bouquet', sellPrice: 100, chance: 5, displayChance: '5%' },
-            { id: 'redrose_p', name: '🌹 Красная Роза', emoji: '🌹', type: 'portalfower_redrose', sellPrice: 125, chance: 3.5, displayChance: '3.5%' },
-            { id: 'goldrose_p', name: '🏵 Золотая Роза', emoji: '🏵', type: 'portalfower_goldrose', exchangeStars: 14, chance: 0.5, displayChance: '0.5%' }
-        ];
         function App() {
             const [currentScreen, setCurrentScreen] = useState('cases');
             const [balance, setBalance] = useState(0);
@@ -351,20 +358,20 @@
             const [gefestLastTrade, setGefestLastTrade] = useState(0);
             const [gefestTradeChoice, setGefestTradeChoice] = useState(null);
             const olympusRouletteRef = useRef(null);
-            // Новые состояния
-            const [fateTicketCount, setFateTicketCount] = useState(0);
-            const [hadessDungeonGameActive, setHadesDungeonGameActive] = useState(false);
-            const [hadesDungeonTimerset, setHadesDungeonTimerset] = useState(30);
-            const [hadesDungeonResult, setHadesDungeonResult] = useState(null);
-            const [hadesDungeonDoorIndex, setHadesDungeonDoorIndex] = useState(-1);
-            const [hadesDungeonShowInstruction, setHadesDungeonShowInstruction] = useState(false);
-            const [showHadesPurchaseModal, setShowHadesPurchaseModal] = useState(false);
+            // Новые состояния для Подземелья Аида
+            const [fateTickets, setFateTickets] = useState(0);
+            const [hadesPortalScreen, setHadesPortalScreen] = useState('main');
+            const [hadesPortalTimer, setHadesPortalTimer] = useState(30);
+            const [hadesPortalActive, setHadesPortalActive] = useState(false);
+            const [hadesPortalResult, setHadesPortalResult] = useState(null);
+            const [openedDoors, setOpenedDoors] = useState([]);
+            const [hadesProReward, setHadesProReward] = useState(null);
+            const [flowersTimeLeft, setFlowersTimeLeft] = useState('');
             const [portalFlowerActive, setPortalFlowerActive] = useState(false);
             const [portalFlowerTimer, setPortalFlowerTimer] = useState(0);
-            const [portalFlowerResult, setPortalFlowerResult] = useState(null);
-            const [showPortalFlowerInstruction, setPortalFlowerInstruction] = useState(false);
-            const [lifeflowerLockedMessage, setLifeflowerLockedMessage] = useState(false);
-            const [showLifeflowerBuyModal, setShowLifeflowerBuyModal] = useState(false);
+            const [showFlowerChoice, setShowFlowerChoice] = useState(false);
+            const [selectedFlower, setSelectedFlower] = useState(null);
+            const [flowerAction, setFlowerAction] = useState('');
             useEffect(() => {
                 const initApp = async () => {
                     let userId = null;
@@ -396,8 +403,6 @@
                                     newMergedCases[caseId].freeCount = storedCases[caseId].freeCount || 0;
                                     if (storedCases[caseId].locked !== undefined) newMergedCases[caseId].locked = storedCases[caseId].locked;
                                     if (caseId === 'daily' && storedCases[caseId].lastOpened) newMergedCases[caseId].lastOpened = storedCases[caseId].lastOpened;
-                                    if (caseId === 'lifeflower' && storedCases[caseId].price !== undefined) newMergedCases[caseId].price = storedCases[caseId].price;
-                                    if (caseId === 'lifeflower' && storedCases[caseId].discountPrice !== undefined) newMergedCases[caseId].discountPrice = storedCases[caseId].discountPrice;
                                 }
                             }
                             setUser({ id: userId, ...userData, ...data });
@@ -414,13 +419,12 @@
                             setOlympusRewardsClaimed(data.olympusRewardsClaimed || []);
                             setOlympusFreeCount(data.olympusFreeCount !== undefined ? data.olympusFreeCount : 2);
                             setGefestLastTrade(data.gefestLastTrade || 0);
-                            setFateTicketCount(data.fate_ticket || 0);
-                            setPortalFlowerActive(data.portal_flower_active || false);
+                            setFateTickets(data.fate_ticket || 0);
                             setPortalFlowerTimer(data.portal_flower_timer || 0);
                             await db.ref('users/' + userId).update({ name: userData.name, username: userData.username || '', avatar: userData.avatar || '', cases: newMergedCases });
                         } else {
                             const newCases = { ...INITIAL_CASES, daily: { ...INITIAL_CASES.daily, freeCount: 1, lastOpened: 0 }, diamond: { ...INITIAL_CASES.diamond, freeCount: 5 } };
-                            const newUser = { balance: 0, cases: newCases, inventory: [], tasks: tasks, inventorySlots: 5, usedPromos: [], wonPromos: [], createdAt: Date.now(), lastActive: Date.now(), totalDeposits: 0, freeEliteSpin: 0, fate_ticket: 0, portal_flower_active: false, portal_flower_timer: 0, name: userData.name, username: userData.username || '', avatar: userData.avatar || '', olympusOpens: 0, olympusRewardsClaimed: [], olympusFreeCount: 2, gefestLastTrade: 0 };
+                            const newUser = { balance: 0, cases: newCases, inventory: [], tasks: tasks, inventorySlots: 5, usedPromos: [], wonPromos: [], createdAt: Date.now(), lastActive: Date.now(), totalDeposits: 0, freeEliteSpin: 0, name: userData.name, username: userData.username || '', avatar: userData.avatar || '', olympusOpens: 0, olympusRewardsClaimed: [], olympusFreeCount: 2, gefestLastTrade: 0, fate_ticket: 0, portal_flower_timer: 0 };
                             setCases(newCases);
                             setUser({ id: userId, ...userData });
                             await db.ref('users/' + userId).set(newUser);
@@ -442,14 +446,14 @@
                 const iv = setInterval(() => {
                     const dailyData = cases.daily;
                     db.ref('users/' + user.id).update({
-                        balance, inventory, tasks, inventorySlots, usedPromos, wonPromos, lastActive: Date.now(), totalDeposits, freeEliteSpin, fate_ticket,
-                        olympusOpens, olympusRewardsClaimed, olympusFreeCount, gefestLastTrade, portal_flower_active: portalFlowerActive, portal_flower_timer: portalFlowerTimer,
+                        balance, inventory, tasks, inventorySlots, usedPromos, wonPromos, lastActive: Date.now(), totalDeposits, freeEliteSpin,
+                        olympusOpens, olympusRewardsClaimed, olympusFreeCount, gefestLastTrade, fate_ticket: fateTickets, portal_flower_timer: portalFlowerTimer,
                         'cases/daily/lastOpened': dailyData.lastOpened,
                         'cases/daily/freeCount': dailyData.freeCount
                     });
                 }, 5000);
                 return () => clearInterval(iv);
-            }, [balance, cases, inventory, tasks, inventorySlots, usedPromos, wonPromos, user?.id, isLoading, totalDeposits, freeEliteSpin, olympusOpens, olympusRewardsClaimed, olympusFreeCount, gefestLastTrade, fate_ticket, portalFlowerActive, portalFlowerTimer]);
+            }, [balance, cases, inventory, tasks, inventorySlots, usedPromos, wonPromos, user?.id, isLoading, totalDeposits, freeEliteSpin, olympusOpens, olympusRewardsClaimed, olympusFreeCount, gefestLastTrade, fateTickets, portalFlowerTimer]);
             useEffect(() => {
                 if (isLoading || !cases.daily) return;
                 const DAILY_COOLDOWN = 23 * 60 * 60 * 1000;
@@ -471,31 +475,62 @@
                 return () => clearInterval(timer);
             }, [cases.daily, isLoading]);
             useEffect(() => {
-                if (!hadessDungeonGameActive || hadesDungeonResult) return;
+                if (!geraklGameActive || geraklResult) return;
                 const iv = setInterval(() => {
-                    setHadesDungeonTimerset(prev => {
-                        if (prev <= 1) { 
-                            handleHadesDungeonTimeout(); 
-                            return 0; 
-                        }
+                    setGeraklTimer(prev => {
+                        if (prev <= 1) { handleGeraklIce(); return 0; }
                         return prev - 1;
                     });
                 }, 1000);
                 return () => clearInterval(iv);
-            }, [hadessDungeonGameActive, hadesDungeonResult]);
+            }, [geraklGameActive, geraklResult]);
             useEffect(() => {
-                if (!portalFlowerActive || portalFlowerTimer === 0 || portalFlowerResult) return;
+                if (!hadesPortalActive || hadesPortalResult) return;
+                const iv = setInterval(() => {
+                    setHadesPortalTimer(prev => {
+                        if (prev <= 1) { handleHadesPortalTimeout(); return 0; }
+                        return prev - 1;
+                    });
+                }, 1000);
+                return () => clearInterval(iv);
+            }, [hadesPortalActive, hadesPortalResult]);
+            useEffect(() => {
+                if (isLoading) return;
+                const now = Date.now();
+                const unlockTime = FLOWER_CASE_UNLOCK_TIME;
+                if (now < unlockTime) {
+                    const timer = setInterval(() => {
+                        const remaining = unlockTime - Date.now();
+                        if (remaining <= 0) {
+                            setCases(prev => ({ ...prev, flowers: { ...prev.flowers, locked: false } }));
+                            setFlowersTimeLeft('Разблокирован!');
+                            clearInterval(timer);
+                        } else {
+                            const days = Math.floor(remaining / (1000*60*60*24));
+                            const hours = Math.floor((remaining % (1000*60*60*24)) / (1000*60*60));
+                            const minutes = Math.floor((remaining % (1000*60*60)) / (1000*60));
+                            const seconds = Math.floor((remaining % (1000*60)) / 1000);
+                            setFlowersTimeLeft(`${days}д ${hours}ч ${minutes}м ${seconds}с`);
+                        }
+                    }, 1000);
+                    return () => clearInterval(timer);
+                } else {
+                    setFlowersTimeLeft('Разблокирован!');
+                }
+            }, [isLoading]);
+            useEffect(() => {
+                if (portalFlowerTimer <= 0) return;
                 const iv = setInterval(() => {
                     setPortalFlowerTimer(prev => {
                         if (prev <= 1) {
-                            completePortalFlower();
+                            setPortalFlowerActive(false);
                             return 0;
                         }
                         return prev - 1;
                     });
                 }, 1000);
                 return () => clearInterval(iv);
-            }, [portalFlowerActive, portalFlowerTimer, portalFlowerResult]);
+            }, [portalFlowerTimer]);
             const loadOlympusTop = async () => {
                 try {
                     const snap = await db.ref('users').orderByChild('olympusOpens').limitToLast(5).once('value');
@@ -517,21 +552,16 @@
                 if (usedPromos.includes(code)) { setPromoError('Уже использован!'); return; }
                 
                 if (code === 'LIFEFLOWER') {
-                    const isUnlocked = LIFEFLOWER_LOCK_TIME < Date.now() && !cases.lifeflower.locked;
-                    if (!isUnlocked) {
-                        setPromoError('Кейс ещё заблокирован!');
+                    const now = Date.now();
+                    if (now < FLOWER_CASE_UNLOCK_TIME) {
+                        setPromoError('Кейс ещё не разблокирован!');
                         return;
                     }
-                    if (cases.lifeflower.id === 'lifeflower' && cases.lifeflower.freeCount === undefined) {
-                        setPromoError('Кейс недоступен!');
-                        return;
-                    }
-                    const nc = { ...cases, lifeflower: { ...cases.lifeflower, freeCount: (cases.lifeflower.freeCount || 0) + 5 } };
+                    const nc = { ...cases, flowers: { ...cases.flowers, freeCount: (cases.flowers.freeCount || 0) + 5 } };
                     setCases(nc);
                     setPromoSuccess('+5 кейсов Цветы жизни!');
                     const np = [...usedPromos, code]; setUsedPromos(np); setPromoCode('');
-                    await db.ref(`users/${user.id}/usedPromos`).set(np);
-                    await db.ref(`users/${user.id}/cases/lifeflower/freeCount`).set((cases.lifeflower.freeCount || 0) + 5);
+                    await db.ref(`users/${user.id}`).update({ cases: nc, usedPromos: np });
                 } else if (code === 'DELLKO') {
                     if (!wonPromos.includes('DELLKO')) { setPromoError('Только если выиграли в 13 Подвиге Геракла!'); return; }
                     const nc = { ...cases, money: { ...cases.money, freeCount: (cases.money.freeCount || 0) + 3 } };
@@ -554,6 +584,29 @@
                 } else {
                     setPromoError('Неверный промокод');
                 }
+            };
+            const buyFateTicket = async () => {
+                try {
+                    const r = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/createInvoiceLink`, {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ title: '1 Билет судьбы 🎟', description: 'Билет для входа в Подземелье Аида', payload: `ticket_${user.id}_${Date.now()}`, currency: 'XTR', prices: [{ label: '1 Билет судьбы 🎟', amount: 5 }] })
+                    });
+                    const data = await r.json();
+                    if (data.ok && data.result) {
+                        if (TelegramWebApp) {
+                            TelegramWebApp.openInvoice(data.result, async (status) => {
+                                if (status === 'paid') {
+                                    const nb = balance - 5;
+                                    const nf = fateTickets + 1;
+                                    setBalance(nb); setFateTickets(nf);
+                                    await db.ref(`users/${user.id}`).update({ balance: nb, fate_ticket: nf });
+                                    await enterHadesPortal();
+                                    alert('✅ Билет получен! Добро пожаловать в Подземелье Аида!');
+                                }
+                            });
+                        } else { window.open(data.result, '_blank'); }
+                    }
+                } catch (e) { alert('Ошибка платежа.'); }
             };
             const buyStars = async (pkg) => {
                 try {
@@ -680,6 +733,7 @@
             const openCase = async (caseType) => {
                 const cData = cases[caseType];
                 if (cData.id === 'daily' && cData.freeCount === 0) { alert('Ежедневный кейс не готов!'); return; }
+                if (cData.locked) { alert('Кейс заблокирован!'); return; }
                 const price = getCasePrice(caseType);
                 const isFree = cData.freeCount > 0;
                 if (!isFree && balance < price) { alert('Недостаточно звезд!'); return; }
@@ -727,92 +781,138 @@
                     if (won.type === 'stars') {
                         const fb = nb + won.value; setBalance(fb);
                         await db.ref(`users/${user.id}/balance`).set(fb);
+                    } else if (won.type.startsWith('flower_') || won.type.startsWith('portal_')) {
+                        await handleFlowerReward(won);
                     } else {
                         await addToInventory(won);
                     }
                 }, 6600);
             };
-            const openHadesDungeon = async () => {
-                if (fateTicketCount < 1) {
-                    setShowHadesPurchaseModal(true);
-                    return;
-                }
-                
-                // Списываем билет
-                const newTickets = fateTicketCount - 1;
-                setFateTicketCount(newTickets);
-                await db.ref(`users/${user.id}/fate_ticket`).set(newTickets);
-                
-                setHadesDungeonShowInstruction(true);
+            const handleFlowerReward = async (item) => {
+                setSelectedFlower(item);
+                setShowFlowerChoice(true);
             };
-            const startHadesDungeon = () => {
-                setHadesDungeonShowInstruction(false);
-                setHadesDungeonGameActive(true);
-                setHadesDungeonTimerset(30);
-                setHadesDungeonResult(null);
-                setHadesDungeonDoorIndex(-1);
-            };
-            const handleHadesDoorClick = async (doorIndex) => {
-                if (hadesDungeonDoorIndex !== -1) return;
-                
-                setHadesDungeonDoorIndex(doorIndex);
-                setHadesDungeonGameActive(false);
-                
-                // Выпадаем награду
-                let won = HADES_DUNGEON_REWARDS[0], r = Math.random() * 100, cum = 0;
-                for (let i of HADES_DUNGEON_REWARDS) { cum += i.realChance; if (r <= cum) { won = i; break; } }
-                
-                if (won.type === 'stars') {
-                    const nb = balance + won.value;
+            const handleFlowerAction = async (action) => {
+                if (action === 'keep') {
+                    await addToInventory(selectedFlower);
+                } else if (action === 'sell') {
+                    const nb = balance + selectedFlower.sellPrice;
                     setBalance(nb);
                     await db.ref(`users/${user.id}/balance`).set(nb);
+                    alert(`Продано за ${selectedFlower.sellPrice}⭐️!`);
+                } else if (action === 'exchange') {
+                    const nc = { ...cases, star: { ...cases.star, freeCount: (cases.star.freeCount || 0) + 14 } };
+                    setCases(nc);
+                    await db.ref(`users/${user.id}/cases/star/freeCount`).set((cases.star.freeCount || 0) + 14);
+                    alert('Обменяно на 14 кейсов Звездный!');
                 }
-                
-                setHadesDungeonResult(won);
+                setShowFlowerChoice(false); setSpinResult(null);
             };
-            const handleHadesDungeonTimeout = () => {
-                setHadesDungeonResult({ type: 'timeout' });
-                setHadesDungeonGameActive(false);
-            };
-            const exitHadesDungeon = () => {
-                setHadesDungeonGameActive(false);
-                setHadesDungeonResult(null);
-                setHadesDungeonDoorIndex(-1);
-                setCurrentGame(null);
-            };
-            const startPortalFlower = async () => {
-                if (portalFlowerActive && portalFlowerTimer > 0) {
-                    alert('Цветок уже растёт! Подождите окончания.');
+            const enterHadesPortal = async () => {
+                if (fateTickets === 0) {
+                    alert('Недостаточно билетов судьбы!');
                     return;
                 }
-                
-                setPortalFlowerInstruction(true);
+                const nf = fateTickets - 1;
+                setFateTickets(nf);
+                await db.ref(`users/${user.id}/fate_ticket`).set(nf);
+                setHadesPortalScreen('instruction');
             };
-            const confirmPlantFlower = async () => {
-                setPortalFlowerInstruction(false);
+            const startHadesPortal = () => {
+                setHadesPortalScreen('game');
+                setHadesPortalActive(true);
+                setHadesPortalTimer(30);
+                setOpenedDoors([]);
+                setHadesPortalResult(null);
+                setHadesProReward(HADES_PORTAL_PRO_ITEMS[Math.floor(Math.random() * HADES_PORTAL_PRO_ITEMS.length)]);
+            };
+            const openDoor = async (doorIndex) => {
+                if (openedDoors.includes(doorIndex)) return;
+                const newOpened = [...openedDoors, doorIndex];
+                setOpenedDoors(newOpened);
+                const r = Math.random() * 100;
+                let won = HADES_PORTAL_REWARDS[0];
+                let cum = 0;
+                for (let item of HADES_PORTAL_REWARDS) {
+                    cum += item.realChance;
+                    if (r <= cum) { won = item; break; }
+                }
+                const nb = balance + won.value;
+                setBalance(nb);
+                await db.ref(`users/${user.id}/balance`).set(nb);
+                setHadesPortalResult(won);
+                setHadesPortalActive(false);
+            };
+            const handleHadesPortalTimeout = () => {
+                setHadesPortalActive(false);
+                setHadesPortalResult({ id: 'timeout', name: 'Время вышло!', emoji: '⏰', type: 'timeout', value: 0 });
+            };
+            const exitHadesPortal = () => {
+                setHadesPortalScreen('main');
+                setHadesPortalActive(false);
+                setHadesPortalResult(null);
+                setOpenedDoors([]);
+                setCurrentScreen('cases');
+            };
+            const plantFlower = async () => {
+                setPortalFlowerTimer(6 * 60 * 60);
                 setPortalFlowerActive(true);
-                setPortalFlowerTimer(6 * 60 * 60); // 6 часов
-                await db.ref(`users/${user.id}/portal_flower_active`).set(true);
                 await db.ref(`users/${user.id}/portal_flower_timer`).set(6 * 60 * 60);
+                alert('🌻 Цветок посажен! Вернитесь через 6 часов!');
             };
-            const completePortalFlower = async () => {
-                setPortalFlowerActive(false);
+            const claimFlowerReward = async () => {
+                const r = Math.random() * 100;
+                let won = PORTAL_FLOWER_REWARDS[0];
+                let cum = 0;
+                for (let item of PORTAL_FLOWER_REWARDS) {
+                    cum += item.realChance;
+                    if (r <= cum) { won = item; break; }
+                }
+                if (won.type.startsWith('portal_')) {
+                    setSelectedFlower(won);
+                    setFlowerAction('portal');
+                    setShowFlowerChoice(true);
+                } else {
+                    await addToInventory(won);
+                }
                 setPortalFlowerTimer(0);
-                
-                let won = PORTAL_FLOWER_REWARDS[0], r = Math.random() * 100, cum = 0;
-                for (let i of PORTAL_FLOWER_REWARDS) { cum += i.chance; if (r <= cum) { won = i; break; } }
-                
-                await addToInventory(won);
-                setPortalFlowerResult(won);
-                
-                await db.ref(`users/${user.id}/portal_flower_active`).set(false);
+                setPortalFlowerActive(false);
                 await db.ref(`users/${user.id}/portal_flower_timer`).set(0);
             };
-            const exitPortalFlower = () => {
-                setPortalFlowerActive(false);
-                setPortalFlowerTimer(0);
-                setPortalFlowerResult(null);
-                setCurrentGame(null);
+            const openOlympusCase = async () => {
+                const isFree = olympusFreeCount > 0;
+                const price = 77;
+                if (!isFree && balance < price) { alert('Недостаточно звезд!'); return; }
+                let nb = balance;
+                if (isFree) {
+                    const nf = olympusFreeCount - 1;
+                    setOlympusFreeCount(nf);
+                    await db.ref(`users/${user.id}/olympusFreeCount`).set(nf);
+                } else {
+                    nb -= price; setBalance(nb);
+                    await db.ref(`users/${user.id}/balance`).set(nb);
+                }
+                const newOpens = olympusOpens + 1;
+                setOlympusOpens(newOpens);
+                await db.ref(`users/${user.id}/olympusOpens`).set(newOpens);
+                setOlympusSpinning(false); setOlympusSpinResult(null); setOlympusFakeItems([]); setOlympusRouletteOffset(0); setOlympusRouletteKey(k => k + 1);
+                const items = CASE_REWARDS.olympus;
+                let won = items[0], r = Math.random() * 100, cum = 0;
+                for (let i of items) { cum += i.realChance; if (r <= cum) { won = i; break; } }
+                const tape = [];
+                for (let i = 0; i < 80; i++) tape.push(i === 70 ? won : items[Math.floor(Math.random() * items.length)]);
+                setOlympusSpinning(true);
+                setTimeout(() => {
+                    setOlympusFakeItems(tape);
+                    setTimeout(() => {
+                        const cw = olympusRouletteRef.current ? olympusRouletteRef.current.offsetWidth : window.innerWidth;
+                        setOlympusRouletteOffset(-(70 * 122 + 55 - cw / 2));
+                    }, 50);
+                }, 50);
+                setTimeout(async () => {
+                    setOlympusSpinResult(won); setOlympusSpinning(false);
+                    checkOlympusProgress(newOpens, nb);
+                }, 6600);
             };
             const handleOlympusReward = async (won) => {
                 let nb = balance;
@@ -845,6 +945,19 @@
                     return;
                 }
                 setOlympusSpinResult(null);
+            };
+            const handlePoseidonChoice = async (choice) => {
+                if (choice === 'stars') {
+                    const nb = balance + 200; setBalance(nb);
+                    await db.ref(`users/${user.id}/balance`).set(nb);
+                    alert('🔱 +200⭐️!');
+                } else {
+                    const nc = { ...cases, platinum: { ...cases.platinum, freeCount: (cases.platinum.freeCount || 0) + 5 } };
+                    setCases(nc);
+                    await db.ref(`users/${user.id}/cases/platinum/freeCount`).set((cases.platinum.freeCount || 0) + 5);
+                    alert('🔱 +5 кейсов Платина!');
+                }
+                setShowOlympusRewardModal(false); setOlympusSpinResult(null);
             };
             const handleHadesChoice = async (choice) => {
                 if (choice === 'stars') {
@@ -905,189 +1018,62 @@
             };
             const sellItem = async (item) => {
                 if (item.type === 'random_case_box') { setRandomCaseItem(item); setShowRandomCaseModal(true); return; }
-                if (item.type === 'collectible') { setSelectedCollectible(item); setShowCollectibleModal(true); return; }
-                
-                // Обработка предметов Цветов жизни
-                if (['lifeflower_sunflower'].includes(item.type)) {
-                    if (confirm('Продать за 1 кейс Звездный⭐️?')) {
-                        const nc = { ...cases, star: { ...cases.star, freeCount: (cases.star.freeCount || 0) + 1 } };
-                        setCases(nc);
-                        const ni = inventory.filter(i => i.uniqueId !== item.uniqueId);
-                        setInventory(ni);
-                        await db.ref(`users/${user.id}/cases/star/freeCount`).set((cases.star.freeCount || 0) + 1);
-                        await db.ref(`users/${user.id}/inventory`).set(ni);
+                if (item.type === 'collectible' || item.type?.includes('_pro')) { setSelectedCollectible(item); setShowCollectibleModal(true); return; }
+                if (item.type?.startsWith('olympus_')) {
+                    if (item.type === 'olympus_item') {
+                        if (confirm(`Продать ${item.name} за ${item.sellPrice}⭐️?`)) {
+                            const nb = balance + item.sellPrice;
+                            const ni = inventory.filter(i => i.uniqueId !== item.uniqueId);
+                            setBalance(nb); setInventory(ni);
+                            await db.ref(`users/${user.id}`).update({ balance: nb, inventory: ni });
+                        }
+                        return;
                     }
-                    return;
-                }
-                
-                if (['lifeflower_krasnish'].includes(item.type)) {
-                    const result = confirm('Оставьте красныша🌺 или продайте его за 15⭐️?');
-                    if (result) {
-                        const nb = balance + 15;
-                        const ni = inventory.filter(i => i.uniqueId !== item.uniqueId);
-                        setBalance(nb); setInventory(ni);
-                        await db.ref(`users/${user.id}`).update({ balance: nb, inventory: ni });
-                    }
-                    return;
-                }
-                
-                if (['lifeflower_tulpanchik'].includes(item.type)) {
-                    const result = confirm('Оставьте тюльпанчик🌷 или продайте его за 30⭐️?');
-                    if (result) {
-                        const nb = balance + 30;
-                        const ni = inventory.filter(i => i.uniqueId !== item.uniqueId);
-                        setBalance(nb); setInventory(ni);
-                        await db.ref(`users/${user.id}`).update({ balance: nb, inventory: ni });
-                    }
-                    return;
-                }
-                
-                if (['lifeflower_sakura'].includes(item.type)) {
-                    const result = confirm('Оставьте Сакуру🌸 или продайте её за 80⭐️?');
-                    if (result) {
-                        const nb = balance + 80;
-                        const ni = inventory.filter(i => i.uniqueId !== item.uniqueId);
-                        setBalance(nb); setInventory(ni);
-                        await db.ref(`users/${user.id}`).update({ balance: nb, inventory: ni });
-                    }
-                    return;
-                }
-                
-                if (['lifeflower_bouquet'].includes(item.type)) {
-                    const result = confirm('Оставьте букетик своей тарелочнице или продайте его за 100⭐️?');
-                    if (result) {
-                        const nb = balance + 100;
-                        const ni = inventory.filter(i => i.uniqueId !== item.uniqueId);
-                        setBalance(nb); setInventory(ni);
-                        await db.ref(`users/${user.id}`).update({ balance: nb, inventory: ni });
-                    }
-                    return;
-                }
-                
-                if (['lifeflower_redrose'].includes(item.type)) {
-                    const result = confirm('Оставьте красную розу или продайте её за 125⭐️?');
-                    if (result) {
-                        const nb = balance + 125;
-                        const ni = inventory.filter(i => i.uniqueId !== item.uniqueId);
-                        setBalance(nb); setInventory(ni);
-                        await db.ref(`users/${user.id}`).update({ balance: nb, inventory: ni });
-                    }
-                    return;
-                }
-                
-                if (['lifeflower_goldrose'].includes(item.type)) {
-                    const result = confirm('Оставьте Золотую розу или обменяйте её на 14 бесплатных кейдов «Звездный⭐️»?');
-                    if (!result) return;
-                    
-                    const nc = { ...cases, star: { ...cases.star, freeCount: (cases.star.freeCount || 0) + 14 } };
-                    setCases(nc);
-                    const ni = inventory.filter(i => i.uniqueId !== item.uniqueId);
-                    setInventory(ni);
-                    await db.ref(`users/${user.id}/cases/star/freeCount`).set((cases.star.freeCount || 0) + 14);
-                    await db.ref(`users/${user.id}/inventory`).set(ni);
-                    return;
-                }
-                
-                // Обработка предметов Портала
-                if (['portalfower_waterlily'].includes(item.type)) {
-                    if (confirm('Продать за 1 кейс Алмаз💎?')) {
-                        const nc = { ...cases, diamond: { ...cases.diamond, freeCount: (cases.diamond.freeCount || 0) + 1 } };
-                        setCases(nc);
-                        const ni = inventory.filter(i => i.uniqueId !== item.uniqueId);
-                        setInventory(ni);
-                        await db.ref(`users/${user.id}/cases/diamond/freeCount`).set((cases.diamond.freeCount || 0) + 1);
-                        await db.ref(`users/${user.id}/inventory`).set(ni);
-                    }
-                    return;
-                }
-                
-                if (['portalfower_whiterose'].includes(item.type)) {
-                    const result = confirm('Оставьте Белую Розу в покое 💮 или продайте её за 40⭐️?');
-                    if (result) {
-                        const nb = balance + 40;
-                        const ni = inventory.filter(i => i.uniqueId !== item.uniqueId);
-                        setBalance(nb); setInventory(ni);
-                        await db.ref(`users/${user.id}`).update({ balance: nb, inventory: ni });
-                    }
-                    return;
-                }
-                
-                if (['portalfower_carbonara'].includes(item.type)) {
-                    const result = confirm('Что? Карбонара?! Продайте её за 35⭐️ или оставьте!');
-                    if (result) {
-                        const nb = balance + 35;
-                        const ni = inventory.filter(i => i.uniqueId !== item.uniqueId);
-                        setBalance(nb); setInventory(ni);
-                        await db.ref(`users/${user.id}`).update({ balance: nb, inventory: ni });
-                    }
-                    return;
-                }
-                
-                if (['portalfower_sakura'].includes(item.type)) {
-                    const result = confirm('Оставьте Сакуру🌸 или продайте её за 80⭐️?');
-                    if (result) {
-                        const nb = balance + 80;
-                        const ni = inventory.filter(i => i.uniqueId !== item.uniqueId);
-                        setBalance(nb); setInventory(ni);
-                        await db.ref(`users/${user.id}`).update({ balance: nb, inventory: ni });
-                    }
-                    return;
-                }
-                
-                if (['portalfower_bouquet'].includes(item.type)) {
-                    const result = confirm('Оставьте букетик или продайте за 100⭐️?');
-                    if (result) {
-                        const nb = balance + 100;
-                        const ni = inventory.filter(i => i.uniqueId !== item.uniqueId);
-                        setBalance(nb); setInventory(ni);
-                        await db.ref(`users/${user.id}`).update({ balance: nb, inventory: ni });
-                    }
-                    return;
-                }
-                
-                if (['portalfower_redrose'].includes(item.type)) {
-                    const result = confirm('Оставьте красную розу или продайте её за 125⭐️?');
-                    if (result) {
-                        const nb = balance + 125;
-                        const ni = inventory.filter(i => i.uniqueId !== item.uniqueId);
-                        setBalance(nb); setInventory(ni);
-                        await db.ref(`users/${user.id}`).update({ balance: nb, inventory: ni });
-                    }
-                    return;
-                }
-                
-                if (['portalfower_goldrose'].includes(item.type)) {
-                    const result = confirm('Оставьте Золотую розу или обменяйте её на 14 кейсов «Звездный⭐️»?');
-                    if (!result) return;
-                    
-                    const nc = { ...cases, star: { ...cases.star, freeCount: (cases.star.freeCount || 0) + 14 } };
-                    setCases(nc);
-                    const ni = inventory.filter(i => i.uniqueId !== item.uniqueId);
-                    setInventory(ni);
-                    await db.ref(`users/${user.id}/cases/star/freeCount`).set((cases.star.freeCount || 0) + 14);
-                    await db.ref(`users/${user.id}/inventory`).set(ni);
-                    return;
-                }
-                if (item.type === 'olympus_item') {
-                    if (confirm(`Продать ${item.name} за ${item.sellPrice}⭐️?`)) {
-                        const nb = balance + item.sellPrice;
-                        const ni = inventory.filter(i => i.uniqueId !== item.uniqueId);
-                        setBalance(nb); setInventory(ni);
-                        await db.ref(`users/${user.id}`).update({ balance: nb, inventory: ni });
-                    }
-                    return;
-                }
-                
-                if (item.type === 'olympus_hermes' || item.type === 'olympus_dionysus' || item.type === 'olympus_apollo' || item.type === 'olympus_poseidon' || item.type === 'olympus_hades' || item.type === 'olympus_zeus' || item.type === 'olympus_zeus_kept') {
                     setSelectedCollectible(item); setShowCollectibleModal(true); return;
                 }
-                
+                if (item.type?.startsWith('flower_') || item.type?.startsWith('portal_')) {
+                    setSelectedFlower(item);
+                    if (item.type === 'flower_sunflower') {
+                        setFlowerAction('sunflower');
+                    } else if (item.type === 'flower_golden_rose' || item.type === 'portal_golden_rose') {
+                        setFlowerAction('golden');
+                    } else if (item.sellPrice) {
+                        setFlowerAction('sell');
+                    }
+                    setShowFlowerChoice(true);
+                    return;
+                }
                 if (item.sellPrice && confirm(`Продать ${item.name} за ${item.sellPrice}⭐️?`)) {
                     const nb = balance + item.sellPrice;
                     const ni = inventory.filter(i => i.uniqueId !== item.uniqueId);
                     setBalance(nb); setInventory(ni);
                     await db.ref(`users/${user.id}`).update({ balance: nb, inventory: ni });
                 }
+            };
+            const handleFlowerSell = async () => {
+                let ni = inventory.filter(i => i.uniqueId !== selectedFlower.uniqueId);
+                setInventory(ni);
+                
+                if (flowerAction === 'sunflower') {
+                    const nc = { ...cases, star: { ...cases.star, freeCount: (cases.star.freeCount || 0) + 1 } };
+                    setCases(nc);
+                    await db.ref(`users/${user.id}`).update({ inventory: ni, cases: nc });
+                    alert('Обменяно на 1 кейс Звездный!');
+                } else if (flowerAction === 'golden') {
+                    const nc = { ...cases, star: { ...cases.star, freeCount: (cases.star.freeCount || 0) + 14 } };
+                    setCases(nc);
+                    await db.ref(`users/${user.id}`).update({ inventory: ni, cases: nc });
+                    alert('Обменяно на 14 кейсов Звездный!');
+                } else if (selectedFlower.sellPrice) {
+                    const nb = balance + selectedFlower.sellPrice;
+                    setBalance(nb);
+                    await db.ref(`users/${user.id}`).update({ inventory: ni, balance: nb });
+                    alert(`Продано за ${selectedFlower.sellPrice}⭐️!`);
+                }
+                
+                setShowFlowerChoice(false);
+                setSelectedFlower(null);
+                setFlowerAction('');
             };
             const exchangeRandomCaseBox = async () => {
                 const keys = ['cardboard', 'coal', 'platinum', 'diamond', 'money', 'gold', 'elite', 'collector'];
@@ -1161,7 +1147,7 @@
                 setBalance(nb);
                 await db.ref(`users/${user.id}/balance`).set(nb);
                 setGeraklBetAmount(geraklBetInput); setGeraklRound(0); setGeraklMultiplier(1.0);
-                setGeraklCurrentWin(geraklBetAmount); setGeraklTimer(25); setGeraklGameActive(true);
+                setGeraklCurrentWin(geraklBetInput); setGeraklTimer(25); setGeraklGameActive(true);
                 setGeraklResult(null); setGeraklBoxOpened(false); setGeraklBoxPrize(null);
             };
             const handleGeraklFlame = async () => {
@@ -1193,212 +1179,100 @@
             const handleGeraklIce = () => { setGeraklResult({ type: 'ice', round: geraklRound }); setGeraklGameActive(false); };
             const exitGeraklGame = () => { setGeraklGameActive(false); setGeraklResult(null); setGeraklBoxOpened(false); setGeraklBoxPrize(null); setCurrentGame(null); };
             if (isLoading) return <div className="min-h-screen flex items-center justify-center"><div className="text-2xl animate-pulse">⏳ Загрузка...</div></div>;
-            // Показ сообщения о блокировке Кейса Цветы жизни
-            useEffect(() => {
-                if (cases.lifeflower.locked && LIFEFLOWER_LOCK_TIME > Date.now()) {
-                    setLifeflowerLockedMessage(true);
-                    const timeout = setTimeout(() => setLifeflowerLockedMessage(false), 5000);
-                    return () => clearTimeout(timeout);
-                }
-            }, [cases.lifeflower.locked]);
-            if (currentGame?.type === 'gerakl') {
-                return (
-                    <div className="min-h-screen bg-gradient-to-b from-red-900 via-orange-900 to-red-800 pb-4" style={{ backgroundImage: "url('gerakl.jpg')", backgroundSize: 'cover', backgroundPosition: 'center', backgroundBlendMode: 'overlay' }}>
-                        <div className="max-w-lg mx-auto p-3">
-                            <div className="flex justify-between items-center mb-3">
-                                <h1 className="text-xl font-bold">🪬 13 Подвиг Геракла 🌊</h1>
-                                <button onClick={exitGeraklGame} className="bg-red-600/40 hover:bg-red-600 border border-red-500/50 px-3 py-1.5 rounded-xl font-bold text-sm">✕ Выйти</button>
-                            </div>
-                            {geraklResult ? (
-                                <div className="glass rounded-xl p-4 mb-3 text-center border border-yellow-500/30">
-                                    {geraklResult.type === 'ice' ? (
-                                        <div><div className="text-5xl mb-2">🧊</div><div className="font-bold text-red-400 text-xl mb-2">ЛЁД!</div><div className="text-gray-300 text-sm mb-1">Продержались: {geraklResult.round} раундов</div><div className="text-gray-400 text-sm mb-3">Ставка: {geraklBetAmount}⭐️ | Выигрыш: 0⭐️</div><button onClick={exitGeraklGame} className="w-full bg-gray-600 py-2.5 rounded-xl font-bold text-sm mobile-btn">Выйти</button></div>
-                                    ) : (
-                                        <div><div className="text-5xl mb-2">🎉</div><div className="font-bold text-green-400 text-xl mb-2">Вы забрали выигрыш!</div><div className="text-yellow-400 font-bold text-lg mb-1">Выигрыш: {geraklResult.win}⭐️</div><div className="text-green-400 text-sm mb-3">Прибыль: +{geraklResult.profit}⭐️</div>
-                                            {geraklBoxPrize && !geraklBoxOpened && <div className="text-7xl mb-3 cursor-pointer hover:scale-110 transition active:scale-95" onClick={() => setGeraklBoxOpened(true)}>📦</div>}
-                                            {geraklBoxPrize && geraklBoxOpened && <div className="bg-gray-800/60 rounded-xl p-3 mb-3"><p className="text-3xl">{geraklBoxPrize.emoji}</p><p className="text-white font-bold mt-1">{geraklBoxPrize.name}</p></div>}
-                                            <button onClick={exitGeraklGame} className="w-full bg-green-600 py-2.5 rounded-xl font-bold text-sm mobile-btn">Выйти</button>
-                                        </div>
-                                    )}
-                                </div>
-                            ) : geraklGameActive ? (
-                                <div className="glass rounded-xl p-4 mb-3 text-center border border-yellow-500/30">
-                                    <div className="text-5xl font-bold text-yellow-400 mb-2">{geraklTimer}</div>
-                                    <div className="grid grid-cols-2 gap-4 mb-4">
-                                        <div className="bg-gray-800/60 rounded-lg p-3"><div className="text-gray-400 text-xs mb-1">Выигрыш</div><div className="text-2xl font-bold text-yellow-400">{geraklCurrentWin}⭐️</div></div>
-                                        <div className="bg-gray-800/60 rounded-lg p-3"><div className="text-gray-400 text-xs mb-1">Множитель</div><div className="text-2xl font-bold text-orange-400">{geraklMultiplier}x</div></div>
+            // Экран Подземелья Аида
+            if (currentGame?.type === 'hades') {
+                if (hadesPortalScreen === 'main') {
+                    if (fateTickets === 0) {
+                        return (
+                            <div className="min-h-screen bg-gradient-to-b from-red-900 via-black to-red-900 pb-4">
+                                <div className="max-w-lg mx-auto p-3">
+                                    <div className="flex justify-between items-center mb-3">
+                                        <h1 className="text-xl font-bold">🔥 Подземелье Аида 🔥</h1>
+                                        <button onClick={() => setCurrentGame(null)} className="bg-red-600/40 hover:bg-red-600 border border-red-500/50 px-3 py-1.5 rounded-xl font-bold text-sm">← Назад</button>
                                     </div>
-                                    <div className="flex gap-2 mb-4">
-                                        <button onClick={handleGeraklFlame} className="flex-1 bg-gradient-to-r from-red-600 to-orange-600 py-3 rounded-xl font-bold text-sm mobile-btn">🔥 Пламя</button>
-                                        <button onClick={handleGeraklCashout} className="flex-1 bg-gradient-to-r from-cyan-600 to-blue-600 py-3 rounded-xl font-bold text-sm mobile-btn">🧊 Забрать</button>
+                                    <div className="glass rounded-xl p-6 text-center mb-4">
+                                        <div className="text-6xl mb-4">🎟</div>
+                                        <h2 className="text-2xl font-bold mb-2">Билет судьбы</h2>
+                                        <p className="text-sm mb-4 text-gray-300">Для входа требуется 1 билет судьбы 🎟</p>
+                                        <button onClick={buyFateTicket} className="w-full bg-gradient-to-r from-red-600 to-orange-600 py-3 rounded-xl font-bold text-lg mobile-btn">Купить билет за 5⭐️</button>
+                                        <p className="text-xs text-gray-400 mt-2">Баланс: {balance.toFixed(0)}⭐️</p>
                                     </div>
-                                    <div className="flex justify-center flex-wrap">{[...Array(10)].map((_, i) => <div key={i} className={`round-box ${i < geraklRound ? 'completed' : i === geraklRound ? 'current' : ''}`}>{i + 1}</div>)}</div>
-                                </div>
-                            ) : (
-                                <div className="glass rounded-xl p-4 text-center border border-yellow-500/30">
-                                    <div className="text-3xl mb-2 animate-bounce">🪬</div>
-                                    <div className="font-bold text-yellow-300 text-lg mb-3">Соверши 13 подвиг!</div>
-                                    <div className="flex gap-2 mb-3">
-                                        <input type="number" min="25" value={geraklBetInput} onChange={e => setGeraklBetInput(Math.max(25, Number(e.target.value)))} className="flex-1 bg-gray-800 border border-yellow-600 rounded-lg p-2.5 text-center text-lg text-white" />
-                                        <button onClick={() => setGeraklBetInput(p => p + 25)} className="bg-yellow-700 px-3 rounded-lg font-bold text-sm">+25</button>
-                                        <button onClick={() => setGeraklBetInput(p => p + 100)} className="bg-yellow-700 px-3 rounded-lg font-bold text-sm">+100</button>
-                                    </div>
-                                    <button onClick={startGeraklGame} disabled={balance < geraklBetInput} className="w-full bg-gradient-to-r from-yellow-600 to-orange-600 py-2.5 rounded-xl font-bold disabled:opacity-50 text-sm mobile-btn">Начать ({geraklBetInput}⭐️)</button>
-                                    <p className="text-xs text-gray-500 mt-1">Баланс: {balance.toFixed(0)}⭐️</p>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                );
-            }
-            // Игра Подземелье Аида
-            if (hadessDungeonGameActive) {
-                return (
-                    <div className="fixed inset-0 bg-black z-50 overflow-y-auto">
-                        <div className="min-h-screen pb-4" style={{ backgroundImage: "url('evil.jpg')", backgroundSize: 'cover', backgroundPosition: 'center' }}>
-                            <div className="relative z-10 p-4">
-                                <div className="text-center text-white font-bold text-xl mb-4 olympus-font" style={{ textShadow: '0 0 10px #ff4757' }}>ПОДЗЕМЕЛЬЕ АИДА🔥</div>
-                                
-                                {hadesDungeonResult ? (
-                                    <div className="text-center">
-                                        {hadesDungeonResult.type === 'timeout' ? (
-                                            <div className="glass rounded-xl p-6">
-                                                <div className="text-6xl mb-4">⏰</div>
-                                                <h2 className="text-2xl font-bold text-red-400 mb-2">Время вышло!</h2>
-                                                <p className="text-gray-300 mb-4">Вы не успели открыть дверь.</p>
-                                                <button onClick={exitHadesDungeon} className="w-full bg-gray-600 py-3 rounded-xl font-bold">Покинуть игру</button>
-                                            </div>
-                                        ) : (
-                                            <div className="glass rounded-xl p-6">
-                                                <div className="text-6xl mb-4">{hadesDungeonResult.emoji}</div>
-                                                <h2 className="text-2xl font-bold text-green-400 mb-2">Поздравляем!</h2>
-                                                <p className="text-yellow-400 text-lg font-bold mb-4">{hadesDungeonResult.value} ⭐️</p>
-                                                <button onClick={exitHadesDungeon} className="w-full bg-green-600 py-3 rounded-xl font-bold">Покинуть игру</button>
-                                            </div>
-                                        )}
-                                    </div>
-                                ) : (
-                                    <div className="text-center">
-                                        <div className="mb-4">
-                                            <span className="text-white font-bold text-xl">Награда: ???</span>
-                                            <div className="mt-2 text-6xl animate-pulse">
-                                                {HADES_PRO_VISUAL[Math.floor(Math.random() * HADES_PRO_VISUAL.length)]}
-                                            </div>
-                                        </div>
-                                        
-                                        <div className="door-grid max-w-md mx-auto">
-                                            {[...Array(8)].map((_, i) => (
-                                                <div 
-                                                    key={i} 
-                                                    className={`door ${hadesDungeonDoorIndex === i ? 'opened' : ''}`}
-                                                    onClick={() => handleHadesDoorClick(i)}
-                                                ></div>
-                                            ))}
-                                        </div>
-                                        
-                                        <div className="mt-4 text-center">
-                                            <div className="inline-block bg-black/50 px-4 py-2 rounded-lg font-bold text-xl">
-                                                ⏱ {hadesDungeonTimerset}с
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                );
-            }
-            // Экран инструкции Подземелья Аида
-            if (hadesDungeonShowInstruction) {
-                return (
-                    <div className="fixed inset-0 bg-black z-50 overflow-y-auto">
-                        <div className="min-h-screen pb-4" style={{ backgroundImage: "url('evil.jpg')", backgroundSize: 'cover', backgroundPosition: 'center' }}>
-                            <div className="relative z-10 p-4">
-                                <div className="glass rounded-xl p-6 text-center">
-                                    <h2 className="text-2xl font-bold olympus-font mb-4" style={{ color: '#ff6b6b', textShadow: '0 0 10px #ff4757' }}>🏵 Инструкция 🏵</h2>
-                                    <p className="text-gray-200 mb-4">Приветствую в игре!<br/>За один вход вы предоставляете 1 особый билет судьбы 🎟!<br/>Перед вами 7 дверей судьбы.<br/>В одной из них находится особый приз — NFT подарок,<br/>в других — поощрительные ⭐️ проекта.<br/>Жми на дверь, чтобы открыть её!<br/>Нажми «Продолжить», чтобы начать!</p>
-                                    <button onClick={startHadesDungeon} className="w-full bg-gradient-to-r from-red-600 to-orange-600 py-3 rounded-xl font-bold text-lg mobile-btn">Продолжить</button>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                );
-            }
-            // Модальное окно покупки билета для Аида
-            if (showHadesPurchaseModal) {
-                return (
-                    <div className="fixed inset-0 bg-black/95 z-[60] flex items-center justify-center p-4">
-                        <div className="glass rounded-2xl p-6 max-w-sm w-full text-center">
-                            <div className="text-6xl mb-4">🎟</div>
-                            <h2 className="text-2xl font-bold mb-3 olympus-font" style={{ color: '#ff6b6b' }}>Для входа требуется билет судьбы 🎟</h2>
-                            <p className="text-gray-300 mb-6">Купить билет за 5⭐️</p>
-                            <button onClick={async () => {
-                                if (balance < 5) {
-                                    alert('Недостаточно звёзд!');
-                                    return;
-                                }
-                                const nb = balance - 5;
-                                setBalance(nb);
-                                await db.ref(`users/${user.id}/balance`).set(nb);
-                                const newTickets = fateTicketCount + 1;
-                                setFateTicketCount(newTickets);
-                                await db.ref(`users/${user.id}/fate_ticket`).set(newTickets);
-                                setShowHadesPurchaseModal(false);
-                                openHadesDungeon();
-                            }} className="w-full bg-gradient-to-r from-red-600 to-orange-600 py-3 rounded-xl font-bold mobile-btn">Купить билет за 5⭐️</button>
-                            <button onClick={() => setShowHadesPurchaseModal(false)} className="w-full bg-gray-600 py-2 rounded-xl text-sm mt-2">Отмена</button>
-                        </div>
-                    </div>
-                );
-            }
-            // Игра Портал цветок
-            if (portalFlowerActive) {
-                if (portalFlowerResult) {
+                        );
+                    }
                     return (
-                        <div className="fixed inset-0 bg-black z-50 overflow-y-auto">
-                            <div className="min-h-screen pb-4" style={{ backgroundImage: "url('roza.jpg')", backgroundSize: 'cover', backgroundPosition: 'center' }}>
-                                <div className="relative z-10 p-4">
-                                    <div className="glass rounded-xl p-6 text-center">
-                                        <div className="text-6xl mb-4 animate-bounce">{portalFlowerResult.emoji}</div>
-                                        <h2 className="text-2xl font-bold mb-2 olympus-font" style={{ color: '#ffb6c1' }}>Награда получена!</h2>
-                                        <p className="text-gray-300 mb-4">{portalFlowerResult.name}</p>
-                                        <button onClick={exitPortalFlower} className="w-full bg-green-600 py-3 rounded-xl font-bold">Назад</button>
-                                    </div>
+                        <div className="min-h-screen bg-gradient-to-b from-red-900 via-black to-red-900 pb-4">
+                            <div className="max-w-lg mx-auto p-3">
+                                <div className="flex justify-between items-center mb-3">
+                                    <h1 className="text-xl font-bold">🔥 Подземелье Аида 🔥</h1>
+                                    <button onClick={() => setCurrentGame(null)} className="bg-red-600/40 hover:bg-red-600 border border-red-500/50 px-3 py-1.5 rounded-xl font-bold text-sm">← Назад</button>
+                                </div>
+                                <div className="glass rounded-xl p-6 text-center mb-4">
+                                    <div className="text-6xl mb-4">🎟</div>
+                                    <h2 className="text-xl font-bold mb-2">Билет судьбы: {fateTickets}</h2>
+                                    <button onClick={enterHadesPortal} className="w-full bg-gradient-to-r from-red-600 to-orange-600 py-3 rounded-xl font-bold text-lg mobile-btn">Войти в портал</button>
                                 </div>
                             </div>
                         </div>
                     );
                 }
-                
-                return (
-                    <div className="fixed inset-0 bg-black z-50 overflow-y-auto">
-                        <div className="min-h-screen pb-4" style={{ backgroundImage: "url('roza.jpg')", backgroundSize: 'cover', backgroundPosition: 'center' }}>
-                            <div className="relative z-10 p-4">
-                                <div className="text-center mb-6">
-                                    <h2 className="text-2xl font-bold olympus-font" style={{ color: '#ffb6c1', textShadow: '0 0 10px #ffb6c1' }}>💐 Банк цветов 💐</h2>
-                                    <p className="text-sm text-gray-400 mt-1">Временное событие!</p>
-                                </div>
-                                
-                                <div className="flex justify-center mb-8">
-                                    <div className="portal-gum">
-                                        <div className="text-6xl">🫧</div>
-                                    </div>
-                                </div>
-                                
-                                <div className="text-center">
-                                    <div className="mb-4">
-                                        <span className="text-white font-bold text-xl">Осталось времени:</span>
-                                        <div className="mt-2 text-3xl font-bold text-pink-400">
-                                            {Math.floor(portalFlowerTimer / 3600)}ч {Math.floor((portalFlowerTimer % 3600) / 60)}м {portalFlowerTimer % 60}с
-                                        </div>
-                                    </div>
-                                    
-                                    <button onClick={exitPortalFlower} className="w-full bg-gray-600 py-3 rounded-xl font-bold">Назад</button>
+                if (hadesPortalScreen === 'instruction') {
+                    return (
+                        <div className="min-h-screen bg-gradient-to-b from-red-900 via-black to-red-900 pb-4">
+                            <div className="max-w-lg mx-auto p-3">
+                                <button onClick={() => setHadesPortalScreen('main')} className="mb-3 bg-red-600/40 hover:bg-red-600 border border-red-500/50 px-3 py-1.5 rounded-xl font-bold text-sm">← Назад</button>
+                                <div className="glass rounded-xl p-4">
+                                    <h2 className="text-2xl font-bold text-center mb-4">🏵 Инструкция 🏵</h2>
+                                    <p className="text-sm leading-relaxed mb-4">
+                                        Приветствую в игре!<br/><br/>
+                                        За один вход вы предоставляете 1 особый билет судьбы 🎟!<br/><br/>
+                                        Перед вами 8 дверей судьбы.<br/><br/>
+                                        В одной из них находится особый приз — NFT подарок,<br/>
+                                        в других — поощрительные ⭐️ проекта.<br/><br/>
+                                        Жми на дверь, чтобы открыть её!
+                                    </p>
+                                    <button onClick={startHadesPortal} className="w-full bg-gradient-to-r from-red-600 to-orange-600 py-3 rounded-xl font-bold text-lg mobile-btn">Продолжить</button>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                );
+                    );
+                }
+                if (hadesPortalScreen === 'game') {
+                    return (
+                        <div className="min-h-screen bg-gradient-to-b from-red-900 via-black to-red-900 pb-4">
+                            <div className="max-w-lg mx-auto p-3">
+                                <div className="text-center mb-4">
+                                    <p className="text-sm text-yellow-400 font-bold">Награда: {hadesProReward?.name || '???'}</p>
+                                    <p className="text-3xl font-bold mt-2">{hadesPortalTimer}</p>
+                                </div>
+                                {hadesPortalResult ? (
+                                    <div className="glass rounded-xl p-4 text-center mb-4">
+                                        <p className="text-5xl mb-2">{hadesPortalResult.emoji}</p>
+                                        <p className="text-xl font-bold mb-2">{hadesPortalResult.name}</p>
+                                        {hadesPortalResult.type !== 'timeout' && <p className="text-2xl text-yellow-400 font-bold mb-4">+{hadesPortalResult.value}⭐️</p>}
+                                        <button onClick={() => exitHadesPortal()} className="w-full bg-green-600 py-2.5 rounded-xl font-bold text-sm mobile-btn">Покинуть игру</button>
+                                    </div>
+                                ) : (
+                                    <>
+                                        <div className="grid grid-cols-4 gap-2 mb-4">
+                                            {[...Array(8)].map((_, i) => (
+                                                <button
+                                                    key={i}
+                                                    onClick={() => openDoor(i)}
+                                                    disabled={openedDoors.includes(i)}
+                                                    className={`aspect-square rounded-lg text-2xl font-bold transition ${openedDoors.includes(i) ? 'opacity-20 bg-gray-700' : 'bg-gradient-to-br from-amber-700 to-amber-900 hover:scale-105'}`}
+                                                >
+                                                    {openedDoors.includes(i) ? '✓' : '🚪'}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+                        </div>
+                    );
+                }
             }
             if (isAdmin) {
                 const filteredUsers = allUsers.filter(u => !adminUserSearch || (u.name && u.name.toLowerCase().includes(adminUserSearch.toLowerCase())) || (u.id && u.id.includes(adminUserSearch)));
@@ -1644,6 +1518,25 @@
                             </div>
                         </div>
                     )}
+                    {showFlowerChoice && selectedFlower && (
+                        <div className="fixed inset-0 bg-black/90 z-[60] flex items-center justify-center p-4">
+                            <div className="glass rounded-2xl p-5 max-w-sm w-full text-center">
+                                <div className="text-6xl mb-3">{selectedFlower.emoji}</div>
+                                <h3 className="text-xl font-bold mb-3">{selectedFlower.name}</h3>
+                                <div className="text-sm text-gray-300 mb-4">
+                                    {flowerAction === 'sunflower' && 'Обменяете подсолнух на 1 кейс Звездный?'}
+                                    {flowerAction === 'golden' && 'Обменяете золотую розу на 14 кейсов Звездный?'}
+                                    {flowerAction === 'sell' && `Продать ${selectedFlower.name} за ${selectedFlower.sellPrice}⭐️?`}
+                                    {flowerAction === 'portal' && `Что сделать с ${selectedFlower.name}?`}
+                                </div>
+                                <div className="space-y-2">
+                                    <button onClick={() => { addToInventory(selectedFlower); setShowFlowerChoice(false); }} className="w-full bg-blue-600 py-3 rounded-xl font-bold text-sm mobile-btn">Оставить</button>
+                                    <button onClick={handleFlowerSell} className="w-full bg-green-600 py-3 rounded-xl font-bold text-sm mobile-btn">{flowerAction === 'golden' ? 'Обменять' : 'Продать'}</button>
+                                    <button onClick={() => setShowFlowerChoice(false)} className="w-full bg-gray-600 py-2 rounded-xl text-sm">Отмена</button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                     {showRandomCaseModal && (
                         <div className="fixed inset-0 bg-black/90 z-[60] flex items-center justify-center p-4">
                             <div className="glass rounded-2xl p-5 max-w-sm w-full text-center">
@@ -1678,7 +1571,7 @@
                     {showWithdrawModal && (
                         <div className="fixed inset-0 bg-black/90 z-[60] flex items-center justify-center p-4">
                             <div className="glass rounded-2xl p-5 max-w-sm w-full text-center">
-                                <h2 className="text-xl font-bold mb-4">🏆 Вывод призов</h2>
+                                <h2 className="text-xl font-bold mb-4">📊 Вывод призов</h2>
                                 {tasks.depositMajor?.completed
                                     ? <p className="text-sm mb-4">Обратитесь к администрации для вывода призов!</p>
                                     : <p className="text-sm mb-4 text-red-400">Чтобы вывести NFT призы, звезды выполните задание «Пополни на 350⭐️»</p>
@@ -1687,20 +1580,11 @@
                             </div>
                         </div>
                     )}
-                    {lifeflowerLockedMessage && (
-                        <div className="fixed inset-0 bg-black/90 z-[60] flex items-center justify-center p-4">
-                            <div className="glass rounded-2xl p-6 max-w-sm w-full text-center">
-                                <div className="text-6xl mb-4">🌺</div>
-                                <h2 className="text-2xl font-bold mb-3 olympus-font" style={{ color: '#ff69b4' }}>Кейс «Цветы жизни🌺»</h2>
-                                <p className="text-gray-300 mb-4">Кейс будет доступен с 08.03.2026 12:30 МСК</p>
-                            </div>
-                        </div>
-                    )}
                     <main className="p-3 max-w-md mx-auto">
                         {currentScreen === 'cases' && (
                             <div>
                                 <h2 className="text-2xl font-bold mb-4 text-center">🎰 Кейсы</h2>
-                                {Object.values(cases).filter(c => c.freeCount > 0 && c.id !== 'daily' && c.id !== 'lifeflower').map(c => (
+                                {Object.values(cases).filter(c => c.freeCount > 0 && c.id !== 'daily').map(c => (
                                     <div key={c.id + '_free'} className="bg-green-500/20 border border-green-500 rounded-lg p-2 mb-2 text-center text-sm animate-pulse">🎁 Бесплатных кейсов {c.name}: {c.freeCount}</div>
                                 ))}
                                 <div className="mb-5">
@@ -1709,6 +1593,8 @@
                                         {Object.values(cases).filter(c => c.type === 'special').map(c => {
                                             const isDaily = c.id === 'daily';
                                             const isDailyWait = isDaily && c.freeCount === 0;
+                                            const now = Date.now();
+                                            const isFlowerLocked = c.id === 'flowers' && now < FLOWER_CASE_UNLOCK_TIME;
                                             
                                             if (c.id === 'collector' && c.locked) {
                                                 return (
@@ -1721,41 +1607,24 @@
                                                     </div>
                                                 );
                                             }
-                                            
-                                            if (c.id === 'lifeflower') {
-                                                const isLocked = c.locked && LIFEFLOWER_LOCK_TIME > Date.now();
+                                            if (isFlowerLocked) {
                                                 return (
-                                                    <div key={c.id} className={`rounded-xl p-3 relative case-lifeflower overflow-hidden ${isLocked ? 'opacity-60' : ''}`}>
-                                                        {isLocked && (
-                                                            <div className="absolute inset-0 bg-black/70 z-20 flex items-center justify-center">
-                                                                <div className="text-center">
-                                                                    <span className="text-4xl">🔒</span>
-                                                                    <p className="text-xs mt-1">До {new Date(LIFEFLOWER_LOCK_TIME).toLocaleDateString()}</p>
-                                                                </div>
-                                                            </div>
-                                                        )}
-                                                        <div className={`w-14 h-14 mx-auto rounded-lg bg-white/20 flex items-center justify-center text-2xl mb-2`}>{c.emoji}</div>
-                                                        <h3 className="font-bold text-center text-sm">Цветы жизни🌺</h3>
-                                                        <p className="text-center text-xs opacity-75 mb-2">
-                                                            {isLocked ? 'Заблокирован' : (c.freeCount > 0 ? <span className="text-green-400 font-bold">Бесплатно!</span> : (c.discountPrice && c.discountPrice !== c.price ? <span><span className="line-through">{c.originalPrice}⭐️</span> {c.discountPrice}⭐️</span> : c.price + '⭐️'))}
-                                                        </p>
-                                                        <button 
-                                                            onClick={() => handleSelectCase(c)} 
-                                                            disabled={c.locked || (isLocked && c.freeCount === 0)} 
-                                                            className="w-full py-2 rounded-lg font-bold text-xs bg-gradient-to-r from-pink-500 to-pink-600 transition mobile-btn"
-                                                        >
-                                                            {c.locked ? '🔒' : (isLocked ? '👁 Смотреть' : (isDailyWait ? '👁 Смотреть' : 'Открыть'))}
-                                                        </button>
+                                                    <div key={c.id} className="rounded-xl p-3 relative case-flowers opacity-80 overflow-hidden">
+                                                        <div className="absolute inset-0 bg-black/50 z-20 flex items-center justify-center"><span className="text-4xl">🔒</span></div>
+                                                        <div className="w-14 h-14 mx-auto rounded-lg bg-white/20 flex items-center justify-center text-2xl mb-2">{c.emoji}</div>
+                                                        <h3 className="font-bold text-center text-sm">{c.name}</h3>
+                                                        <p className="text-center text-xs opacity-75 mb-2 cases-timer">{flowersTimeLeft}</p>
+                                                        <button disabled className="w-full py-2 rounded-lg font-bold text-xs bg-gray-800/80 cursor-not-allowed mobile-btn text-xs">Заблокирован</button>
                                                     </div>
                                                 );
                                             }
-                                            
                                             return (
-                                                <div key={c.id} className={`glass rounded-xl p-3 relative overflow-hidden hover:scale-105 transition ${c.id === 'collector' ? 'case-collector' : ''}`}>
-                                                    <div className={`w-14 h-14 mx-auto rounded-lg ${c.id === 'collector' ? 'bg-white/20' : `bg-gradient-to-br ${c.color}`} flex items-center justify-center text-2xl mb-2`}>{c.emoji}</div>
+                                                <div key={c.id} className={`glass rounded-xl p-3 relative overflow-hidden hover:scale-105 transition ${c.id === 'collector' ? 'case-collector' : c.id === 'flowers' ? 'case-flowers' : ''}`}>
+                                                    {c.isNew && <span className="absolute -top-1 -right-1 bg-red-500 text-xs px-1.5 py-0.5 rounded-full animate-pulse">New!</span>}
+                                                    <div className={`w-14 h-14 mx-auto rounded-lg ${c.id === 'collector' ? 'bg-white/20' : c.id === 'flowers' ? 'bg-white/20' : `bg-gradient-to-br ${c.color}`} flex items-center justify-center text-2xl mb-2`}>{c.emoji}</div>
                                                     <h3 className="font-bold text-center text-sm">{c.name}</h3>
                                                     <p className="text-center text-xs opacity-75 mb-2">
-                                                        {isDaily ? (c.freeCount > 0 ? <span className="text-green-400 font-bold">Бесплатно!</span> : <span className="daily-timer">{dailyCaseTimeLeft}</span>) : (c.price > 0 ? c.price + '⭐️' : '')}
+                                                        {isDaily ? (c.freeCount > 0 ? <span className="text-green-400 font-bold">Бесплатно!</span> : <span className="daily-timer">{dailyCaseTimeLeft}</span>) : (c.discountPrice && c.discountPrice !== c.price ? <span><span className="line-through">{c.originalPrice || c.price}⭐️</span> {c.discountPrice}⭐️</span> : (c.price > 0 ? c.price + '⭐️' : ''))}
                                                     </p>
                                                     <button onClick={() => handleSelectCase(c)} disabled={c.locked} className="w-full py-2 rounded-lg font-bold text-xs bg-gradient-to-r from-indigo-500 to-purple-500 transition mobile-btn">
                                                         {c.locked ? '🔒' : (isDailyWait ? '👁 Смотреть' : 'Открыть')}
@@ -1782,9 +1651,9 @@
                                         ))}
                                     </div>
                                 </div>
-                                {Object.values(cases).filter(c => c.locked && !c.type && c.id !== 'collector' && c.id !== 'lifeflower').length > 0 && (
+                                {Object.values(cases).filter(c => c.locked && !c.type).length > 0 && (
                                     <div className="grid grid-cols-2 gap-3">
-                                        {Object.values(cases).filter(c => c.locked && !c.type && c.id !== 'collector' && c.id !== 'lifeflower').map(c => (
+                                        {Object.values(cases).filter(c => c.locked && !c.type).map(c => (
                                             <div key={c.id} className="glass rounded-xl p-3 relative opacity-50">
                                                 <div className="absolute inset-0 bg-black/70 rounded-xl flex items-center justify-center"><span className="text-2xl">🔒</span></div>
                                                 <div className={`w-14 h-14 mx-auto rounded-lg bg-gradient-to-br ${c.color} flex items-center justify-center text-2xl mb-2`}>{c.emoji}</div>
@@ -1799,37 +1668,15 @@
                         {currentScreen === 'games' && (
                             <div>
                                 <h2 className="text-2xl font-bold mb-4 text-center">🎮 Игры</h2>
-                                
-                                {/* Подземелье Аида */}
-                                <div className="glass rounded-xl p-4 border border-red-500/30 mb-3" style={{ backgroundImage: "url('evil.jpg')", backgroundSize: 'cover', backgroundPosition: 'center', backgroundBlendMode: 'overlay' }}>
-                                    <div className="flex justify-between items-center mb-1">
-                                        <h3 className="text-xl font-bold text-center text-red-300">🔥 Подземелье Аида 🔥</h3>
-                                        <span className="text-yellow-400 font-bold text-sm">🎟 {fateTicketCount}</span>
-                                    </div>
-                                    <p className="text-red-400 text-center text-xs mb-3">Открой дверь и получи награду!</p>
-                                    <button onClick={openHadesDungeon} className="w-full bg-gradient-to-r from-red-600 to-orange-600 py-3 rounded-xl font-bold text-sm mobile-btn">Войти</button>
-                                </div>
-                                
-                                {/* Банк цветов */}
-                                <div className="glass rounded-xl p-4 border border-pink-500/30" style={{ backgroundImage: "url('roza.jpg')", backgroundSize: 'cover', backgroundPosition: 'center', backgroundBlendMode: 'overlay' }}>
-                                    <div className="flex justify-between items-center mb-1">
-                                        <h3 className="text-xl font-bold text-center text-pink-300">💐 Банк цветов 💐</h3>
-                                        {portalFlowerActive && <span className="text-yellow-400 font-bold text-sm">⏱ Растёт</span>}
-                                    </div>
-                                    <p className="text-pink-400 text-center text-xs mb-3">Временное событие!</p>
-                                    <button 
-                                        onClick={startPortalFlower} 
-                                        disabled={portalFlowerActive && portalFlowerTimer > 0}
-                                        className="w-full bg-gradient-to-r from-pink-600 to-rose-600 py-3 rounded-xl font-bold text-sm mobile-btn disabled:opacity-50"
-                                    >
-                                        {portalFlowerActive && portalFlowerTimer > 0 ? 'Растёт...' : 'Посадить цветок💮'}
-                                    </button>
-                                </div>
-                                
-                                <div className="glass rounded-xl p-4 border border-yellow-500/30 mt-3" style={{ backgroundImage: "url('gerakl.jpg')", backgroundSize: 'cover', backgroundPosition: 'center', backgroundBlendMode: 'overlay' }}>
+                                <div className="glass rounded-xl p-4 border border-yellow-500/30 mb-3" style={{ backgroundImage: "url('gerakl.jpg')", backgroundSize: 'cover', backgroundPosition: 'center', backgroundBlendMode: 'overlay' }}>
                                     <h3 className="text-xl font-bold mb-1 text-center text-yellow-300">🪬 13 Подвиг Геракла 🌊</h3>
                                     <p className="text-yellow-400 text-center text-xs mb-3">Пройди 10 раундов и получи сундук 📦</p>
                                     <button onClick={() => setCurrentGame({ type: 'gerakl' })} className="w-full bg-gradient-to-r from-yellow-600 to-orange-600 py-3 rounded-xl font-bold text-sm mobile-btn">Войти</button>
+                                </div>
+                                <div className="glass rounded-xl p-4 border border-red-500/30" style={{ backgroundImage: "url('evil.jpg')", backgroundSize: 'cover', backgroundPosition: 'center', backgroundBlendMode: 'overlay' }}>
+                                    <h3 className="text-xl font-bold mb-1 text-center text-red-300">🔥 Подземелье Аида 🔥</h3>
+                                    <p className="text-red-400 text-center text-xs mb-3">Открывай двери и выигрывай награды! Билет: {fateTickets} 🎟</p>
+                                    <button onClick={() => setCurrentGame({ type: 'hades' })} className="w-full bg-gradient-to-r from-red-600 to-orange-600 py-3 rounded-xl font-bold text-sm mobile-btn">Войти</button>
                                 </div>
                             </div>
                         )}
@@ -1894,11 +1741,8 @@
                                 <div className="flex gap-2 mb-3">
                                     <button onClick={() => setShowTopUp(true)} className="flex-1 bg-gradient-to-r from-yellow-400 to-orange-500 text-gray-900 font-bold py-3 rounded-xl text-sm mobile-btn">💎 Пополнить</button>
                                 </div>
-                                <button 
-                                    onClick={() => setShowWithdrawModal(true)} 
-                                    className={`w-full font-bold py-3 rounded-xl text-sm mb-3 mobile-btn ${tasks.depositMajor?.completed ? 'bg-gradient-to-r from-green-500 to-emerald-600 glow-green' : 'bg-gradient-to-r from-purple-500 to-indigo-600 grayscale cursor-not-allowed'}`}
-                                >
-                                    🏆 {tasks.depositMajor?.completed ? 'Вывести призы' : '🔒 Вывести призы'}
+                                <button onClick={() => setShowWithdrawModal(true)} disabled={!tasks.depositMajor?.completed} className={`w-full font-bold py-3 rounded-xl text-sm mb-3 mobile-btn ${tasks.depositMajor?.completed ? 'bg-gradient-to-r from-green-500 to-emerald-600' : 'bg-gray-600/50 text-gray-400'}`}>
+                                    {tasks.depositMajor?.completed ? '🏆 Вывести призы' : '🔒 Вывести призы'}
                                 </button>
                                 <div className="glass rounded-xl p-3 mb-3">
                                     <h3 className="font-bold mb-2 text-sm">🎁 Промокод</h3>
@@ -1926,6 +1770,54 @@
                             </div>
                         )}
                     </main>
+                    {currentGame?.type === 'gerakl' && (
+                        <div className="fullscreen-modal flex items-center justify-center p-3">
+                            <div className="w-full max-w-lg">
+                                <div className="flex justify-between items-center mb-4">
+                                    <h3 className="text-xl font-bold">🪬 13 Подвиг Геракла 🌊</h3>
+                                    <button onClick={exitGeraklGame} className="text-3xl hover:text-red-400">×</button>
+                                </div>
+                                {geraklResult ? (
+                                    <div className="glass rounded-xl p-4 mb-4 text-center border border-yellow-500/30">
+                                        {geraklResult.type === 'ice' ? (
+                                            <div><div className="text-5xl mb-2">🧊</div><div className="font-bold text-red-400 text-xl mb-2">ЛЁД!</div><div className="text-gray-300 text-sm mb-1">Продержались: {geraklResult.round} раундов</div><div className="text-gray-400 text-sm mb-3">Ставка: {geraklBetAmount}⭐️ | Выигрыш: 0⭐️</div><button onClick={exitGeraklGame} className="w-full bg-gray-600 py-2.5 rounded-xl font-bold text-sm mobile-btn">Выйти</button></div>
+                                        ) : (
+                                            <div><div className="text-5xl mb-2">🎉</div><div className="font-bold text-green-400 text-xl mb-2">Вы забрали выигрыш!</div><div className="text-yellow-400 font-bold text-lg mb-1">Выигрыш: {geraklResult.win}⭐️</div><div className="text-green-400 text-sm mb-3">Прибыль: +{geraklResult.profit}⭐️</div>
+                                                {geraklBoxPrize && !geraklBoxOpened && <div className="text-7xl mb-3 cursor-pointer hover:scale-110 transition active:scale-95" onClick={() => setGeraklBoxOpened(true)}>📦</div>}
+                                                {geraklBoxPrize && geraklBoxOpened && <div className="bg-gray-800/60 rounded-xl p-3 mb-3"><p className="text-3xl">{geraklBoxPrize.emoji}</p><p className="text-white font-bold mt-1">{geraklBoxPrize.name}</p></div>}
+                                                <button onClick={exitGeraklGame} className="w-full bg-green-600 py-2.5 rounded-xl font-bold text-sm mobile-btn">Выйти</button>
+                                            </div>
+                                        )}
+                                    </div>
+                                ) : geraklGameActive ? (
+                                    <div className="glass rounded-xl p-4 mb-4 text-center border border-yellow-500/30">
+                                        <div className="text-5xl font-bold text-yellow-400 mb-2">{geraklTimer}</div>
+                                        <div className="grid grid-cols-2 gap-4 mb-4">
+                                            <div className="bg-gray-800/60 rounded-lg p-3"><div className="text-gray-400 text-xs mb-1">Выигрыш</div><div className="text-2xl font-bold text-yellow-400">{geraklCurrentWin}⭐️</div></div>
+                                            <div className="bg-gray-800/60 rounded-lg p-3"><div className="text-gray-400 text-xs mb-1">Множитель</div><div className="text-2xl font-bold text-orange-400">{geraklMultiplier}x</div></div>
+                                        </div>
+                                        <div className="flex gap-2 mb-4">
+                                            <button onClick={handleGeraklFlame} className="flex-1 bg-gradient-to-r from-red-600 to-orange-600 py-3 rounded-xl font-bold text-sm mobile-btn">🔥 Пламя</button>
+                                            <button onClick={handleGeraklCashout} className="flex-1 bg-gradient-to-r from-cyan-600 to-blue-600 py-3 rounded-xl font-bold text-sm mobile-btn">🧊 Забрать</button>
+                                        </div>
+                                        <div className="flex justify-center flex-wrap">{[...Array(10)].map((_, i) => <div key={i} className={`round-box ${i < geraklRound ? 'completed' : i === geraklRound ? 'current' : ''}`}>{i + 1}</div>)}</div>
+                                    </div>
+                                ) : (
+                                    <div className="glass rounded-xl p-4 text-center border border-yellow-500/30">
+                                        <div className="text-3xl mb-2 animate-bounce">🪬</div>
+                                        <div className="font-bold text-yellow-300 text-lg mb-3">Соверши 13 подвиг!</div>
+                                        <div className="flex gap-2 mb-3">
+                                            <input type="number" min="25" value={geraklBetInput} onChange={e => setGeraklBetInput(Math.max(25, Number(e.target.value)))} className="flex-1 bg-gray-800 border border-yellow-600 rounded-lg p-2.5 text-center text-lg text-white" />
+                                            <button onClick={() => setGeraklBetInput(p => p + 25)} className="bg-yellow-700 px-3 rounded-lg font-bold text-sm">+25</button>
+                                            <button onClick={() => setGeraklBetInput(p => p + 100)} className="bg-yellow-700 px-3 rounded-lg font-bold text-sm">+100</button>
+                                        </div>
+                                        <button onClick={startGeraklGame} disabled={balance < geraklBetInput} className="w-full bg-gradient-to-r from-yellow-600 to-orange-600 py-2.5 rounded-xl font-bold disabled:opacity-50 text-sm mobile-btn">Начать ({geraklBetInput}⭐️)</button>
+                                        <p className="text-xs text-gray-500 mt-1">Баланс: {balance.toFixed(0)}⭐️</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
                     {selectedCase && (
                         <div className="fullscreen-modal flex items-center justify-center p-3">
                             <div className="w-full max-w-lg" ref={rouletteContainerRef}>
@@ -1956,7 +1848,7 @@
                                         <button onClick={() => { setSelectedCase(null); setSpinResult(null); setFakeItems([]); }} className="w-full bg-gray-600 py-2.5 rounded-xl font-bold text-sm mobile-btn">К кейсам</button>
                                     </div>
                                 ) : (
-                                    <button onClick={() => openCase(selectedCase.id)} disabled={isSpinning || (selectedCase.id === 'daily' && selectedCase.freeCount === 0)} className="w-full bg-gradient-to-r from-indigo-500 to-purple-500 py-4 rounded-xl font-bold text-lg disabled:opacity-50 mobile-btn">
+                                    <button onClick={() => openCase(selectedCase.id)} disabled={isSpinning || (selectedCase.id === 'daily' && selectedCase.freeCount === 0) || selectedCase.locked} className="w-full bg-gradient-to-r from-indigo-500 to-purple-500 py-4 rounded-xl font-bold text-lg disabled:opacity-50 mobile-btn">
                                         {isSpinning ? '🌀 Крутим...' : (selectedCase.id === 'daily' && selectedCase.freeCount === 0 ? dailyCaseTimeLeft : `Открыть за ${getCasePrice(selectedCase.id) === 0 ? 'Бесплатно' : getCasePrice(selectedCase.id) + '⭐️'}`)}
                                     </button>
                                 )}
@@ -1987,6 +1879,13 @@
                                             <span className="text-yellow-400 font-bold text-sm">{rate.ton} TON</span>
                                         </button>
                                     ))}
+                                </div>
+                                <div className="border-t border-gray-600 pt-3">
+                                    <p className="text-xs text-gray-400 text-center mb-2">🎟️ Билет судьбы</p>
+                                    <button onClick={buyFateTicket} className="w-full glass p-3 rounded-xl flex justify-between items-center hover:bg-white/10 border border-white/10">
+                                        <span className="font-bold text-sm">+1 Билет 🎟️</span>
+                                        <span className="text-yellow-400 font-bold text-sm">5⭐️</span>
+                                    </button>
                                 </div>
                             </div>
                         </div>
