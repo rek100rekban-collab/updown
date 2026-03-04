@@ -715,16 +715,16 @@
                 setCurrentGame(null);
             };
 
-            const buyFateTicket = async (amount, price) => {
+            const buyFateTicket = async () => {
                 try {
                     const r = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/createInvoiceLink`, {
                         method: 'POST', headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ 
-                            title: `${amount} Билет(ов) судьбы`, 
-                            description: `Покупка ${amount} билета(ов) судьбы`, 
-                            payload: `fate_${user.id}_${amount}_${Date.now()}`, 
+                            title: '1 Билет судьбы', 
+                            description: `Покупка 1 билета судьбы`, 
+                            payload: `fate_${user.id}_${Date.now()}`, 
                             currency: 'XTR', 
-                            prices: [{ label: `${amount} Билет(ов) судьбы`, amount: price }] 
+                            prices: [{ label: '1 Билет судьбы', amount: 5 }] 
                         })
                     });
                     const data = await r.json();
@@ -732,10 +732,10 @@
                         if (TelegramWebApp) {
                             TelegramWebApp.openInvoice(data.result, async (status) => {
                                 if (status === 'paid') {
-                                    const newTickets = fateTickets + amount;
+                                    const newTickets = fateTickets + 1;
                                     setFateTickets(newTickets);
                                     await db.ref(`users/${user.id}/fate_ticket`).set(newTickets);
-                                    alert(`✅ Зачислено ${amount} билетов!`);
+                                    alert(`✅ Зачислен 1 билет!`);
                                 }
                             });
                         } else { window.open(data.result, '_blank'); }
@@ -1974,17 +1974,9 @@
                                             <p className="text-yellow-400 font-bold text-lg mb-1">Ваши билеты: {fateTickets} 🎟</p>
                                         </div>
                                         <div className="space-y-2">
-                                            <button onClick={() => buyFateTicket(1, 5)} className="w-full glass p-3 rounded-xl flex justify-between items-center hover:bg-white/10 border border-white/10">
+                                            <button onClick={buyFateTicket} className="w-full glass p-3 rounded-xl flex justify-between items-center hover:bg-white/10 border border-white/10">
                                                 <span className="font-bold text-yellow-400 text-sm">+1 🎟</span>
                                                 <span className="text-gray-300 text-xs">Купить за 5 XTR</span>
-                                            </button>
-                                            <button onClick={() => buyFateTicket(5, 20)} className="w-full glass p-3 rounded-xl flex justify-between items-center hover:bg-white/10 border border-white/10">
-                                                <span className="font-bold text-yellow-400 text-sm">+5 🎟</span>
-                                                <span className="text-gray-300 text-xs">Купить за 20 XTR</span>
-                                            </button>
-                                            <button onClick={() => buyFateTicket(10, 35)} className="w-full glass p-3 rounded-xl flex justify-between items-center hover:bg-white/10 border border-white/10">
-                                                <span className="font-bold text-yellow-400 text-sm">+10 🎟</span>
-                                                <span className="text-gray-300 text-xs">Купить за 35 XTR</span>
                                             </button>
                                         </div>
                                     </div>
